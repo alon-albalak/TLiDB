@@ -27,4 +27,6 @@ wget -P ${DOWNLOAD_FOLDER}/train https://raw.githubusercontent.com/budzianowski/
 
 python3 convert_multiwoz22.py
 
+zip -r TLiDB_multiwoz22 TLiDB_multiwoz22/
+
 rm -r $DOWNLOAD_FOLDER
