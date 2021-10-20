@@ -1,0 +1,64 @@
+{
+    "metadata":
+    {
+        "dataset_name":"sample",
+        "tasks":[
+            "turn_level_task",
+            "dialogue_level_task"
+        ],
+        "data_ids_low":[
+            "This",
+            "will",
+            "contain",
+            "the",
+            "list",
+            "of",
+            "ids",
+            "for",
+            "few",
+            "shot"
+        ],
+        "data_ids_high":[
+            "This",
+            "will",
+            "contain",
+            "the",
+            "list",
+            "of",
+            "ids",
+            "for",
+            "full",
+            "data",
+            "setting"
+        ]
+    },
+    "data":
+    [
+        {
+            "dialogue_id":"dialogue1",
+            "dialogue_metadata":{
+                "whatever_metadata_is_needed":"is kept here",
+                "turn_level_task":"metadata is stored here",
+                "dialogue_level_task":"metadata such as services offered in this conversation can be stored here"
+            },
+            "dialogue":
+            [
+                {
+                    "turn_id":0,
+                    "speaker":"speaker1",
+                    "utterance":"this is the first turn",
+                    "turn_level_task":0,
+                    "task_specific_metadata":{}
+                },
+                {
+                    "turn_id":1,
+                    "speaker":"speaker2",
+                    "utterance":"and this is the second turn!",
+                    "turn_level_task":1,
+                    "task_specific_metadata":{}
+                }
+            ],
+            "dialogue_level_task":"excited"
+        }
+    ]
+}
