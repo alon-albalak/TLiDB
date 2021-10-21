@@ -45,14 +45,14 @@
             [
                 {
                     "turn_id":0,
-                    "speaker":"speaker1",
+                    "speakers":["speaker1"],
                     "utterance":"this is the first turn",
                     "turn_level_task":0,
                     "task_specific_metadata":{}
                 },
                 {
                     "turn_id":1,
-                    "speaker":"speaker2",
+                    "speakers":["speaker2"],
                     "utterance":"and this is the second turn!",
                     "turn_level_task":1,
                     "task_specific_metadata":{}

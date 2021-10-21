@@ -12,7 +12,8 @@ from zipfile import ZipFile
 #   https://drive.google.com/uc?export=download&id=1sqaiYTm9b9SPEzehdjp_DXEovVId6Fvq
 dataset_urls = {
     "multiwoz_22": "https://drive.google.com/uc?export=download&id=1sqaiYTm9b9SPEzehdjp_DXEovVId6Fvq",
-    "clinc150": "https://drive.google.com/uc?export=download&id=1Vu_1GjGF3bJo77Amw5qNU7z8Smn2B6Av"
+    "clinc150": "https://drive.google.com/uc?export=download&id=1Vu_1GjGF3bJo77Amw5qNU7z8Smn2B6Av",
+    "friends_ER": "https://drive.google.com/uc?export=download&id=13b8PsYGShUDkoYS6m4YHbqWlxaOW3i_L"
 }
 
 def download_and_unzip(url, extract_to='.'):
@@ -34,5 +35,3 @@ def load_dataset(name):
     ds = load_dataset_local(name)
 
     return ds
-
-load_dataset("clinc150")
