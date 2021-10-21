@@ -13,7 +13,8 @@ from zipfile import ZipFile
 dataset_urls = {
     "multiwoz_22": "https://drive.google.com/uc?export=download&id=1sqaiYTm9b9SPEzehdjp_DXEovVId6Fvq",
     "clinc150": "https://drive.google.com/uc?export=download&id=1Vu_1GjGF3bJo77Amw5qNU7z8Smn2B6Av",
-    "friends_ER": "https://drive.google.com/uc?export=download&id=13b8PsYGShUDkoYS6m4YHbqWlxaOW3i_L"
+    "friends_ER": "https://drive.google.com/uc?export=download&id=13b8PsYGShUDkoYS6m4YHbqWlxaOW3i_L",
+    "friends_RC": "https://drive.google.com/uc?export=download&id=1XnRnFm9J5ySARPEr7aW3JE1jMetdcwsl"
 }
 
 def download_and_unzip(url, extract_to='.'):
