@@ -30,7 +30,7 @@ for p in data_partitions:
             },
             "dialogue":[{
                 "turn_id":0,
-                "speaker":None,
+                "speakers":[],
                 "utterance":datum[0],
                 "intent_detection":{
                     "domain": domain,

@@ -28,7 +28,7 @@ def format_data(data):
         for turn in datum['turns']:
             formatted_turn = {
                 "turn_id":turn['turn_id'],
-                "speaker":turn['speaker'],
+                "speakers":[turn['speaker']],
                 "utterance":turn['utterance'],
                 "dialogue_state_tracking":{"domains":{}}
             }
