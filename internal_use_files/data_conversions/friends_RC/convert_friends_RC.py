@@ -1,5 +1,9 @@
 import os
 import json
+from nltk.tokenize.treebank import TreebankWordDetokenizer
+
+detokenizer = TreebankWordDetokenizer()
+
 
 def format_data(data):
     formatted_data = {
@@ -23,10 +27,10 @@ def format_data(data):
             "dialogue_metadata":{
                 "reading_comprehension":None
             },
-        "dialogue":[],
-        "reading_comprehension":{
-            "query":query['query'],
-            "answer":query['answer']
+            "dialogue":[],
+            "reading_comprehension":{
+                "query":detokenizer.detokenize(query['query'].split()),
+                "answer":query['answer']
             }
         }
         turn_id=0
@@ -34,7 +38,7 @@ def format_data(data):
             formatted_turn={
                 "turn_id":turn_id,
                 "speakers":[ut['speakers'].split(" ")],
-                "utterance":ut['tokens']
+                "utterance":detokenizer.detokenize(ut['tokens'].split())
             }
             turn_id += 1
             formatted_datum['dialogue'].append(formatted_turn)
