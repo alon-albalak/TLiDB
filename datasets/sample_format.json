@@ -6,6 +6,10 @@
             "turn_level_task",
             "dialogue_level_task"
         ],
+        "task_metadata":{
+            "turn_level_task":{"labels":["list","of","labels"], "metrics":["f1","accuracy"]},
+            "dialogue_level_task":{"metrics":["BLEU"]}
+        },
         "data_ids_low":[
             "This",
             "will",

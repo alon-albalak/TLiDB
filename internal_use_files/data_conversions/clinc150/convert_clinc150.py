@@ -11,7 +11,9 @@ formatted_data = {
         "dataset_name":"clinc150",
         "tasks":[
             "intent_detection"
-        ]
+        ],
+        "task_metadata":
+        {"intent_detection":{"labels":[]},"metrics":["f1","accuracy"]}
     },
     "data":[]
 }
@@ -22,6 +24,9 @@ for p in data_partitions:
     for datum in data[p]:
         intent = datum[1]
         domain = domain_mapping[intent]
+
+        if f"{domain}_{intent}" not in formatted_data['metadata']['task_metadata']['intent_detection']['labels']:
+            formatted_data['metadata']['task_metadata']['intent_detection']['labels'].append(f"{domain}_{intent}")
 
         formatted_datum = {
             "dialogue_id":f"{dialogue_id:05d}",
@@ -40,6 +45,9 @@ for p in data_partitions:
         }
         formatted_data["data"].append(formatted_datum)
         dialogue_id += 1
+
+formatted_data['metadata']['task_metadata']['intent_detection']['labels'].sort()
+
 
 TLiDB_path="TLiDB_clinc150"
 if not os.path.isdir(TLiDB_path):
