@@ -12,7 +12,10 @@ def format_data(data):
             "dataset_name":"friends_RC",
             "tasks":[
                 "reading_comprehension"
-            ]
+            ],
+            "task_metadata":{
+                "reading_comprehension":{"metrics":["accuracy"]}
+            }
         },
         "data":[]
     }

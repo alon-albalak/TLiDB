@@ -9,8 +9,10 @@ def format_data(data):
             "dataset_name":"multiwoz22",
             "tasks":[
                 "dialogue_state_tracking",
-                "dialogue_generation"
-            ]
+            ],
+            "task_metadata":{
+                "dialogue_state_tracking":{"metrics":["joint_slot_accuracy"]}
+            }
         },
         "data":[]
     }

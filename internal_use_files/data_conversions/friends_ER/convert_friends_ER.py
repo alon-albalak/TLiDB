@@ -8,7 +8,10 @@ def format_data(data):
             "dataset_name":"friends_ER",
             "tasks":[
                 "emotion_recognition"
-            ]
+            ],
+            "task_metadata":{
+                "emotion_recognition":{"labels":[],"metrics":["f1","accuracy"]}
+            }
         },
         "data":[]
     }
@@ -23,6 +26,9 @@ def format_data(data):
                 "dialogue":[]
             }
             for ut in sc['utterances']:
+                if ut['emotion'] not in formatted_data['metadata']['task_metadata']['emotion_recognition']['labels']:
+                    formatted_data['metadata']['task_metadata']['emotion_recognition']['labels'].append(ut['emotion'])
+
                 formatted_turn = {
                     "turn_id":ut['utterance_id'],
                     "speakers":ut['speakers'],
@@ -31,6 +37,7 @@ def format_data(data):
                 }
                 formatted_datum['dialogue'].append(formatted_turn)
             formatted_data['data'].append(formatted_datum)
+    formatted_data['metadata']['task_metadata']['emotion_recognition']['labels'].sort()
     return formatted_data
 
 TLiDB_path="TLiDB_friends_ER"

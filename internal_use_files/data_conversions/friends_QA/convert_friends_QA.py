@@ -11,7 +11,8 @@ def format_data(data):
             "dataset_name":"friends_QA",
             "tasks":[
                 "question_answering"
-            ]
+            ],
+            "task_metadata":{"question_answering":{"metrics":["exact_match","token_f1"]}}
         },
         "data":[]
     }
