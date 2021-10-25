@@ -6,18 +6,6 @@ import torch
 
 logger = logging.getLogger(__name__)
 
-# dataset url can be found in the google drive, where the original link is:
-#   https://drive.google.com/file/d/1sqaiYTm9b9SPEzehdjp_DXEovVId6Fvq/view?usp=sharing
-# and needs to be reformatted as:
-#   https://drive.google.com/uc?export=download&id=1sqaiYTm9b9SPEzehdjp_DXEovVId6Fvq
-DATASETS_INFO = {
-    "multiwoz22": {"url":"https://drive.google.com/uc?export=download&id=1N77FmuksmFZuFVwk87rQHMzw_DqdTLP2"},
-    "clinc150": {"url":"https://drive.google.com/uc?export=download&id=1syuXRgT2oj5d5dAMm_b83gqnnir1vF3y"},
-    "friends_ER": {"url":"https://drive.google.com/uc?export=download&id=1evEtiYj9I3-lqD8JXHpknHSkYHzq2uQB"},
-    "friends_RC": {"url":"https://drive.google.com/uc?export=download&id=1jQy3dQd8exl7otgJRi-fp9Ldp9ppCzmG"},
-    "friends_QA": {"url":"https://drive.google.com/uc?export=download&id=11DELN1S722Yi4XNn_YJ0NwvJy4io8Gyi"}
-}
-
 def set_seed(seed):
     if seed != -1:
         random.seed(seed)

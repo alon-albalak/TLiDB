@@ -2,34 +2,31 @@
 
 ### File structure:
 
-The following files are for public use
-- models/
-    - /model1.py
-    - /model2.py
-- datasets/
-    - /dataset1/
-        - /data files
-    - /dataset2/
-        - /data files
-- utils/
-    - /datasets.py
-    - /metrics.py
-    - /utils.py
-- train.py
+- TLiDB/
+    - /datasets/
+        - sample_format.json
+        - dataset1.json
+        - dataset2.json
+    - /utils/
+        - datasets.py
+        - metrics.py
+        - utils.py
+    - train.py
+- examples/
+    - model1.py
+    - model2.py
+- distances/
+    - domain_distance.py
+    - task_distance.py
+- dataset_preprocessing/
+    - dataset1/
+        - convert_dataset1.py
+        - download_and_convert_dataset1.sh
+    - dataset2/
+        - convert_dataset2.py
+        - download_and_convert_dataset2.sh
 
-
-The following files are for internal use.
-
-For example, we keep track of scripts used to convert the original datasets into our unified format
-Please do not push dataset folders to the github repo. Instead, zip and upload them to the google drive, found at: https://drive.google.com/drive/folders/1PiMzi0GpV1QuKUazNAYAbUEmHS_M1tfr?usp=sharing
-- internal_use_files/
-    - /data_conversions/
-        - /dataset1/
-            - /dataset1_converter.py
-            - /TLiDB_dataset1/
-                - /dataset1 files
-        - /dataset2/
-            - /dataset2_converter.py
-            - /TLiDB_dataset2/
-                - /dataset2 files
-    - /other_internal_files
+TLiDB is the main folder holding the benchmark
+examples contains sample code for training models
+distances contains code for calculating distances between datasets/domains/tasks
+dataset_preprocessing is for reproducability purposes, not required for end users. It contains scripts used to preprocess the TLiDB datasets from their original form into the TLiDB form

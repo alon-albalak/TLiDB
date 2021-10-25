@@ -18,8 +18,14 @@ def main(**kwargs):
     if kwargs["seed"] != -1:
         utils.set_seed(kwargs["seed"])
 
-    dataset = datasets.load_dataset(kwargs['dataset_name'])
+    # load tokenizer
+    tokenizer = AutoTokenizer.from_pretrained(kwargs['model_name_or_path'])
 
+    # load data
+    dataset = datasets.DATASETS_INFO[kwargs['dataset_name']]['dataset_class'](dataset_name=kwargs['dataset_name'], task=kwargs['task'])
+    data = dataset.get_data(tokenizer=tokenizer)
+
+    # load model
     model=AutoModelForSequenceClassification.from_pretrained(kwargs['model_name_or_path'],num_labels=len(dataset['metadata']['task_metadata'][kwargs['task']]['labels']))
     model.to(kwargs['device'])
 
