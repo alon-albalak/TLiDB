@@ -18,10 +18,10 @@ formatted_data = {
     "data":[]
 }
 
-data_partitions = ["train","val","test"]
+data_partitions = [["train","train"],["val","dev"],["test","test"]]
 dialogue_id = 0
 for p in data_partitions:
-    for datum in data[p]:
+    for datum in data[p[0]]:
         intent = datum[1]
         domain = domain_mapping[intent]
 
@@ -31,7 +31,8 @@ for p in data_partitions:
         formatted_datum = {
             "dialogue_id":f"{dialogue_id:05d}",
             "dialogue_metadata":{
-                "intent_detection":None
+                "intent_detection":None,
+                "original_data_partition":p[1]
             },
             "dialogue":[{
                 "turn_id":0,

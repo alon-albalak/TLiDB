@@ -5,30 +5,18 @@ from nltk.tokenize.treebank import TreebankWordDetokenizer
 detokenizer = TreebankWordDetokenizer()
 
 
-def format_data(data):
-    formatted_data = {
-        "metadata":
-        {
-            "dataset_name":"friends_RC",
-            "tasks":[
-                "reading_comprehension"
-            ],
-            "task_metadata":{
-                "reading_comprehension":{"metrics":["accuracy"]}
-            }
-        },
-        "data":[]
-    }
-
-    scenes = {}
-    for query in data:
+def format_data(original_data, formatted_data, partition, scenes):
+    """Updates formatted_data inplace with the data from original_data"""
+    
+    for query in original_data:
         if query['scene_id'] not in scenes:
             scenes[query['scene_id']] = 0
         
         formatted_datum = {
             "dialogue_id":f"{query['scene_id']}_q{scenes[query['scene_id']]:02d}",
             "dialogue_metadata":{
-                "reading_comprehension":None
+                "reading_comprehension":None,
+                "original_data_partition":partition
             },
             "dialogue":[],
             "reading_comprehension":{
@@ -47,16 +35,33 @@ def format_data(data):
             formatted_datum['dialogue'].append(formatted_turn)
         formatted_data['data'].append(formatted_datum)
         scenes[query['scene_id']] += 1
-    return formatted_data
+    return
 
 TLiDB_path="TLiDB_friends_RC"
 if not os.path.isdir(TLiDB_path):
     os.mkdir(TLiDB_path)
 
+formatted_data = {
+    "metadata":
+    {
+        "dataset_name": "friends_RC",
+        "tasks": [
+            "reading_comprehension"
+        ],
+        "task_metadata": {
+            "reading_comprehension": {"metrics": ["accuracy"]}
+        }
+    },
+    "data": []
+}
+scenes = {}
+
 data_partitions = [["trn","train"],["dev","dev"],["tst","test"]]
 for p in data_partitions:
     data_path=f"reading-comprehension-{p[0]}.json"
-    data = json.load(open(data_path,"r"))
-    formatted_data = format_data(data)
-    with open(os.path.join(TLiDB_path,f"reading-comprehension-{p[1]}.json"), "w") as f:
-        json.dump(formatted_data, f, indent=2)
+    original_data = json.load(open(data_path,"r"))
+    format_data(original_data, formatted_data, p[1],scenes)
+
+
+with open(os.path.join(TLiDB_path,"TLiDB_friends_RC.json"), "w") as f:
+    json.dump(formatted_data, f, indent=2)

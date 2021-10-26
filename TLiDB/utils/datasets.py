@@ -5,7 +5,9 @@ from io import BytesIO
 from zipfile import ZipFile
 import logging
 from torch.utils.data import Dataset
+
 logger = logging.getLogger(__name__)
+dataset_folder = "../datasets"
 
 def download_and_unzip(url, extract_to='.'):
     logger.info(f"Waiting for response from {url}")
@@ -16,7 +18,7 @@ def download_and_unzip(url, extract_to='.'):
 
 def load_dataset_local(name):
     ds = {}
-    for root, dirs, files in os.walk(f"datasets/TLiDB_{name}"):
+    for root, dirs, files in os.walk(f"{dataset_folder}/TLiDB_{name}"):
         for file in files:
             if file.endswith(".json") and file!="sample_format.json":
                 ds[file[:-5]] = json.load(open(f"{root}/{file}"))
@@ -27,9 +29,9 @@ def load_dataset(name):
                 \nTry using any of {' '.join(list(DATASETS_INFO.keys()))}"
 
     # download and unzip dataset if needed
-    if f"TLiDB_{name}" not in os.listdir("datasets"):
-        download_and_unzip(DATASETS_INFO[name]['url'],"datasets")
-        logger.info(f"Extracted files to /datasets/{name}")
+    if f"TLiDB_{name}" not in os.listdir(dataset_folder):
+        download_and_unzip(DATASETS_INFO[name]['url'], dataset_folder)
+        logger.info(f"Extracted files to {dataset_folder}/{name}")
 
     ds = load_dataset_local(name)
 
@@ -92,13 +94,13 @@ class friends_QA_dataset(TLiDB_Dataset):
 #   https://drive.google.com/uc?export=download&id=1sqaiYTm9b9SPEzehdjp_DXEovVId6Fvq
 DATASETS_INFO = {
     "multiwoz22": {"dataset_class": multiwoz22_dataset,
-                   "url": "https://drive.google.com/uc?export=download&id=1N77FmuksmFZuFVwk87rQHMzw_DqdTLP2"},
+                   "url": "https://drive.google.com/uc?export=download&id=1ZYiKM6D2-b8HfIP_jHh6-YdtJ6sZfssQ"},
     "clinc150": {"dataset_class": clinc150_dataset,
-                 "url": "https://drive.google.com/uc?export=download&id=1syuXRgT2oj5d5dAMm_b83gqnnir1vF3y"},
+                 "url": "https://drive.google.com/uc?export=download&id=1T4K846SFSGikSxLkoyJK8rjYEYRbtDXu"},
     "friends_ER": {"dataset_class": friends_ER_dataset,
-                   "url": "https://drive.google.com/uc?export=download&id=1evEtiYj9I3-lqD8JXHpknHSkYHzq2uQB"},
+                   "url": "https://drive.google.com/uc?export=download&id=1hjbtUUQDBPTJmEdks5krL9E-ZQepmGXt"},
     "friends_RC": {"dataset_class": friends_RC_dataset,
-                   "url": "https://drive.google.com/uc?export=download&id=1jQy3dQd8exl7otgJRi-fp9Ldp9ppCzmG"},
+                   "url": "https://drive.google.com/uc?export=download&id=1Gi70GnNNRQWgnJNaOpbx9vVKq7L8Lbte"},
     "friends_QA": {"dataset_class": friends_QA_dataset,
-                   "url": "https://drive.google.com/uc?export=download&id=11DELN1S722Yi4XNn_YJ0NwvJy4io8Gyi"}
+                   "url": "https://drive.google.com/uc?export=download&id=1WlpmRNoYW5zXrOqBNw0OhVjyZ-eFXMCm"}
 }
