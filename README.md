@@ -28,7 +28,7 @@
 
 ### Folder descriptions:
 
-- TLiDB is the main folder holding the benchmark
-- examples contains sample code for training models
-- distances contains code for calculating distances between datasets/domains/tasks
-- dataset_preprocessing is for reproducability purposes, not required for end users. It contains scripts used to preprocess the TLiDB datasets from their original form into the TLiDB form
+- /TLiDB is the main folder holding the benchmark
+- /examples contains sample code for training models
+- /distances contains code for calculating distances between datasets/domains/tasks
+- /dataset_preprocessing is for reproducability purposes, not required for end users. It contains scripts used to preprocess the TLiDB datasets from their original form into the TLiDB form
