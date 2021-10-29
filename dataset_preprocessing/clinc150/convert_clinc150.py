@@ -13,7 +13,7 @@ formatted_data = {
             "intent_detection"
         ],
         "task_metadata":
-        {"intent_detection":{"labels":[]},"metrics":["f1","accuracy"]}
+        {"intent_detection":{"labels":[],"metrics":["f1","accuracy"]}}
     },
     "data":[]
 }
