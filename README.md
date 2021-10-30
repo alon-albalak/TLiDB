@@ -3,18 +3,32 @@
 ### File structure:
 
 - TLiDB/
+    - /data_loaders/
+        - data_loader.py
     - /datasets/
         - sample_format.json
         - dataset1.json
         - dataset2.json
     - /utils/
         - datasets.py
+        - transfer_settings.py
         - metrics.py
         - utils.py
-    - train.py
 - examples/
-    - model1.py
-    - model2.py
+    - train.py
+    - evaluate.py
+    - run_experiment.py
+    - losses.py
+    - optimizer.py
+    - utils.py
+    - models/
+        - model1.py
+        - model2.py
+        - initializer.py
+    - configs/
+        - datasets.json
+        - data_loader.json
+        - models.json
 - distances/
     - domain_distance.py
     - task_distance.py
