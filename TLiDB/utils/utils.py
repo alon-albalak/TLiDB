@@ -19,7 +19,8 @@ def parse_args():
     parser.add_argument("--cpu_only", action="store_true")
     parser.add_argument("--seed", type=int, default=42)
     # model args
-    parser.add_argument("--model_name_or_path",type=str,required=True)
+    parser.add_argument("--model",type=str,required=True)
+    parser.add_argument("--max_seq_length",type=int, default=512)
     # training args
     parser.add_argument("-e","--num_epochs",type=int,default=20)
     parser.add_argument("--effective_batch_size",type=int,default=10)
@@ -29,6 +30,7 @@ def parse_args():
     # data args
     parser.add_argument("--dataset_name",type=str,required=True)
     parser.add_argument("--task",type=str,required=True)
+
         
     args = parser.parse_args()
 
@@ -37,4 +39,4 @@ def parse_args():
     else:
         setattr(args,"device","cpu")
 
-    return vars(args)
+    return args
