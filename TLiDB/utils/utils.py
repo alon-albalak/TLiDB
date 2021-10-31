@@ -30,6 +30,8 @@ def parse_args():
     # data args
     parser.add_argument("--dataset_name",type=str,required=True)
     parser.add_argument("--task",type=str,required=True)
+    # loss args
+    parser.add_argument("--loss_function",type=str,default="cross_entropy")
 
         
     args = parser.parse_args()

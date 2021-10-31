@@ -39,7 +39,7 @@ def main(config):
     dataloader = get_train_loader(dataset, config.gpu_batch_size, collate_fn=dataset.collate)
 
     # load model
-    model=initialize_model(config)
+    model=initialize_model(config, dataset)
     model.to(config.device)
 
 
@@ -52,7 +52,8 @@ def main(config):
             X = move_to(X, config.device)
             y = move_to(y, config.device)
 
-            y_pred = model(X)
+            logits = model(X)
+            loss = model.loss(logits, y)
 
 
 

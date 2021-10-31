@@ -1,11 +1,11 @@
 import torch
 
-def initialize_model(config):
+def initialize_model(config, dataset):
     """
     Initialize models according to the configuration
     """
     if "bert" in config.model:
-        model = initialize_bert_based_model(config)
+        model = initialize_bert_based_model(config, dataset)
     elif "gpt2" in config.model:
         model = initialize_gpt2_based_model(config)
     elif "t5" in config.model:
@@ -13,12 +13,12 @@ def initialize_model(config):
     return model
 
 
-def initialize_bert_based_model(config):
+def initialize_bert_based_model(config, dataset):
     """
     Initialize BERT based model
     """
     from models.bert import Bert
-    model = Bert(config)
+    model = Bert(config, dataset)
     return model
 
 def initialize_gpt2_based_model(config):

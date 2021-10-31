@@ -8,20 +8,18 @@ from examples.models.TLiDB_model import TLiDB_model
 
 
 class Bert(TLiDB_model):
-    def __init__(self, config):
+    def __init__(self, config, dataset):
         super().__init__(config)
         self.tokenizer = get_bert_tokenizer(config.model)
         self.model = get_bert_model(config.model)
+        self.dropout = torch.nn.Dropout(self.model.config.hidden_dropout_prob)
+        self.classifier = torch.nn.Linear(self.model.config.hidden_size, dataset.num_classes)
+        self.layers = (self.model, self.classifier)
+
         if config.task in ['intent_detection']:
-            # TODO: add classification nn layer
-            self.output_layer = self.sequence_classification
-
-    def __call__(self, x):
-        # TODO: make this a call to a function which can be used with 
-        outputs = self.model(x['input_ids'], attention_mask=x['attention_mask'], token_type_ids=x['token_type_ids'])
-        outputs = self.output_layer(outputs)
-
-        return outputs
+            self._forward = self.sequence_classification
+        else:
+            self._forward = self.token_classification
 
     def transform_inputs(self, inputs):
         tokenized_inputs = self.tokenizer(inputs, padding="max_length",truncation=True, max_length=self.config.max_seq_length, return_tensors="pt")
@@ -31,8 +29,17 @@ class Bert(TLiDB_model):
         return torch.tensor(outputs, dtype=torch.long)
 
     # classify a sequence
-    def sequence_classification(self, outputs):
-        # TODO: figure this out
+    def sequence_classification(self, tokenized_sequences):
+        outputs = self.model(**tokenized_sequences)['pooler_output']
+        outputs = self.dropout(outputs)
+        logits = self.classifier(outputs)
+        return logits
+
+    # classify a sequence of tokens
+    def token_classification(self, tokenized_sequences):
+        outputs = self.model(**tokenized_sequences)['last_hidden_states']
+        outputs = self.dropout(outputs)
+        logits = self.classifier(outputs)
         return outputs
 
 def get_bert_tokenizer(model):
