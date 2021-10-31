@@ -143,10 +143,11 @@ class clinc150_dataset(TLiDB_Dataset):
         for datum in self.dataset['data']:
             utterance = datum['dialogue'][0]
             self._input_array.append(utterance['utterance'])
-            y_array = [0 for _ in range(self._num_classes)]
+            # y_array = [0 for _ in range(self._num_classes)]
             label = f"{utterance['intent_detection']['domain']}_{utterance['intent_detection']['intent']}"
-            y_array[self.labels.index(label)] = 1
-            self._y_array.append(y_array)
+            # y_array[self.labels.index(label)] = 1
+            # self._y_array.append(y_array)
+            self._y_array.append(self.labels.index(label))
         self._y_size = len(self._y_array)
 
     def get_input(self, idx):
