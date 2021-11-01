@@ -1,11 +1,6 @@
 from transformers import BertModel, BertTokenizerFast
 import torch
-
 from examples.models.TLiDB_model import TLiDB_model
-
-# LEFT OFF: need to figure out how to handle multiple types of "__call__"
-# some models will be sequence classification, some will be sequence tagging, etc.
-
 
 class Bert(TLiDB_model):
     def __init__(self, config, dataset):
@@ -15,6 +10,7 @@ class Bert(TLiDB_model):
         self.dropout = torch.nn.Dropout(self.model.config.hidden_dropout_prob)
         self.classifier = torch.nn.Linear(self.model.config.hidden_size, dataset.num_classes)
         self.layers = (self.model, self.classifier)
+        self.labels = dataset.get_metadata_field('labels')
 
         if config.task in ['intent_detection']:
             self._forward = self.sequence_classification
@@ -26,6 +22,7 @@ class Bert(TLiDB_model):
         return tokenized_inputs
     
     def transform_outputs(self, outputs):
+        outputs = [self.labels.index(y) for y in outputs]
         return torch.tensor(outputs, dtype=torch.long)
 
     # classify a sequence

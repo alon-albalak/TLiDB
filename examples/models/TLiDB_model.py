@@ -1,14 +1,8 @@
 import torch
-from examples.losses import initialize_loss
-
-# NOTES: What do models have?
-# attributes: possible tasks, single model, multiple possible output layers
-# methods: transform_input, transform_output
 
 class TLiDB_model:
     def __init__(self, config):
         self.config = config
-        self._loss = initialize_loss(config.loss_function)
 
     @property
     def model(self):
@@ -21,10 +15,6 @@ class TLiDB_model:
     @model.setter
     def model(self, model):
         self._model = model
-    
-    @property
-    def loss(self):
-        return self._loss
 
     @property
     def layers(self):
@@ -37,6 +27,16 @@ class TLiDB_model:
     @layers.getter
     def layers(self):
         return self._layers
+
+    def parameters(self):
+        params = []
+        for layer in self.layers:
+            params.extend(layer.parameters())
+        return params
+
+    def zero_grad(self, set_to_none=True):
+        for layer in self.layers:
+            layer.zero_grad(set_to_none=set_to_none)
 
     @property
     def forward(self):
@@ -58,15 +58,3 @@ class TLiDB_model:
     def to(self, device):
         for layer in self.layers:
             layer.to(device)
-
-
-def get_loss(loss_function):
-    """
-    Returns a loss function based on the loss function name
-    """
-    if loss_function == "cross_entropy":
-        return torch.nn.CrossEntropyLoss()
-    elif loss_function == "mse":
-        return torch.nn.MSELoss()
-    else:
-        raise ValueError("Loss function {} not supported".format(loss_function))
