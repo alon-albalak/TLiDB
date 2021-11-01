@@ -1,63 +1,45 @@
-import logging
-import sys
-import os
-package_directory = os.path.dirname(os.path.abspath(__file__))
-TLiDB_FOLDER=os.path.join(package_directory, "..")
-sys.path.append(TLiDB_FOLDER)
-
-# TLiDB imports
-from TLiDB.utils import datasets, metrics, utils
-from TLiDB.data_loaders.data_loaders import get_train_loader
-
-# models
-from models.initializer import initialize_model
-
-# utils
-from examples.utils import move_to
-
-# general ML/NLP imports
+from tqdm import tqdm
 import torch
+from examples.utils import detach_and_clone, collate_list
 
-# Setup logging
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+def run_epoch(algorithm, dataset, epoch, config, train):
+    """
+    Run one epoch of training or validation.
+    """
+    if train:
+        algorithm.train()
+        torch.set_grad_enabled(True)
+    else:
+        algorithm.eval()
+        torch.set_grad_enabled(False)
+    
+    epoch_y_true = []
+    epoch_y_pred = []
+    epoch_metadata = []
 
-handler = logging.StreamHandler(sys.stdout)
-handler.setLevel(logging.INFO)
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+    pbar = tqdm(dataset['loader']) if config.progress_bar else dataset['loader']
 
+    for batch in pbar:
+        if train:
+            batch_results = algorithm.update(batch)
+        else:
+            batch_results = algorithm.evaluate(batch)
+        
+        epoch_y_true.append(detach_and_clone(batch_results['y_true']))
+        epoch_y_pred.append(detach_and_clone(batch_results['y_pred']))
+        epoch_metadata.append(detach_and_clone(batch_results['metadata']))
 
-def main(config):
-    # train, evaluate, and test a model
-    if config.seed != -1:
-        utils.set_seed(config.seed)
+        desc = "Train" if train else "Validation"
+        desc += f": {detach_and_clone(batch_results['objective'])}"
+        pbar.set_description(desc)
 
-    # load data
-    dataset = datasets.DATASETS_INFO[config.dataset_name]['dataset_class'](task=config.task)
-    dataloader = get_train_loader(dataset, config.gpu_batch_size, collate_fn=dataset.collate)
+    epoch_y_true = collate_list(epoch_y_true)
+    epoch_y_pred = collate_list(epoch_y_pred)
+    epoch_metadata = collate_list(epoch_metadata)
 
-    # load model
-    model=initialize_model(config, dataset)
-    model.to(config.device)
+def train(algorithm, datasets, config):
+    for epoch in range(config.num_epochs):
+        run_epoch(algorithm, datasets['train'], epoch, config, train=True)
 
-
-    for e in range(config.num_epochs):
-        for batch in dataloader:
-            X, y = batch
-            X = model.transform_inputs(X)
-            y = model.transform_outputs(y)
-
-            X = move_to(X, config.device)
-            y = move_to(y, config.device)
-
-            logits = model(X)
-            loss = model.loss(logits, y)
-
-
-
-
-if __name__=="__main__":
-    config = utils.parse_args()
-    main(config)
+def evaluate():
+    pass
