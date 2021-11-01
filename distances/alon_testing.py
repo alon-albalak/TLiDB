@@ -1,4 +1,4 @@
-from utils import datasets
+from utils import TLiDB_datasets
 from dataset_distance import gather_utterances
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 import numpy as np
@@ -46,7 +46,8 @@ def vectorize_print(vectorizer, corpus_to_fit,texts_to_transform):
 def cos_sim(a,b):
     return np.dot(a,b) / (np.linalg.norm(a)*np.linalg.norm(b))
 
-dataset = datasets.load_dataset("multiwoz22")
+
+dataset = TLiDB_datasets.load_dataset("multiwoz22")
 utts = gather_utterances(dataset['train_dialogues_001'])
 utts2 = gather_utterances(dataset['train_dialogues_002'])
 utts3 = gather_utterances(dataset['test_dialogues_001'])
