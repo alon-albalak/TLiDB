@@ -1,4 +1,5 @@
 import torch
+from itertools import chain
 
 class TLiDB_model:
     def __init__(self, config):
@@ -33,6 +34,12 @@ class TLiDB_model:
         for layer in self.layers:
             params.extend(layer.parameters())
         return params
+
+    def named_parameters(self):
+        named_params = chain()
+        for layer in self.layers:
+            named_params = chain(named_params, layer.named_parameters())
+        return named_params
 
     def zero_grad(self, set_to_none=True):
         for layer in self.layers:
