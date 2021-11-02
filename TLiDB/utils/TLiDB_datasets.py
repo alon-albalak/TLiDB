@@ -4,6 +4,7 @@ from urllib.request import urlopen
 from io import BytesIO
 from zipfile import ZipFile
 import logging
+import numpy as np
 from torch.utils.data import Dataset
 
 logger = logging.getLogger(__name__)
@@ -163,6 +164,26 @@ class TLiDB_Dataset(Dataset):
             - results (dict): Dictionary of metrics
         """
         return NotImplementedError
+
+    def random_subsample(self, frac=1.0):
+        """
+        Subsamples the dataset
+        Args:
+            - frac (float): Fraction of the dataset to keep
+        """
+        if frac < 1.0:
+            num_to_retain = int(self.y_size * frac)
+            idxs_to_retain = np.sort(np.random.permutation(len(self))[:num_to_retain]).tolist()
+            self.subsampled_input_array, self.subsampled_y_array, self.subsampled_metadata_array = [], [], []
+            for idx in idxs_to_retain:
+                input_item, y_item, metadata_item = self.__getitem__(idx)
+                self.subsampled_input_array.append(input_item)
+                self.subsampled_y_array.append(y_item)
+                self.subsampled_metadata_array.append(metadata_item)
+            self._input_array = self.subsampled_input_array
+            self._y_array = self.subsampled_y_array
+            self._metadata_array = self.subsampled_metadata_array
+            self._y_size = num_to_retain
 
 
 class clinc150_dataset(TLiDB_Dataset):

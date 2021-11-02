@@ -19,6 +19,13 @@ def parse_args():
     # data args
     parser.add_argument("--dataset_name", type=str, required=True)
     parser.add_argument("--task", type=str, required=True)
+
+    # TODO: implement these
+    parser.add_argument("--train_tasks",type=str,nargs='+')
+    parser.add_argument("--train_datasets", type=str, nargs='+')
+    parser.add_argument("--test_tasks", type=str, nargs='+')
+    parser.add_argument("--test_datasets", type=str, nargs='+')
+
     # loss args
     parser.add_argument("--loss_function", type=str, default="cross_entropy")
     # algorithm args
@@ -28,6 +35,8 @@ def parse_args():
 
     # misc. args
     parser.add_argument("--progress_bar", type=bool, default=True)
+    parser.add_argument("--frac", type=float, default=1.0,
+        help="Convenience parameter that scales down dataset size to specified fraction, for debugging purposes")
 
     args = parser.parse_args()
 

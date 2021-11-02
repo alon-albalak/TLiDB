@@ -1,4 +1,5 @@
 from torch.utils.data import DataLoader
+import numpy as np
 
 def get_train_loader(dataset, batch_size, **loader_kwargs):
     """
@@ -11,3 +12,11 @@ def get_train_loader(dataset, batch_size, **loader_kwargs):
         - data_loader (DataLoader): The data loader for training
     """
     return DataLoader(dataset, batch_size=batch_size, shuffle=True, **loader_kwargs)
+
+
+class Multitask_DataLoader:
+    """
+    Data loader that combines and samples from multiple single-task data loaders
+    """
+    def __init__(self, dataloader_dict):
+        pass
