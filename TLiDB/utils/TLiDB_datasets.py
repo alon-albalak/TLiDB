@@ -50,6 +50,7 @@ class TLiDB_Dataset(Dataset):
     def __init__(self, dataset_name, task, output_type, dataset_folder=DATASET_FOLDER):
         super().__init__()
         self.dataset = load_dataset(dataset_name, dataset_folder)
+        self._task = task
         self.task_metadata = self.dataset['metadata']['task_metadata']
 
         if task == "response_generation":
@@ -71,6 +72,10 @@ class TLiDB_Dataset(Dataset):
     def dataset_name(self):
         return self._dataset_name
     
+    @property
+    def task(self):
+        return self._task
+
     @property
     def collate(self):
         """
