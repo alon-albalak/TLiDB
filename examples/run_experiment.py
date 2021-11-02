@@ -12,13 +12,6 @@ sys.path.append(TLiDB_FOLDER)
 from TLiDB.utils import TLiDB_datasets, utils, argparser
 from TLiDB.data_loaders.data_loaders import get_train_loader
 
-
-# models
-
-# utils
-
-# general ML/NLP imports
-
 # Setup logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)

@@ -18,7 +18,8 @@ def run_epoch(algorithm, dataset, epoch, config, train):
     epoch_metadata = []
 
     pbar = tqdm(dataset['loader']) if config.progress_bar else dataset['loader']
-
+    total_loss = 0
+    step = 0
     for batch in pbar:
         if train:
             batch_results = algorithm.update(batch)
@@ -29,9 +30,11 @@ def run_epoch(algorithm, dataset, epoch, config, train):
         epoch_y_pred.append(detach_and_clone(batch_results['y_pred']))
         epoch_metadata.append(detach_and_clone(batch_results['metadata']))
 
+        total_loss += detach_and_clone(batch_results['objective'])
         desc = "Train" if train else "Validation"
-        desc += f": {detach_and_clone(batch_results['objective'])}"
+        desc += f": {total_loss/(step+1):0.4f}"
         pbar.set_description(desc)
+        step += 1
 
     epoch_y_true = collate_list(epoch_y_true)
     epoch_y_pred = collate_list(epoch_y_pred)
