@@ -53,8 +53,8 @@ class TLiDB_model:
     def forward(self, forward):
         self._forward = forward
 
-    def __call__(self, x):
-        return self._forward(x)
+    def __call__(self, *args):
+        return self._forward(*args)
 
     def transform_inputs(self, inputs):
         return NotImplementedError
