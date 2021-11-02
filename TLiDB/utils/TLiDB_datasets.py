@@ -275,6 +275,10 @@ class friends_RC_dataset(TLiDB_Dataset):
 class friends_QA_dataset(TLiDB_Dataset):
     _dataset_name = "friends_QA"
 
+
+class banking77_datset(TLiDB_Dataset):
+    _dataset_name = "banking77"
+
 # dataset url can be found in the google drive, where the original link is:
 #   https://drive.google.com/file/d/1sqaiYTm9b9SPEzehdjp_DXEovVId6Fvq/view?usp=sharing
 # and needs to be reformatted as:
@@ -289,5 +293,7 @@ DATASETS_INFO = {
     "friends_RC": {"dataset_class": friends_RC_dataset,
                    "url": "https://drive.google.com/uc?export=download&id=1Gi70GnNNRQWgnJNaOpbx9vVKq7L8Lbte"},
     "friends_QA": {"dataset_class": friends_QA_dataset,
-                   "url": "https://drive.google.com/uc?export=download&id=1WlpmRNoYW5zXrOqBNw0OhVjyZ-eFXMCm"}
+                   "url": "https://drive.google.com/uc?export=download&id=1WlpmRNoYW5zXrOqBNw0OhVjyZ-eFXMCm"},
+    "banking77": {"dataset_class": friends_QA_dataset,
+                   "url": "https://drive.google.com/uc?export=download&id=AUHAh8czIyhR9FbBdHi1oOt7ZtgSNl8W"},
 }
