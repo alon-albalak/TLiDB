@@ -174,15 +174,21 @@ class TLiDB_Dataset(Dataset):
         if frac < 1.0:
             num_to_retain = int(self.y_size * frac)
             idxs_to_retain = np.sort(np.random.permutation(len(self))[:num_to_retain]).tolist()
-            self.subsampled_input_array, self.subsampled_y_array, self.subsampled_metadata_array = [], [], []
+            subsampled_input_array, subsampled_y_array, subsampled_metadata_array = [], [], []
             for idx in idxs_to_retain:
                 input_item, y_item, metadata_item = self.__getitem__(idx)
-                self.subsampled_input_array.append(input_item)
-                self.subsampled_y_array.append(y_item)
-                self.subsampled_metadata_array.append(metadata_item)
-            self._input_array = self.subsampled_input_array
-            self._y_array = self.subsampled_y_array
-            self._metadata_array = self.subsampled_metadata_array
+                subsampled_input_array.append(input_item)
+                subsampled_y_array.append(y_item)
+                subsampled_metadata_array.append(metadata_item)
+            self._input_array = subsampled_input_array
+            self._y_array = subsampled_y_array
+            metadata_iterated = list(metadata_item.keys())
+            metadata_not_iterated = [metadata_field for metadata_field in self.metadata_fields if metadata_field not in metadata_iterated]
+            subsampled_metadata_array = [subsampled_metadata_array]
+            for metadata_field in metadata_not_iterated:
+                subsampled_metadata_array.append(self.get_metadata_field(metadata_field))
+            self._metadata_array = subsampled_metadata_array
+            self._metadata_fields = metadata_iterated+metadata_not_iterated
             self._y_size = num_to_retain
 
 
@@ -229,7 +235,7 @@ class clinc150_dataset(TLiDB_Dataset):
         return self._input_array[idx]
 
     def get_metadata(self, idx):
-        return {"domain": self.get_metadata_field("domains")[idx]}
+        return {"domains": self.get_metadata_field("domains")[idx]}
 
     def _collate_categorical(self, batch):
         X,y, metadata = [], [], {}
