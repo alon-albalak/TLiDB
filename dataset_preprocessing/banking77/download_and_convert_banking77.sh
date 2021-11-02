@@ -7,4 +7,5 @@ wget -O categories.json https://raw.githubusercontent.com/PolyAI-LDN/task-specif
 python3 convert_banking77.py
 
 rm train.csv
-rm categories.csv
+rm test.csv
+rm categories.json
