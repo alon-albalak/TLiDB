@@ -1,12 +1,16 @@
 import torch
-from examples.models.initializer import initialize_model
 from examples.algorithms.algorithm import Algorithm
+from examples.models.initializer import initialize_model
 
 class ERM(Algorithm):
-    def __init__(self, config, loss, metric, dataset):
-        model = initialize_model(config, dataset)
+    """
+    Empirical Risk Minimization (ERM) algorithm
+    Minimizes the average loss of the model over all datasets
+    """
+    def __init__(self, config, datasets):
+        model = initialize_model(config, datasets)
         model.to(config.device)
-        super().__init__(config, model, loss, metric)
+        super().__init__(config, model)
         
-    def objective(self, results):
-        return self.loss.compute(results['y_pred'], results['y_true'], return_dict=False)
+    def objective(self, results, metric):
+        return metric.compute(results['y_pred'], results['y_true'], return_dict=False)

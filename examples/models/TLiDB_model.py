@@ -19,7 +19,7 @@ class TLiDB_model:
 
     @property
     def layers(self):
-        return
+        return self._layers
 
     @layers.setter
     def layers(self, layers):
@@ -30,18 +30,23 @@ class TLiDB_model:
         return self._layers
 
     def parameters(self):
+        """Convenience function to gather all model parameters
+            to be passed to a torch.optim optimizer"""
         params = []
         for layer in self.layers:
             params.extend(layer.parameters())
         return params
 
     def named_parameters(self):
+        """Convenience function to gather all named model parameters
+            to be passed to a torch.optim optimizer"""
         named_params = chain()
         for layer in self.layers:
             named_params = chain(named_params, layer.named_parameters())
         return named_params
 
     def zero_grad(self, set_to_none=True):
+        """Convenience function to zero gradients for all layers"""
         for layer in self.layers:
             layer.zero_grad(set_to_none=set_to_none)
 
@@ -63,5 +68,6 @@ class TLiDB_model:
         return NotImplementedError
 
     def to(self, device):
+        """Convenience function to move all layers to a device"""
         for layer in self.layers:
             layer.to(device)

@@ -1,5 +1,8 @@
 import torch
 
+def concat_t_d(task, dataset_name):
+    return f"{task}_{dataset_name}"
+
 def move_to(obj, device):
     if isinstance(obj, dict):
         return {k: move_to(v, device) for k, v in obj.items()}

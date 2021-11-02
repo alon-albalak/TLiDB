@@ -28,18 +28,22 @@ def main(config):
     if config.seed != -1:
         utils.set_seed(config.seed)
 
-    datasets = {split: {} for split in ['train', 'dev', 'test']}
+    # datasets dict will contain all information about the datasets: dataset name, splits, data loaders, loss function, etc.
+    datasets = {split: {"datasets": [], "loaders": [], "losses": []} for split in ['train', 'dev', 'test']}
 
-    # load data
-    # TODO: add support for multiple datasets
-    datasets['train']['dataset'] = TLiDB_datasets.DATASETS_INFO[config.dataset_name]['dataset_class'](task=config.task, output_type=config.output_type)
-    if config.frac < 1.0:
-        datasets['train']['dataset'].random_subsample(config.frac)
-    datasets['train']['loader'] = get_train_loader(datasets['train']['dataset'], config.gpu_batch_size, collate_fn=datasets['train']['dataset'].collate)
+    # load data into datasets dict
+    for t, d, l in zip(config.train_tasks, config.train_datasets, config.loss_functions):
+        cur_dataset = TLiDB_datasets.DATASETS_INFO[d]['dataset_class'](task=t, output_type=config.output_type)
+        if config.frac < 1.0:
+            cur_dataset.random_subsample(config.frac)
+        datasets['train']['datasets'].append(cur_dataset)
+        datasets['train']['loaders'].append(get_train_loader(cur_dataset, config.gpu_batch_size, collate_fn=cur_dataset.collate))
+        datasets['train']['losses'].append(l)
 
     # initialize algorithm
     algorithm = initialize_algorithm(config, datasets)
 
+    # train
     train(algorithm, datasets, config)
 
 

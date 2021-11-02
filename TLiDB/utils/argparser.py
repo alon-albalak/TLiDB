@@ -16,18 +16,15 @@ def parse_args():
     parser.add_argument("-lr", "--learning_rate", type=float, default=3e-5)
     parser.add_argument("--fp16", action="store_true")
     parser.add_argument("--max_grad_norm", type=float, default=1.0)
-    # data args
-    parser.add_argument("--dataset_name", type=str, required=True)
-    parser.add_argument("--task", type=str, required=True)
 
     # TODO: implement these
     parser.add_argument("--train_tasks",type=str,nargs='+')
     parser.add_argument("--train_datasets", type=str, nargs='+')
     parser.add_argument("--test_tasks", type=str, nargs='+')
     parser.add_argument("--test_datasets", type=str, nargs='+')
-
     # loss args
-    parser.add_argument("--loss_function", type=str, default="cross_entropy")
+    parser.add_argument("--loss_functions", type=str, nargs='+')
+
     # algorithm args
     parser.add_argument("--algorithm", type=str, default="ERM")
     parser.add_argument("--optimizer", type=str, default="Adam")

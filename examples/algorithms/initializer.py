@@ -1,19 +1,15 @@
-from losses import initialize_loss
 from algorithms.ERM import ERM
 
 def initialize_algorithm(config, datasets):
-    # For a list of datasets
-    train_dataset = datasets['train']['dataset']
-    train_loader = datasets['train']['loader']
-
-    loss = initialize_loss(config.loss_function)
-    # metric = get task-specific metrics
-    metric = None
-
+    """Load an algorithm of type Algorithm
+    Args:
+        config (dict): configuration dictionary
+        datasets (dict): dictionary of datasets
+    Returns:    
+        algorithm (Algorithm): an algorithm object
+    """
     if config.algorithm == "ERM":
-        algorithm = ERM(config, loss, metric, train_dataset)
-
-
+        algorithm = ERM(config, datasets)
     else:
         raise ValueError(f"Invalid algorithm name: {config.algorithm}")
 

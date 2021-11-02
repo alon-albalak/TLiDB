@@ -2,13 +2,13 @@ import torch
 import torch.nn as nn
 from examples.utils import move_to, detach_and_clone
 from examples.optimizers import initialize_optimizer
+from examples.losses import initialize_loss
 
 class Algorithm(nn.Module):
-    def __init__(self, config, model, loss, metric):
+    def __init__(self, config, model):
         super().__init__()
         self.device = config.device
         self.out_device = 'cpu'
-        self.loss = loss
         self.optimizer = initialize_optimizer(config, model)
         self.max_grad_norm = config.max_grad_norm
         self.model = model
@@ -26,21 +26,22 @@ class Algorithm(nn.Module):
         """
         X, y_true, metadata = batch
         X = self.model.transform_inputs(X)
-        y_true = self.model.transform_outputs(y_true)
+        y_true = self.model.transform_outputs(y_true, metadata['task'], metadata['dataset_name'])
 
         X = move_to(X, self.device)
         y_true = move_to(y_true, self.device)
 
-        outputs = self.model(X)
+        outputs = self.model(X,metadata['task'],metadata['dataset_name'])
 
         results = {
             'y_pred': outputs,
             'y_true': y_true,
             'metadata': metadata,
+            "objective": {"loss_name": metadata['loss']}
         }
         return results
 
-    def objective(self, results):
+    def objective(self, results, metric):
         raise NotImplementedError
 
     def update(self, batch):
@@ -57,17 +58,18 @@ class Algorithm(nn.Module):
                 - metrics: the metrics of the batch
         """
         assert self.is_training, "Cannot update() when not in training mode"
-
+        
         results = self.process_batch(batch)
-        self._update(results)
+        self._update(results)     
         return self.sanitize_dict(results)
 
     def _update(self, results):
         """
         Computes the objective and updates the model
         """
-        objective = self.objective(results)
-        results['objective'] = objective.item()
+        metric = initialize_loss(results['objective']['loss_name'])
+        objective = self.objective(results, metric)
+        results['objective']['loss_value'] = objective.item()
 
         # update the model
         objective.backward()
@@ -101,6 +103,12 @@ class Algorithm(nn.Module):
         """
         self.is_training = mode
         super().train(mode)
+
+    def eval(self):
+        """
+        Set the model to evaluation mode
+        """
+        self.train(False)
 
     def sanitize_dict(self, in_dict, to_out_device=True):
         """
