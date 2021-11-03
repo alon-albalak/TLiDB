@@ -1,6 +1,6 @@
 import torch
-from examples.algorithms.algorithm import Algorithm
-from examples.models.initializer import initialize_model
+from algorithms.algorithm import Algorithm
+from models import initialize_model
 
 class ERM(Algorithm):
     """

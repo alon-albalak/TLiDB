@@ -1,5 +1,5 @@
 # import torch
-from algorithms.initializer import initialize_algorithm
+from algorithms import initialize_algorithm
 from train import train,evaluate
 import logging
 import sys

@@ -52,7 +52,6 @@ def run_epoch(algorithm, datasets, epoch, config, train):
 
     epoch_y_true = collate_list(epoch_y_true)
     epoch_y_pred = collate_list(epoch_y_pred)
-    epoch_metadata = collate_list(epoch_metadata)
 
 def train(algorithm, datasets, config):
     for epoch in range(config.num_epochs):

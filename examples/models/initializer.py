@@ -17,7 +17,7 @@ def initialize_bert_based_model(config, datasets):
     """
     Initialize BERT based model
     """
-    from models.bert import Bert
+    from models import Bert
     model = Bert(config, datasets)
     return model
 

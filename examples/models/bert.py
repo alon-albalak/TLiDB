@@ -1,6 +1,6 @@
 from transformers import BertModel, BertTokenizerFast
 import torch
-from examples.models.TLiDB_model import TLiDB_model
+from .TLiDB_model import TLiDB_model
 from examples.utils import concat_t_d
 
 SEQUENCE_TASKS = ['intent_detection']

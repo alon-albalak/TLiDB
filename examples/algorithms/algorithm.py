@@ -1,8 +1,12 @@
+import os
+import sys
 import torch
 import torch.nn as nn
-from examples.utils import move_to, detach_and_clone
-from examples.optimizers import initialize_optimizer
-from examples.losses import initialize_loss
+
+# print(EXAMPLES_FOLDER)
+from utils import move_to, detach_and_clone
+from optimizers import initialize_optimizer
+from losses import initialize_loss
 
 class Algorithm(nn.Module):
     def __init__(self, config, model):
