@@ -3,7 +3,6 @@ import sys
 import torch
 import torch.nn as nn
 
-# print(EXAMPLES_FOLDER)
 from utils import move_to, detach_and_clone
 from optimizers import initialize_optimizer
 from losses import initialize_loss
