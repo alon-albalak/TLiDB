@@ -9,7 +9,8 @@ TLiDB_FOLDER = os.path.join(package_directory, "..")
 sys.path.append(TLiDB_FOLDER)
 
 # TLiDB imports
-from TLiDB.utils import TLiDB_datasets, utils, argparser
+from TLiDB.datasets.get_dataset import get_dataset
+from TLiDB.utils import utils, argparser
 from TLiDB.data_loaders.data_loaders import get_train_loader
 
 # Setup logging
@@ -33,12 +34,23 @@ def main(config):
 
     # load data into datasets dict
     for t, d, l in zip(config.train_tasks, config.train_datasets, config.loss_functions):
-        cur_dataset = TLiDB_datasets.DATASETS_INFO[d]['dataset_class'](task=t, output_type=config.output_type)
+        # for debugging purposes, use original data splits
+        split = "train"
+
+        cur_dataset = get_dataset(dataset=d, task=t, output_type=config.output_type,split=split)
         if config.frac < 1.0:
             cur_dataset.random_subsample(config.frac)
         datasets['train']['datasets'].append(cur_dataset)
         datasets['train']['loaders'].append(get_train_loader(cur_dataset, config.gpu_batch_size, collate_fn=cur_dataset.collate))
         datasets['train']['losses'].append(l)
+
+        split = "dev"
+        cur_dataset = get_dataset(dataset=d, task=t, output_type=config.output_type,split=split)
+        if config.frac < 1.0:
+            cur_dataset.random_subsample(config.frac)
+        datasets['dev']['datasets'].append(cur_dataset)
+        datasets['dev']['loaders'].append(get_train_loader(cur_dataset, config.gpu_batch_size, collate_fn=cur_dataset.collate))
+        datasets['dev']['losses'].append(l)
 
     # initialize algorithm
     algorithm = initialize_algorithm(config, datasets)
