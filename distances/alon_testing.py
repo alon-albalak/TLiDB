@@ -1,5 +1,5 @@
-from utils import TLiDB_datasets
-from dataset_distance import gather_utterances
+from TLiDB.datasets.get_dataset import load_dataset
+from domain_distance import gather_utterances
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 import numpy as np
 
@@ -47,7 +47,7 @@ def cos_sim(a,b):
     return np.dot(a,b) / (np.linalg.norm(a)*np.linalg.norm(b))
 
 
-dataset = TLiDB_datasets.load_dataset("multiwoz22")
+dataset = load_dataset("multiwoz22")
 utts = gather_utterances(dataset['train_dialogues_001'])
 utts2 = gather_utterances(dataset['train_dialogues_002'])
 utts3 = gather_utterances(dataset['test_dialogues_001'])

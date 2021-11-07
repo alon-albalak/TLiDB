@@ -4,7 +4,8 @@
 
 - /TLiDB is the main folder holding the benchmark
     - /TLiDB/data_loaders contains code for data_loaders
-    - /TLiDB/datasets is the destination folder for downloaded datasets
+    - /TLiDB/data is the destination folder for downloaded datasets
+    - /TLiDB/datasets contains code for datasets
     - /TLiDB/metrics contains code for loss and evaluation metrics
     - /TLiDB/utils contains utility files (data downloader, logging, argparser, etc.)
 - /examples contains sample code for training models
@@ -17,17 +18,21 @@
 ### File structure:
 
 - TLiDB/
-    - /data_loaders/
-        - data_loader.py
-    - /datasets/
+    - /data/
         - sample_format.json
         - dataset1.json
         - dataset2.json
+    - /data_loaders/
+        - data_loader.py
+    - /datasets/
+        - TLiDB_dataset.py
+        - dataset1.py
+        - dataset2.py
     - /metrics/
+        - all_metrics.py
         - loss.py
         - metric.py
     - /utils/
-        - TLiDB_datasets.py
         - argparser.py
         - utils.py
 - examples/
@@ -46,9 +51,9 @@
         - model2.py
         - initializer.py
     - configs/
-        - datasets.json
-        - data_loader.json
-        - models.json
+        - datasets.yaml
+        - data_loader.yaml
+        - models.yaml
 - distances/
     - domain_distance.py
     - task_distance.py
