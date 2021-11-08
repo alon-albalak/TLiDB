@@ -6,6 +6,8 @@ def parse_args():
     # general args
     parser.add_argument("--cpu_only", action="store_true")
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--log_and_model_dir", type=str, default="./logs_and_models")
+
     # model args
     parser.add_argument("--model", type=str, required=True)
     parser.add_argument("--max_seq_length", type=int, default=512)
@@ -16,8 +18,10 @@ def parse_args():
     parser.add_argument("-lr", "--learning_rate", type=float, default=3e-5)
     parser.add_argument("--fp16", action="store_true")
     parser.add_argument("--max_grad_norm", type=float, default=1.0)
+    parser.add_argument("--save_best", type=bool, default=True)
+    parser.add_argument("--save_last", type=bool, default=True)
 
-    # TODO: implement these
+    # TODO: Set up supported tasks/datasets so these are choices from a specified list
     parser.add_argument("--train_tasks",type=str,nargs='+')
     parser.add_argument("--train_datasets", type=str, nargs='+')
     parser.add_argument("--test_tasks", type=str, nargs='+')
