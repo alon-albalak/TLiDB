@@ -1,33 +1,40 @@
 # import torch
 from algorithms import initialize_algorithm
 from train import train,evaluate
-import logging
 import sys
 import os
+from utils import Logger, log_config, set_seed, log_dataset_info, get_savepath_dir
+import argparser
 package_directory = os.path.dirname(os.path.abspath(__file__))
 TLiDB_FOLDER = os.path.join(package_directory, "..")
 sys.path.append(TLiDB_FOLDER)
 
 # TLiDB imports
 from TLiDB.datasets.get_dataset import get_dataset
-from TLiDB.utils import utils, argparser
 from TLiDB.data_loaders.data_loaders import get_train_loader
 
-# Setup logging
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-
-handler = logging.StreamHandler(sys.stdout)
-handler.setLevel(logging.INFO)
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-
-
 def main(config):
-    # train, evaluate, and test a model
-    if config.seed != -1:
-        utils.set_seed(config.seed)
+
+    save_path_dir = get_savepath_dir(config)
+
+    # Initialize logs
+    if os.path.exists(save_path_dir) and config.resume:
+        resume=True
+        mode='a'
+    elif os.path.exists(save_path_dir) and config.eval_only:
+        resume=False
+        mode='a'
+    else:
+        resume=False
+        mode='w'
+
+    if not os.path.exists(save_path_dir):
+        os.makedirs(save_path_dir)
+    logger = Logger(os.path.join(save_path_dir, 'log.txt'), mode)
+
+    # log configuration
+    log_config(config,logger)
+    set_seed(config.seed)
 
     # datasets dict will contain all information about the datasets: dataset name, splits, data loaders, loss function, etc.
     datasets = {split: {"datasets": [], "loaders": [], "losses": []} for split in ['train', 'dev', 'test']}
@@ -52,11 +59,18 @@ def main(config):
         datasets['dev']['loaders'].append(get_train_loader(cur_dataset, config.gpu_batch_size, collate_fn=cur_dataset.collate))
         datasets['dev']['losses'].append(l)
 
+
+    # log dataset info
+    log_dataset_info(datasets, logger)
+
     # initialize algorithm
     algorithm = initialize_algorithm(config, datasets)
 
     # train
-    train(algorithm, datasets, config)
+    best_val_metric = 0
+    train(algorithm, datasets, config, logger, best_val_metric)
+
+    # TODO: test, essentially just evaluate, but with test data
 
 
 if __name__ == "__main__":

@@ -1,3 +1,7 @@
+import os
+import sys
+import random
+import numpy as np
 import torch
 
 def concat_t_d(task, dataset_name):
@@ -49,3 +53,96 @@ def collate_list(vec):
         return {k: collate_list([d[k] for d in vec]) for k in elem}
     else:
         raise TypeError("Elements of the list to collate must be tensors or dicts.")
+
+
+def set_seed(seed):
+    if seed != -1:
+        random.seed(seed)
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+
+def get_savepath_dir(config):
+    prefix = ""
+    for dataset,task in zip(config.train_datasets, config.train_tasks):
+        prefix += f"{dataset}.{task}_"
+    if config.seed > -1:
+        prefix += f"seed.{config.seed}_"
+    if prefix == "":
+        raise ValueError("Cannot create dir with empty name")
+
+    prefix = prefix[:-1]
+    prefix = os.path.join(config.log_and_model_dir, prefix)
+    return prefix
+
+def save_algorithm(algorithm, epoch, best_val_metric, path):
+    state = {}
+    state['algorithm'] = algorithm.state_dict()
+    state['epoch'] = epoch
+    state['best_val_metric'] = best_val_metric
+    torch.save(state, path)
+
+def load_algorithm(algorithm, path):
+    state = torch.load(path)
+    algorithm.load_state_dict(state['algorithm'])
+    return state['epoch'], state['best_val_metric']
+
+def save_algorithm_if_needed(algorithm, epoch, config, best_val_metric, is_best):
+    save_path_dir = get_savepath_dir(config)
+    if config.save_last:
+        save_algorithm(algorithm,epoch,best_val_metric,os.path.join(save_path_dir,"last_model.pt"))
+    if config.save_best and is_best:
+        save_algorithm(algorithm, epoch, best_val_metric,os.path.join(save_path_dir,"best_model.pt"))    
+
+class Logger(object):
+    def __init__(self, fpath=None, mode='w'):
+        self.console = sys.stdout
+        self.file = None
+        if fpath is not None:
+            self.file = open(fpath, mode)
+
+    def __del__(self):
+        self.close()
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, *args):
+        self.close()
+
+    def write(self, msg):
+        self.console.write(msg)
+        if self.file is not None:
+            self.file.write(msg)
+
+    def flush(self):
+        self.console.flush()
+        if self.file is not None:
+            self.file.flush()
+            os.fsync(self.file.fileno())
+
+    def close(self):
+        self.console.close()
+        if self.file is not None:
+            self.file.close()
+
+
+def log_config(config, logger):
+    # Simply write all configuration parameters to the logger
+    logger.write('Configuration:\n')
+    for name, val in vars(config).items():
+        logger.write(f'{name.replace("_"," ").capitalize()}: {val}\n')
+    logger.write('\n')
+    logger.flush()
+
+
+def log_dataset_info(datasets, logger):
+    # Simply write all dataset details to the logger
+    logger.write('Datasets:\n')
+    for split in datasets:
+        logger.write(f'{split}: ')
+        for dataset, loss in zip(datasets[split]['datasets'], datasets[split]['losses']):
+            logger.write(f'{dataset.dataset_name}')
+            logger.write(f' - {dataset.task}')
+            logger.write(f' - {loss}')
+        logger.write('\n')
+    logger.flush()

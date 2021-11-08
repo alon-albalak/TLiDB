@@ -1,4 +1,3 @@
-import logging
 import os
 import json
 from urllib.request import urlopen
@@ -7,13 +6,11 @@ from zipfile import ZipFile
 import numpy as np
 from torch.utils.data import Dataset
 
-logger = logging.getLogger(__name__)
-
 
 def download_and_unzip(url, extract_to='.'):
-    logger.info(f"Waiting for response from {url}")
+    print(f"Waiting for response from {url}")
     http_response = urlopen(url)
-    logger.info("Downloading data from {url}")
+    print("Downloading data from {url}")
     zipfile = ZipFile(BytesIO(http_response.read()))
     zipfile.extractall(path=extract_to)
 
@@ -33,7 +30,7 @@ def load_dataset(name, dataset_folder, url):
     if f"TLiDB_{name}" not in os.listdir(dataset_folder):
         assert(url is not None), "Must provide a url to download from"
         download_and_unzip(url, dataset_folder)
-        logger.info(f"Extracted files to {dataset_folder}/{name}")
+        print(f"Extracted files to {dataset_folder}/{name}")
 
     ds = load_dataset_local(name, dataset_folder)
 
@@ -68,6 +65,10 @@ class TLiDB_Dataset(Dataset):
     def dataset_name(self):
         return self._dataset_name
     
+    @property
+    def tasks(self):
+        return self._tasks
+
     @property
     def task(self):
         return self._task
@@ -122,6 +123,13 @@ class TLiDB_Dataset(Dataset):
         Returns the metadata array
         """
         return self._metadata_array
+
+    @property
+    def output_processing_function(self):
+        """
+        Returns the function to convert model outputs into predictions
+        """
+        return getattr(self, "_output_processing_function", None)
 
     def get_metadata_field(self, field):
         return self.metadata_array[self.metadata_fields.index(field)]
@@ -185,7 +193,7 @@ class TLiDB_Dataset(Dataset):
             **metric.compute(y_pred, y_true),
         }
         results_str = (
-            f"Average {metric.name}: {results[metric.agg_metric_field]:.3f}\n"
+            f"Average {metric.name}: {results[metric.agg_metric_field]:0.4f}\n"
         )
         return results, results_str
 

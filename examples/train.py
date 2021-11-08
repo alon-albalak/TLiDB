@@ -1,13 +1,11 @@
 from torch.utils import data
 from tqdm import tqdm
 import torch
-from examples.utils import detach_and_clone, collate_list, concat_t_d
+from examples.utils import detach_and_clone, collate_list, concat_t_d, save_algorithm_if_needed
 from TLiDB.data_loaders.data_loaders import TLiDB_DataLoader
+from configs.supported import output_processing_functions
 
-import logging
-logger = logging.getLogger(__name__)
-
-def run_epoch(algorithm, datasets, epoch, config, train):
+def run_epoch(algorithm, datasets, epoch, config, logger, train):
     """
     Run one epoch of training or validation.
     Args:
@@ -48,7 +46,10 @@ def run_epoch(algorithm, datasets, epoch, config, train):
         # These should already be detached, but in some versions they won't get garbage
         #   collected properly if not detached again
         epoch_y_true[batch_t_d].append(detach_and_clone(batch_results['y_true']))
-        epoch_y_pred[batch_t_d].append(detach_and_clone(batch_results['y_pred']))
+        y_pred = detach_and_clone(batch_results['y_pred'])
+        if batch_metadata['output_processing_function']:
+            y_pred = output_processing_functions[batch_metadata['output_processing_function']](y_pred)
+        epoch_y_pred[batch_t_d].append(y_pred)
         epoch_metadata[batch_t_d].append(detach_and_clone(batch_results['metadata']))
 
         total_loss[batch_t_d] += detach_and_clone(batch_results['objective']['loss_value'])
@@ -60,30 +61,52 @@ def run_epoch(algorithm, datasets, epoch, config, train):
         pbar.set_description(desc)
         step += 1
 
+        # TODO: Option for 'log every n steps'
+
     epoch_y_true[batch_t_d] = collate_list(epoch_y_true[batch_t_d])
     epoch_y_pred[batch_t_d] = collate_list(epoch_y_pred[batch_t_d])
 
 
     results = {}
+    logger.write('Epoch eval:\n')
     for d in datasets['datasets']:
         t_d = concat_t_d(d.task,d.dataset_name)
         r, r_str = d.eval(epoch_y_true[t_d], epoch_y_pred[t_d])
         results[t_d] = r
-        logger.info(r_str)
-    results['epoch'] = epoch
+        logger.write(f"{d.dataset_name} {d.task}- {r_str}")
 
     return results, epoch_y_pred
 
 
-def train(algorithm, datasets, config):
+def train(algorithm, datasets, config, logger, best_val_metric):
     for epoch in range(config.num_epochs):
+        logger.write(f'\nEpoch {epoch}\n')
         # train
-        epoch_result = run_epoch(algorithm, datasets['train'], epoch, config, train=True)
+        epoch_result = run_epoch(algorithm, datasets['train'], epoch, config, logger, train=True)
 
         # evaluate on validation set
-        val_results, y_pred = run_epoch(algorithm, datasets['dev'], epoch, config, train=False)
+        val_results, y_pred = run_epoch(algorithm, datasets['dev'], epoch, config, logger, train=False)
+        val_metrics = [val_results[d][m] for d in val_results for m in val_results[d]]
+        cur_val_metric = sum(val_metrics)/len(val_metrics)
+        logger.write(f'Validation metric: {cur_val_metric:0.4f}\n')
 
-        
+        if best_val_metric is None:
+            is_best=True
+        else:
+            is_best = cur_val_metric > best_val_metric
+
+        if is_best:
+            best_val_metric = cur_val_metric
+            logger.write(f'Epoch {epoch} gives best validation result so far.\n')
+
+        # save algorithm and model
+        save_algorithm_if_needed(algorithm, epoch, config, best_val_metric, is_best)
+
+        # TODO: save predictions if we want
+
+        logger.write('\n')
+        logger.flush()
+
 
 def evaluate():
     pass

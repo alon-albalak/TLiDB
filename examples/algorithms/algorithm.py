@@ -97,7 +97,9 @@ class Algorithm(nn.Module):
         """
         assert not self.is_training, "Cannot evaluate() when in training mode"
         results = self.process_batch(batch)
-        results['objective'] = self.objective(results).item()
+        metric = initialize_loss(results['objective']['loss_name'])
+        objective = self.objective(results, metric)
+        results['objective']['loss_value'] = objective.item()
         return self.sanitize_dict(results)
 
     def train(self, mode=True):
