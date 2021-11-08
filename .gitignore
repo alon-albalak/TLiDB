@@ -9,3 +9,5 @@
 .venv
 env/
 venv/
+
+examples/logs_and_models/*
