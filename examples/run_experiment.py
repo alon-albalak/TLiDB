@@ -17,11 +17,11 @@ def main(config):
 
     save_path_dir = get_savepath_dir(config)
 
-    # Initialize logs
-    if os.path.exists(save_path_dir) and config.resume:
+    # Initialize logs, if debugging then always overwrite
+    if os.path.exists(save_path_dir) and not config.debug and config.resume:
         resume=True
         mode='a'
-    elif os.path.exists(save_path_dir) and config.eval_only:
+    elif os.path.exists(save_path_dir) and not config.debug and config.eval_only:
         resume=False
         mode='a'
     else:
@@ -67,7 +67,7 @@ def main(config):
     algorithm = initialize_algorithm(config, datasets)
 
     # train
-    best_val_metric = 0
+    best_val_metric = None
     train(algorithm, datasets, config, logger, best_val_metric)
 
     # TODO: test, essentially just evaluate, but with test data

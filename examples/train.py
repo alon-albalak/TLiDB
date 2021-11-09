@@ -24,17 +24,18 @@ def run_epoch(algorithm, datasets, epoch, config, logger, train):
     
     # convert all datasets into a single multi-task and multi-domain dataloader
     dataloader = TLiDB_DataLoader(datasets)
+    task_datasets = [concat_t_d(d.task, d.dataset_name) for d in datasets['datasets']]
 
-    epoch_y_true = {concat_t_d(d.task,d.dataset_name): [] for d in datasets['datasets']}
-    epoch_y_pred = {concat_t_d(d.task,d.dataset_name): [] for d in datasets['datasets']}
-    epoch_metadata = {concat_t_d(d.task,d.dataset_name): [] for d in datasets['datasets']}
+    epoch_y_true = {t_d: [] for t_d in task_datasets}
+    epoch_y_pred = {t_d: [] for t_d in task_datasets}
+    epoch_metadata = {t_d: [] for t_d in task_datasets}
 
     # Using enumerate(iterator) can sometimes leak memory in some environments (!)
     # so we manually increment the step
     pbar = tqdm(dataloader) if config.progress_bar else dataloader
     # cumulative loss during the epoch
-    total_loss = {concat_t_d(d.task,d.dataset_name): 0 for d in datasets['datasets']}
-    step = 0
+    total_loss = {t_d: 0 for t_d in task_datasets}
+    step = {t_d: 0 for t_d in task_datasets}
     for batch in pbar:
         _, _, batch_metadata = batch
         batch_t_d = concat_t_d(batch_metadata['task'],batch_metadata['dataset_name'])
@@ -54,17 +55,18 @@ def run_epoch(algorithm, datasets, epoch, config, logger, train):
 
         total_loss[batch_t_d] += detach_and_clone(batch_results['objective']['loss_value'])
         desc = "Train losses" if train else "Validation losses"
-        for t_d in total_loss:
-            desc += f" | {t_d}: {total_loss[t_d]/(step+1):0.4f}"
+        for t_d in task_datasets:
+            desc += f" | {t_d}: {total_loss[t_d]/(step[t_d]+1):0.4f}"
         #     pbar.set_description(f"{desc} loss: {total_loss[t_d]:.3f}")
         # desc += f": {total_loss/(step+1):0.4f}"
         pbar.set_description(desc)
-        step += 1
+        step[batch_t_d] += 1
 
         # TODO: Option for 'log every n steps'
 
-    epoch_y_true[batch_t_d] = collate_list(epoch_y_true[batch_t_d])
-    epoch_y_pred[batch_t_d] = collate_list(epoch_y_pred[batch_t_d])
+    for t_d in task_datasets:
+        epoch_y_true[t_d] = collate_list(epoch_y_true[t_d])
+        epoch_y_pred[t_d] = collate_list(epoch_y_pred[t_d])
 
 
     results = {}
@@ -73,7 +75,7 @@ def run_epoch(algorithm, datasets, epoch, config, logger, train):
         t_d = concat_t_d(d.task,d.dataset_name)
         r, r_str = d.eval(epoch_y_true[t_d], epoch_y_pred[t_d])
         results[t_d] = r
-        logger.write(f"{d.dataset_name} {d.task}- {r_str}")
+        logger.write(f"{d.dataset_name} {d.task}-\n{r_str}\n")
 
     return results, epoch_y_pred
 
