@@ -234,3 +234,6 @@ class friends_QA_dataset(TLiDB_Dataset):
 
 class banking77_datset(TLiDB_Dataset):
     _dataset_name = "banking77"
+
+class multidogo_datset(TLiDB_Dataset):
+    _dataset_name = "multidogo"
