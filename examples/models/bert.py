@@ -3,7 +3,7 @@ import torch
 from .TLiDB_model import TLiDB_model
 from examples.utils import concat_t_d
 
-SEQUENCE_TASKS = ['intent_detection']
+SEQUENCE_TASKS = ['intent_detection', 'emotion_recognition']
 TOKEN_TASKS = []
 
 class Bert(TLiDB_model):
@@ -17,6 +17,8 @@ class Bert(TLiDB_model):
         self.classifiers = {}
         for split in datasets.keys():
             for d in datasets[split]['datasets']:
+                if d.task not in SEQUENCE_TASKS+TOKEN_TASKS:
+                    raise ValueError('Task {} not supported by Bert'.format(d.task))
                 t_d = concat_t_d(d.task,d.dataset_name)
                 if t_d not in self.classifiers.keys():
                     setattr(self, f"{t_d}_classifier", torch.nn.Linear(self.model.config.hidden_size, d.num_classes))

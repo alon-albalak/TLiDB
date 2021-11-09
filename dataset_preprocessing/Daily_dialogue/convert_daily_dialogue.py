@@ -49,7 +49,7 @@ if not os.path.isdir(TLiDB_path):
 formatted_data = {
     "metadata":
     {
-        "dataset_name": "friends_ER",
+        "dataset_name": "daily_dialogue",
         "tasks": [
             "emotion_recognition",
             "dialogue_actions"

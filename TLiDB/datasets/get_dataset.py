@@ -6,12 +6,6 @@ DATASET_FOLDER=TLiDB.TLiDB_path+"/data/"
 # and needs to be reformatted as:
 #   https://drive.google.com/uc?export=download&id=1sqaiYTm9b9SPEzehdjp_DXEovVId6Fvq
 # DATASETS_INFO = {
-#     "multiwoz22": {"dataset_class": multiwoz22_dataset,
-#                    },
-#     "clinc150": {"dataset_class": clinc150_dataset,
-#                  "url": "https://drive.google.com/uc?export=download&id=1dG6KXQ6L7xpbnWmhW9Xo3vPSfYstk43E"},
-#     "friends_ER": {"dataset_class": friends_ER_dataset,
-#                    "url": "https://drive.google.com/uc?export=download&id=1hjbtUUQDBPTJmEdks5krL9E-ZQepmGXt"},
 #     "friends_RC": {"dataset_class": friends_RC_dataset,
 #                    "url": "https://drive.google.com/uc?export=download&id=1Gi70GnNNRQWgnJNaOpbx9vVKq7L8Lbte"},
 #     "friends_QA": {"dataset_class": friends_QA_dataset,
@@ -38,3 +32,7 @@ def get_dataset(dataset, task, dataset_folder=DATASET_FOLDER, **dataset_kwargs):
     elif dataset == "clinc150":
         from TLiDB.datasets.clinc150_dataset import clinc150_dataset
         return clinc150_dataset(task, dataset_folder, **dataset_kwargs)
+    
+    elif dataset == "friends_ER":
+        from TLiDB.datasets.friends_ER_dataset import friends_ER_dataset
+        return friends_ER_dataset(task, dataset_folder, **dataset_kwargs)

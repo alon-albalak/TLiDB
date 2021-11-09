@@ -1,5 +1,6 @@
 from .metrics import Metric, ElementwiseMetric
 import sklearn.metrics
+import torch
 
 def multiclass_logits_to_pred(logits):
     """
@@ -37,7 +38,7 @@ class F1(Metric):
             name = 'F1'
             if average is not None:
                 name += f'-{self.average}'
-        super.__init__(name=name)
+        super().__init__(name=name)
 
     def _compute(self, y_pred,y_true,labels=None):
         """
@@ -50,3 +51,4 @@ class F1(Metric):
         if self.prediction_fn is not None:
             y_pred = self.prediction_fn(y_pred)
         score = sklearn.metrics.f1_score(y_true, y_pred, average=self.average, labels=labels)
+        return torch.tensor(score)
