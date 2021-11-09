@@ -223,9 +223,6 @@ class TLiDB_Dataset(Dataset):
             self._metadata_fields = metadata_iterated+metadata_not_iterated
             self._y_size = num_to_retain
 
-class friends_ER_dataset(TLiDB_Dataset):
-    _dataset_name = "friends_ER"
-
 class friends_RC_dataset(TLiDB_Dataset):
     _dataset_name = "friends_RC"
 

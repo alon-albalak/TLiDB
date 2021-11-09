@@ -3,7 +3,6 @@ import json
 
 def format_data(original_data, formatted_data, partition):
     """Updates formatted_data inplace with the data from original_data"""
-    print(partition)
     for ep in original_data['episodes']:
         for sc in ep['scenes']:
             formatted_datum = {
