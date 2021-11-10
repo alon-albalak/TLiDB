@@ -20,7 +20,7 @@ class friends_ER_dataset(TLiDB_Dataset):
     _tasks = ["emotion_recognition", "dialogue_response_generation"]
     _url = "https://drive.google.com/uc?export=download&id=1hjbtUUQDBPTJmEdks5krL9E-ZQepmGXt"
     _output_processing_function="multiclass_logits_to_pred"
-    def __init__(self, task, dataset_folder, output_type, split=None, full_dialogue=False):
+    def __init__(self, task, dataset_folder, output_type, split=None, full_dialogue=True):
         assert task in self._tasks, f"{task} is not a valid task for {self._dataset_name}"
         super().__init__(self.dataset_name, task, output_type, dataset_folder=dataset_folder)
 
