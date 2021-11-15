@@ -1,12 +1,10 @@
 import os
 import json
-# import zip
 
 emo_dict = {'0': 'no emotion', '1': 'anger', '2': 'disgust', '3': 'fear', '4': 'happiness', '5': 'sadness', '6': 'surprise'}
 
 def format_data(original_data, formatted_data, partition):
     """Updates formatted_data inplace with the data from original_data"""
-    print(partition)
     dialogue_id_counter = 1
     data_file = original_data['text']
     label_file = original_data['label']
@@ -20,8 +18,7 @@ def format_data(original_data, formatted_data, partition):
         formatted_datum = {
             "dialogue_id": dialogue_id,
             "dialogue_metadata": {
-                "emotion_recognition": None,
-                # "dialogue_actions": None,
+                "emotion_recognition": True,
                 "original_data_partition": partition
             },
             "dialogue": []
@@ -56,7 +53,6 @@ formatted_data = {
         ],
         "task_metadata": {
             "emotion_recognition": {"labels": [], "metrics": ["f1", "accuracy"]},
-            # "dialogue_actions": {'labels':[], "metrics":["f1", "accuracy"]}
         }
     },
     "data": []
@@ -66,7 +62,6 @@ data_partitions = [["train","train"],["validation","dev"],["test","test"]]
 
 for p in data_partitions:
     data_path = f"{p[0]}"
-    # original_data = json.load(open(data_path,"r"))
     original_data = {'text':open(data_path + '/dialogues_' +  p[0] + '.txt', "r"),
                      'label':open(data_path + '/dialogues_emotion_' +  p[0] + '.txt', "r")}
     format_data(original_data, formatted_data, p[1])

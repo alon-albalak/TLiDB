@@ -18,7 +18,8 @@ def format_data(original_data, formatted_data, partition):
                     "context":datum[keys['context']],
                     "prompt":datum[keys['prompt']],
                     "dialogue_generation":True,
-                    "original_data_partition": partition
+                    "original_data_partition": partition,
+                    "emotion_recognition": True
                 },
                 "dialogue":[]
             }
@@ -26,7 +27,11 @@ def format_data(original_data, formatted_data, partition):
             "turn_id":datum[keys['utterance_idx']],
             "speakers":[datum[keys['speaker_idx']]],
             "utterance":datum[keys['utterance']],
+            "emotion_recognition":datum[keys['context']]
         }
+        if datum[keys['context']] not in formatted_data['metadata']['task_metadata']['emotion_recognition']['labels']:
+            formatted_data['metadata']['task_metadata']['emotion_recognition']['labels'].append(datum[keys['context']])
+
         formatted_datum['dialogue'].append(formatted_turn)
         if i+2 < len(original_data):
             if original_data[i+2].split(',')[keys['conv_id']] != datum[keys['conv_id']]:
@@ -70,9 +75,11 @@ formatted_data = {
         "dataset_name": "empatheticdialog",
         "tasks": [
             "dialogue_response_generation",
+            "emotion_recognition" # dialogue level task
         ],
         "task_metadata": {
-            "dialogue_response_generation": {"metrics": ["BLEU","P@1,100"]}
+            "dialogue_response_generation": {"metrics": ["BLEU","P@1,100"]},
+            "emotion_recognition": {"labels": [], "metrics": ["f1", "accuracy"]},
         }
     },
     "data": []
