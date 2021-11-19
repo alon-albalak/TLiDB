@@ -2,25 +2,35 @@
 
 readonly THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-readonly DATA_URL='http://yanran.li/files/ijcnlp_dailydialog.zip'
-readonly DATA_FILE="${THIS_DIR}/dailydialog-raw.zip"
-readonly DATA_DIR="${THIS_DIR}/ijcnlp_dailydialog"
+readonly DD_URL='http://yanran.li/files/ijcnlp_dailydialog.zip'
+readonly DD_FILE="${THIS_DIR}/dailydialog-raw.zip"
+readonly DD_DIR="${THIS_DIR}/ijcnlp_dailydialog"
+
+readonly RECCON_TRAIN_URL='https://raw.githubusercontent.com/declare-lab/RECCON/main/data/original_annotation/dailydialog_train.json'
+readonly RECCON_VAL_URL='https://raw.githubusercontent.com/declare-lab/RECCON/main/data/original_annotation/dailydialog_valid.json'
+readonly RECCON_TEST_URL='https://raw.githubusercontent.com/declare-lab/RECCON/main/data/original_annotation/dailydialog_test.json'
 
 function main() {
    trap exit SIGINT
 
    check_requirements
 
-   fetch_file "${DATA_URL}" "${DATA_FILE}" 'data'
-   extract_zip "${DATA_FILE}" "${DATA_DIR}" 'data'
+   fetch_file "${DD_URL}" "${DD_FILE}" 'Daily Dialog Data'
+   extract_zip "${DD_FILE}" "${DD_DIR}" 'Daily Dialog Data'
+
+   fetch_file "${RECCON_TRAIN_URL}" "RECCON_train.json"
+   fetch_file "${RECCON_VAL_URL}" "RECCON_validation.json"
+   fetch_file "${RECCON_TEST_URL}" "RECCON_test.json"
+
+   python3 gather_topics.py
    python3 convert_daily_dialogue.py
 
-   zip -r TLiDB_Daily_Dialogue.zip TLiDB_Daily_Dialogue/
-   rm -r "${DATA_DIR}"
-   rm -r "test"
-   rm -r "train"
-   rm -r "validation"
-   rm "${DATA_FILE}"
+   # zip -r TLiDB_Daily_Dialogue.zip TLiDB_Daily_Dialogue/
+   # rm -r "${DD_DIR}"
+   # rm -r "test"
+   # rm -r "train"
+   # rm -r "validation"
+   # rm "${DD_FILE}"
 
 
 }
