@@ -1,13 +1,10 @@
 import os
 import json
-from utils import untokenize
+from utils import untokenize, convert_REC_ID_to_DD_ID
+from tqdm import tqdm
 
 # Load original DailyDialog data
 DD_data = json.load(open('TLiDB_Daily_Dialogue/TLiDB_Daily_Dialogue.json', 'r'))
-
-# update original data fields
-DD_data['metadata']['tasks'].append("causal_emotion_span_extraction")
-DD_data['metadata']['task_metadata']['causal_emotion_span_extraction'] = {"metrics":["exact_match", "token_f1"]}
 
 # Load RECCON specific data
 RECCON_train = json.load(open('RECCON_train.json', 'r'))
@@ -17,24 +14,12 @@ RECCON_data = RECCON_train
 RECCON_data.update(RECCON_validation)
 RECCON_data.update(RECCON_test)
 
-def convert_REC_ID_to_DD_ID(REC_ID):
-    """
-    Convert IDs as they are in RECCON into original Daily Dialog IDs
-    """
-    split, id = REC_ID.split('_')
-    id = str(int(id) + 1)
-    if split == 'tr':
-        return 'dialogue-'+id
-    elif split == 'va':
-        return 'dialogue-'+str(int(id)+11118)
-    assert(split=='te')
-    return 'dialogue-'+str(int(id)+12118)
-
 def untokenize_REC_dialogue(dialogue):
     for turn in dialogue:
         turn['utterance'] = untokenize(turn['utterance'].split())
+
 num_emotion_updates = 0
-for REC_ID, REC_dialogue in RECCON_data.items():
+for REC_ID, REC_dialogue in tqdm(RECCON_data.items()):
     DD_ID = convert_REC_ID_to_DD_ID(REC_ID)
 
     #it's really inefficient, but we have to search through the \
@@ -83,16 +68,18 @@ for REC_ID, REC_dialogue in RECCON_data.items():
             num_emotion_updates += 1
 
     # update DD with RECCON annotations
-    d['dialogue_metadata']['causal_emotion_span_extraction'] = {"RECCON_dialogue_id":REC_ID}
-    ev_str = 'expanded emotion cause evidence'
-    sp_str = 'expanded emotion cause span'
-    for REC_turn, DD_turn in zip(REC_dialogue[0], d['dialogue']):
-        # TODO: add ev_str turn and sp_str span to DD
+    # d['dialogue_metadata']['causal_emotion_span_extraction'] = {"RECCON_dialogue_id":REC_ID}
+    # ev_str = 'expanded emotion cause evidence'
+    # sp_str = 'expanded emotion cause span'
+    # for REC_turn, DD_turn in zip(REC_dialogue[0], d['dialogue']):
+    #     # TODO: add ev_str turn and sp_str span to DD
 
-        # Neither of the below situations occur
-        if ev_str in REC_turn and sp_str not in REC_turn:
-            a=1
-        if sp_str in REC_turn and ev_str not in REC_turn:
-            a=1
+    #     # Neither of the below situations occur
+    #     if ev_str in REC_turn and sp_str not in REC_turn:
+    #         a=1
+    #     if sp_str in REC_turn and ev_str not in REC_turn:
+    #         a=1
 
 print(f"Updated emotions on {num_emotion_updates} utterances")
+with open('TLiDB_Daily_Dialogue/TLiDB_Daily_Dialogue.json',"w") as f:
+    json.dump(DD_data, f, indent=2)
