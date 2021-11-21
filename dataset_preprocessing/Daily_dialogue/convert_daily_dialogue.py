@@ -89,5 +89,5 @@ for p in data_partitions:
 
 formatted_data['metadata']['task_metadata']['emotion_recognition']['labels'].sort()
 
-with open(os.path.join(TLiDB_path,f"TLiDB_Daily_Dialogue.json"),"w") as f:
-    json.dump(formatted_data, f, indent=2)
+with open(os.path.join(TLiDB_path,f"TLiDB_Daily_Dialogue.json"),"w", encoding='utf8') as f:
+    json.dump(formatted_data, f, indent=2, ensure_ascii=False)
