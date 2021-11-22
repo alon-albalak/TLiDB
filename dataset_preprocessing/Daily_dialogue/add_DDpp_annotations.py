@@ -47,10 +47,11 @@ def add_DDpp_annotations(DD_data, DD_pp, known_DDpp_DD_ID_mapping):
     return DD_data
 
 known_DDpp_DD_ID_mapping = [
-    [265,561, 585, 641, 976, 1201, 1468, 1717, 1788, 1848, 2362, 2364, 2470, 2514, 2515],
+    [265,561, 585, 641, 976, 1201, 1468, 1717, 1788, 1848, 2362, 2364, 2470, 2514, 2515, 2677, 2825, 2828, 2963],
     ['dialogue-10532','dialogue-4570','dialogue-6445','dialogue-9569','dialogue-363', 'dialogue-2203', 
     'dialogue-10059','dialogue-7378','dialogue-2168','dialogue-4272','dialogue-287','dialogue-3129',
-    'dialogue-12629','dialogue-8556','dialogue-245']
+    'dialogue-12629','dialogue-8556','dialogue-245','dialogue-7738','dialogue-3663','dialogue-10631',
+    'dialogue-7568']
     ]
 known_DDpp_DD_ID_mapping= [[],[]]
 
