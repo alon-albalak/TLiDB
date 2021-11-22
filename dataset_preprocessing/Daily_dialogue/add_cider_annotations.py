@@ -15,9 +15,22 @@ CIDER_DNLI_fields = ["dialogue", "head", "relation", "tail", "label"]
 CIDER_DNLI = list(csv.reader(open("CIDER_DNLI_train.tsv", "r"), delimiter='\t'))
 CIDER_DNLI.extend(list(csv.reader(open("CIDER_DNLI_test.tsv", "r"), delimiter='\t')))
 
-# load CIDER span extraction data\
+# load CIDER span extraction data
 CIDER_sp_ex = json.load(open("CIDER_sp_ex_train.json","r"))
 CIDER_sp_ex.extend(json.load(open("CIDER_sp_ex_test.json","r")))
+
+# load CIDER multiple choice span selection
+CIDER_MCQ_fields = ["_", "CIDER_ID", "fold", "question", "context", "_", "_", "option0","option1","option2","option3","label"]
+CIDER_MCQ = list(csv.reader(open("CIDER_MCQ_train_iter0.csv", "r")))[1:]
+CIDER_MCQ.extend(list(csv.reader(open("CIDER_MCQ_train_iter35.csv", "r")))[1:])
+CIDER_MCQ.extend(list(csv.reader(open("CIDER_MCQ_val_iter0.csv", "r")))[1:])
+CIDER_MCQ.extend(list(csv.reader(open("CIDER_MCQ_val_iter35.csv", "r")))[1:])
+CIDER_MCQ = sorted(CIDER_MCQ, key=lambda x: x[CIDER_MCQ_fields.index('CIDER_ID')])
+
+CIDER_CRP_labels = sorted(open("CIDER_RP_relations.txt", "r").read().splitlines())
+CIDER_CRP_fields = ["_", "context", "entities", "relation"]
+CIDER_CRP = list(csv.reader(open("CIDER_RP_train.csv", "r")))[1:]
+CIDER_CRP.extend(list(csv.reader(open("CIDER_RP_test.csv", "r")))[1:])
 
 def convert_CIDER_dialogue_to_NLI_format(CIDER_dialogue):
     NLI_format = ""
@@ -56,8 +69,6 @@ def get_CIDER_datum_from_sp_ex_datum(sp_ex_datum, CIDER_data):
     for datum in CIDER_data:
         if datum['DNLI_format'] == sp_ex_dialogue:
             return datum
-        if datum['DNLI_format'][:50] == sp_ex_dialogue[:50]:
-            return datum
     raise UserWarning(f"Could not find in CIDER data\n\t{sp_ex_datum}")
 
 def get_DD_datum_from_sp_ex_datum(sp_ex_datum, DD_data):
@@ -66,16 +77,33 @@ def get_DD_datum_from_sp_ex_datum(sp_ex_datum, DD_data):
         DD_dialogue = " ".join([turn['utterance'] for turn in datum['dialogue']])
         if DD_dialogue == sp_ex_dialogue:
             return datum
-        if DD_dialogue[:50] == sp_ex_dialogue[:50]:
-            return datum
     raise UserWarning(f"Could not find in DD data\n\t{sp_ex_datum}")
+
+def get_CIDER_datum_from_mcq_datum(mcq_datum, CIDER_data):
+    raise NotImplementedError
+
+def get_DD_datum_from_mcq_datum(mcq_datum, DD_data):
+    raise NotImplementedError
+
+def get_CIDER_datum_from_crp_datum(crp_datum, CIDER_data):
+    crp_dialogue = untokenize([crp_datum[CIDER_CRP_fields.index('context')]])
+    for datum in CIDER_data:
+        if datum['DNLI_format'] == crp_dialogue:
+            return datum
+    raise UserWarning(f"Could not find in CIDER data\n\t{crp_datum}")
+
+def get_DD_datum_from_crp_datum(crp_datum, DD_data):
+    crp_dialogue = untokenize([crp_datum[CIDER_CRP_fields.index('context')]])
+    for datum in DD_data['data']:
+        DD_dialogue = " ".join([turn['utterance'] for turn in datum['dialogue']])
+        if DD_dialogue == crp_dialogue:
+            return datum
+    raise UserWarning(f"Could not find in DD data\n\t{crp_datum}")
 
 def get_DD_datum_from_CIDER_dialogue(CIDER_dialogue, original_DD_data, accept_CIDER_changes=False, reject_CIDER_changes=False,DD_ID=None):
     assert(not (accept_CIDER_changes and reject_CIDER_changes))
     assert(not (accept_CIDER_changes or reject_CIDER_changes) or DD_ID is not None), "If accepting CIDER changes, you must specify the DD datum"
-    #it's really inefficient, but because CIDER does not use IDs from DD,
-    #   we have to search through the list of original data
-    #   to find the original dialogue
+
     
     formatted_CIDER_dialogue = convert_CIDER_dialogue_to_DD_format(CIDER_dialogue)
     found = False
@@ -91,9 +119,9 @@ def get_DD_datum_from_CIDER_dialogue(CIDER_dialogue, original_DD_data, accept_CI
     else:
         for DD_datum in original_DD_data['data']:
             if DD_datum['dialogue'][0]['utterance'] == formatted_CIDER_dialogue[0]:
+                # some dialogues begin with the same first utterance, but diverge after that
                 if len(DD_datum['dialogue']) != len(formatted_CIDER_dialogue):
                     continue
-                    # raise UserWarning("CIDER dialogue and original dialogue have different lengths")
                 unmatched_turns = False
                 for DD_turn, CIDER_turn in zip(DD_datum['dialogue'], formatted_CIDER_dialogue):
                     if DD_turn['utterance'] != CIDER_turn:
@@ -173,8 +201,8 @@ def add_CIDER_dialogue_nli_annotations(original_DD_data, CIDER_data, DD_CIDER_da
                     not_found += 1
                     prev_dialogue_failed = True
 
-        if 'DD_ID' in cur_datum:
-            cur_datum = get_DD_by_ID(cur_datum['DD_ID'], original_DD_data)
+            if 'DD_ID' in cur_datum:
+                cur_datum = get_DD_by_ID(cur_datum['DD_ID'], original_DD_data)
         
         if 'dialogue_nli' not in cur_datum:
             cur_datum['dialogue_nli'] = []
@@ -208,8 +236,6 @@ def add_CIDER_span_extraction_annotations(DD_data, CIDER_data, DD_CIDER_data, CI
         # skip datums from DREAM or MuTual
         if 'daily-dialogue' not in sp_ex['qas'][0]['id']:
             continue
-
-
         # first, check if the datum has previously been annotated with the DD_ID
         DD_ID_found = False
         sp_ex_ID = "-".join(sp_ex['qas'][0]['id'].split('-')[:3])
@@ -227,7 +253,6 @@ def add_CIDER_span_extraction_annotations(DD_data, CIDER_data, DD_CIDER_data, CI
                 cur_datum = get_DD_by_ID(DD_ID, DD_data)
                 found_CIDER += 1
             else:
-                
                 # if not, try to find the dialogue in CIDER
                 try:
                     cur_datum = get_CIDER_datum_from_sp_ex_datum(sp_ex, DD_CIDER_data)
@@ -264,6 +289,143 @@ def add_CIDER_span_extraction_annotations(DD_data, CIDER_data, DD_CIDER_data, CI
 
     return DD_data
 
+def mcq_in_DD_MCQ(q, options, label, DD_MCQ):
+    for mcq in DD_MCQ['mcqs']:
+        if mcq['question'] == q and mcq['options'] == options and mcq['label'] == label:
+            return True
+    return False
+
+def add_CIDER_multiple_choice_span_selection_annotations(DD_data, CIDER_data, DD_CIDER_data, CIDER_MCQ):
+    DD_data['metadata']['tasks'].append("dialogue_reasoning_multiple_choice_span_selection")
+    DD_data['metadata']['task_metadata']['dialogue_reasoning_multiple_choice_span_selection'] = {'metrics':['accuracy']}
+    
+    found_CIDER = 0
+    found_DD = 0
+    not_found = 0
+    cur_datum = None
+    cur_ID = None
+    DD_MCQ = None
+    duplicate_mcqs = 0
+
+    # iteratively add span selection annotations to original data
+    for mcq in tqdm(CIDER_MCQ):
+        # skip datums from DREAM or MuTual
+        if 'daily-dialogue' not in mcq[CIDER_MCQ_fields.index('CIDER_ID')]:
+            continue
+        # first, check if the datum has previously been annotated with the DD_ID
+        DD_ID_found = False
+        mcq_ID = "-".join(mcq[CIDER_MCQ_fields.index('CIDER_ID')].split('-')[:3])
+        if mcq_ID != cur_ID:
+            cur_ID = mcq_ID
+            if DD_MCQ:
+                cur_datum['dialogue_reasoning_multiple_choice_span_selection'] = DD_MCQ
+
+            for d in DD_CIDER_data:
+                if mcq_ID == d['id']:
+                    DD_ID = d['DD_ID']
+                    DD_ID_found = True
+                    break
+            if DD_ID_found and 'DD_ID' in d:
+                cur_datum = get_DD_by_ID(DD_ID, DD_data)
+                found_CIDER += 1
+            else:
+                # if not, try to find the dialogue in CIDER
+                try:
+                    cur_datum = get_CIDER_datum_from_mcq_datum(mcq, DD_CIDER_data)
+                    found_CIDER += 1
+                except Exception as e:
+                    # next, try original DD data
+                    try:
+                        cur_datum = get_DD_datum_from_mcq_datum(mcq, DD_data)
+                        found_DD += 1
+                    except Exception as e:
+                        not_found += 1
+                        raise e
+
+            full_dialogue = create_full_DD_dialogue(cur_datum)
+            DD_MCQ = {'context':full_dialogue,'mcqs':[]}
+
+        # compile the span selection annotations in our format
+        q = mcq[CIDER_MCQ_fields.index('question')]
+        options = [untokenize([mcq[CIDER_MCQ_fields.index(f'option{i}')]]) for i in range(4)]
+        label = mcq[CIDER_MCQ_fields.index('label')]
+        is_duplicate_mcq = mcq_in_DD_MCQ(q, options, label, DD_MCQ)
+        if not is_duplicate_mcq:
+            DD_MCQ['mcqs'].append({'question':q, 'options':options, 'label':label})
+        else:
+            duplicate_mcqs += 1
+
+    assert(found_CIDER == 241)
+    assert(found_DD == 0)
+    assert(not_found == 0)
+    assert(duplicate_mcqs == 56)
+    
+    return DD_data
+
+def add_CIDER_commonsense_relation_prediction_annotations(original_DD_data, CIDER_data, DD_CIDER_data, CIDER_CRP):
+    original_DD_data['metadata']['tasks'].append("dialogue_reasoning_commonsense_relation_prediction")
+    original_DD_data['metadata']['task_metadata']['dialogue_reasoning_commonsense_relation_prediction'] = {
+        'labels':CIDER_CRP_labels, 'metrics':['accuracy']
+        }
+    
+    found_CIDER = 0
+    found_DD = 0
+    not_found = 0
+    cur_datum = None
+    cur_ID = None
+    DD_CRP = None
+
+    prev_dialogue = ""
+    prev_dialogue_failed = False
+
+    # iteratively add span selection annotations to original data
+    for crp in tqdm(CIDER_CRP):
+        
+        # if this is the same as the previous dialogue, and that one wasn't in DD, skip it
+        if crp[CIDER_CRP_fields.index("context")] == prev_dialogue:
+            if prev_dialogue_failed:
+                continue
+
+        # otherwise try to find the dialogue in DD
+        else:
+            prev_dialogue = crp[CIDER_CRP_fields.index("context")]
+
+            # first, try to find the dialogue in CIDER
+            try:
+                cur_datum = get_CIDER_datum_from_crp_datum(crp, DD_CIDER_data)
+                found_CIDER += 1
+                prev_dialogue_failed = False
+            except:
+                # next, try original DD data
+                try:
+                    cur_datum = get_DD_datum_from_crp_datum(crp, original_DD_data)
+                    found_DD += 1
+                    prev_dialogue_failed = False
+                except:
+                    not_found += 1
+                    prev_dialogue_failed = True
+
+
+            if 'DD_ID' in cur_datum:
+                cur_datum = get_DD_by_ID(cur_datum['DD_ID'], original_DD_data)
+        
+        if 'dialogue_reasoning_commonsense_relation_prediction' not in cur_datum:
+            cur_datum['dialogue_reasoning_commonsense_relation_prediction'] = []
+
+        head,tail = crp[CIDER_CRP_fields.index("entities")].split("[SEP]")
+        cur_datum['dialogue_reasoning_commonsense_relation_prediction'].append({
+            'head': head.strip(),
+            'tail': tail.strip(),
+            'relation': crp[CIDER_CRP_fields.index("relation")]
+        })
+
+
+    assert found_CIDER == 228
+    assert found_DD== 17
+    assert not_found == 561
+
+    return original_DD_data
+
 
 # Known differences between CIDER and DD to accept (typos, etc.)
 accepted_CIDER_DD_differences = [
@@ -276,7 +438,9 @@ rejected_CIDER_DD_differences = [
 
 DD_CIDER_data = annotate_CIDER_data(DD_data, CIDER_data, accepted_CIDER_DD_differences, rejected_CIDER_DD_differences)
 DD_data = add_CIDER_dialogue_nli_annotations(DD_data, CIDER_data, DD_CIDER_data, CIDER_DNLI)
-DD_date = add_CIDER_span_extraction_annotations(DD_data, CIDER_data, DD_CIDER_data, CIDER_sp_ex)
+DD_data = add_CIDER_span_extraction_annotations(DD_data, CIDER_data, DD_CIDER_data, CIDER_sp_ex)
+DD_data = add_CIDER_multiple_choice_span_selection_annotations(DD_data, CIDER_data, DD_CIDER_data, CIDER_MCQ)
+DD_data = add_CIDER_commonsense_relation_prediction_annotations(DD_data, CIDER_data, DD_CIDER_data, CIDER_CRP)
 
 with open('TLiDB_Daily_Dialogue/TLiDB_Daily_Dialogue.json',"w", encoding='utf8') as f:
     json.dump(DD_data, f, indent=2, ensure_ascii=False)

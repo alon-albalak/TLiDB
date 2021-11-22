@@ -28,6 +28,19 @@ readonly CIDER_DNLI_TEST_URL='https://raw.githubusercontent.com/declare-lab/CIDE
 readonly CIDER_SP_EX_TRAIN_URL='https://raw.githubusercontent.com/declare-lab/CIDER/main/code/span_extraction/data/fold1_train.json'
 readonly CIDER_SP_EX_TEST_URL='https://raw.githubusercontent.com/declare-lab/CIDER/main/code/span_extraction/data/fold1_test.json'
 
+readonly CIDER_MCQ_T0_URL='https://raw.githubusercontent.com/declare-lab/CIDER/main/code/mcq/dataset/train_iter0.csv'
+readonly CIDER_MCQ_T35_URL='https://raw.githubusercontent.com/declare-lab/CIDER/main/code/mcq/dataset/train_iter35.csv'
+readonly CIDER_MCQ_V0_URL='https://raw.githubusercontent.com/declare-lab/CIDER/main/code/mcq/dataset/val_iter0.csv'
+readonly CIDER_MCQ_V35_URL='https://raw.githubusercontent.com/declare-lab/CIDER/main/code/mcq/dataset/val_iter35.csv'
+
+readonly CIDER_RP_URL='https://raw.githubusercontent.com/declare-lab/CIDER/main/code/relation_prediction/datasets/csk_w_neg_rp/relations.txt'
+readonly CIDER_RP_TRAIN_URL='https://raw.githubusercontent.com/declare-lab/CIDER/main/code/relation_prediction/datasets/csk_w_neg_rp/fold1_w_neg_train_lemma.csv'
+readonly CIDER_RP_TEST_URL='https://raw.githubusercontent.com/declare-lab/CIDER/main/code/relation_prediction/datasets/csk_w_neg_rp/fold1_w_neg_test_lemma.csv'
+
+readonly DDpp_TRAIN_URL='https://iitmnlp.github.io/DailyDialog-plusplus/dataset/train.json'
+readonly DDpp_DEV_URL='https://iitmnlp.github.io/DailyDialog-plusplus/dataset/dev.json'
+readonly DDpp_TEST_URL='https://iitmnlp.github.io/DailyDialog-plusplus/dataset/test.json'
+
 function main() {
    trap exit SIGINT
 
@@ -56,6 +69,19 @@ function main() {
    fetch_file "${CIDER_SP_EX_TRAIN_URL}" "CIDER_sp_ex_train.json"
    fetch_file "${CIDER_SP_EX_TEST_URL}" "CIDER_sp_ex_test.json"
 
+   fetch_file "${CIDER_MCQ_T0_URL}" "CIDER_MCQ_train_iter0.csv"
+   fetch_file "${CIDER_MCQ_T35_URL}" "CIDER_MCQ_train_iter35.csv"
+   fetch_file "${CIDER_MCQ_V0_URL}" "CIDER_MCQ_val_iter0.csv"
+   fetch_file "${CIDER_MCQ_V35_URL}" "CIDER_MCQ_val_iter35.csv"
+
+   fetch_file "${CIDER_RP_URL}" "CIDER_RP_relations.txt"
+   fetch_file "${CIDER_RP_TRAIN_URL}" "CIDER_RP_train.csv"
+   fetch_file "${CIDER_RP_TEST_URL}" "CIDER_RP_test.csv"
+
+   fetch_file "${DDpp_TRAIN_URL}" "DDpp_train.json"
+   fetch_file "${DDpp_DEV_URL}" "DDpp_dev.json"
+   fetch_file "${DDpp_TEST_URL}" "DDpp_test.json"
+
 
    echo "Adding topic annotations"
    python3 gather_topics.py
@@ -65,8 +91,9 @@ function main() {
    python3 add_reccon_improved_annotations.py
    echo "Adding causal emotion annotations from RECCON"
    python3 add_reccon_causal_emotion_annotations.py
-   echo "Adding Dialogue reasoning annotations from CIDER"
+   echo "Adding dialogue reasoning annotations from CIDER"
    python3 add_cider_annotations.py
+   # echo "Adding adversarial response selection annotations from DailyDialog++"
 
    # zip -r TLiDB_Daily_Dialogue.zip TLiDB_Daily_Dialogue/
    # rm -r "${DD_DIR}"
