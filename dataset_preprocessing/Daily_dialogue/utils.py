@@ -14,7 +14,10 @@ def untokenize(words):
     step5 = re.sub(r'(?<=[.,])(?=[^\s])', r' ', step4)
     step6 = step5.replace(" '", "'").replace(" n't", "n't").replace("n' t", "n't").replace("t' s","t's").replace("' ll", "'ll").replace("I' m", "I'm").replace(
         "can not", "cannot").replace("I' d", "I'd").replace("' re", "'re")
-    return step6.strip()
+    step7 = re.sub(r'\$\s(\d)', r'$\1', step6)
+    step8 = re.sub(r'(\d),\s?(\d\d\d)', r'\1,\2', step7)
+    step9 = step8.replace("? !", "?!").replace("! !", "!!")
+    return step9.strip()
 
 def convert_REC_ID_to_DD_ID(REC_ID):
     """

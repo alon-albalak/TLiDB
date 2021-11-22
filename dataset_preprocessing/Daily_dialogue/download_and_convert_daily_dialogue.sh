@@ -87,8 +87,8 @@ function main() {
    python3 gather_topics.py
    echo "Converting Daily Dialog to TLiDB format"
    python3 convert_daily_dialogue.py
-   echo "Adding improved dialogue/emotion annotations from RECCON"
-   python3 add_reccon_improved_annotations.py
+   echo "Adding improved dialogue/emotion annotations from RECCON and DailyDialog++"
+   python3 add_improved_annotations.py
    echo "Adding causal emotion annotations from RECCON"
    python3 add_reccon_causal_emotion_annotations.py
    echo "Adding dialogue reasoning annotations from CIDER"
