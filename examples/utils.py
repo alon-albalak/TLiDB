@@ -16,7 +16,6 @@ def move_to(obj, device):
         return obj
     else:
         # Assume obj is a Tensor or other type
-        # (like Batch, for MolPCBA) that supports .to(device)
         return obj.to(device)
 
 def detach_and_clone(obj):

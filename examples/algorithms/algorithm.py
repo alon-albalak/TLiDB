@@ -34,7 +34,10 @@ class Algorithm(nn.Module):
         X = move_to(X, self.device)
         y_true = move_to(y_true, self.device)
 
-        outputs = self.model(X,metadata['task'],metadata['dataset_name'])
+        if self.model.requires_y_true:
+            outputs = self.model(X,metadata['task'],metadata['dataset_name'],y_true)
+        else:
+            outputs = self.model(X,metadata['task'],metadata['dataset_name'])
 
         results = {
             'y_pred': outputs,

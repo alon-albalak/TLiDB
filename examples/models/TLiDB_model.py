@@ -67,6 +67,10 @@ class TLiDB_model:
     def transform_outputs(self, outputs):
         return NotImplementedError
 
+    @property
+    def requires_y_true(self):
+        return self._requires_y_true
+
     def to(self, device):
         """Convenience function to move all layers to a device"""
         for layer in self.layers:
