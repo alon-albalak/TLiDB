@@ -7,17 +7,18 @@ def untokenize(words):
     except for line breaks.
     """
     text = ' '.join(words)
-    step1 = text.replace("。",".").replace("’","'").replace("`` ", '"').replace(" ''", '"').replace('. . .', '...').replace(" ` ", " '")
+    step1 = text.replace("。",".").replace("’","'").replace("`` ", '"').replace(" ''", '"').replace('. . .', '...').replace(" ` ", " '").replace(" ,",",")
     step2 = step1.replace("( ","(").replace(" ( ", " (").replace(" )", ")").replace(" ) ", ") ").replace(" -- ", " - ").replace("—","-").replace("–","-").replace('”','"').replace('“','"').replace("‘","'").replace("’","'")
     step3 = re.sub(r' ([.,:;?!%]+)([ \'"`])', r"\1\2", step2)
     step4 = re.sub(r' ([.,:;?!%]+)$', r"\1", step3)
     step5 = re.sub(r'(?<=[.,])(?=[^\s])', r' ', step4)
     step6 = step5.replace(" '", "'").replace(" n't", "n't").replace("n' t", "n't").replace("t' s","t's").replace("' ll", "'ll").replace("I' m", "I'm").replace(
-        "can not", "cannot").replace("I' d", "I'd").replace("' re", "'re")
+        "can not", "cannot").replace("I' d", "I'd").replace("' re", "'re").replace("t ' s", "t's").replace("e' s", "e's")
     step7 = re.sub(r'\$\s(\d)', r'$\1', step6)
     step8 = re.sub(r'(\d),\s?(\d\d\d)', r'\1,\2', step7)
-    step9 = step8.replace("? !", "?!").replace("! !", "!!")
-    return step9.strip()
+    step9 = re.sub(r'(\d.) (\d\%)', r'\1\2', step8)
+    step10 = step9.replace("? !", "?!").replace("! !", "!!").replace("! ?", "!?").replace("n'y","n't").replace('yarning','yawning').replace(" om V", " on V")
+    return step10.strip()
 
 def convert_REC_ID_to_DD_ID(REC_ID):
     """

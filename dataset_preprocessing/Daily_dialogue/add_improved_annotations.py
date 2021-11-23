@@ -64,14 +64,134 @@ def update_annotations_from_RECCON(DD_data, RECCON_data):
     print(f"Updated emotions on {num_emotion_updates} utterances")
     return DD_data
 
+def update_DD_turn_utterance(DD_datum, turn_num, new_utterance):
+    for turn in DD_datum['dialogue']:
+        if turn['turn'] == turn_num:
+            turn['utterance'] = new_utterance
+
 def update_annotations_from_DDpp(DD_data):
 
     # add improved annotations from DailyDialogue++
+    # mostly typos
     for datum in DD_data['data']:
         if datum['dialogue_id'] in ["dialogue-1566","dialogue-2113", "dialogue-2186", "dialogue-2260", "dialogue-3659", "dialogue-3770"]:
             for turn in datum['dialogue']:
                 if "Mr. : " in turn['utterance']:
                     turn['utterance'] = turn['utterance'].replace("Mr. : ", "")
+        if datum['dialogue_id'] == "dialogue-6445":
+            for turn in datum['dialogue']:
+                if turn['turn_id'] == '6':
+                    turn['utterance'] = "OK. Then I want to ask you some questions about the tourist guide. If there was an accident, for example a tourist falls ill, what would you do?"
+        if datum['dialogue_id'] == "dialogue-9569":
+            for turn in datum['dialogue']:
+                if turn['turn_id'] == '5':
+                    turn['utterance'] = "Yes, I can. You know Mr. Macready, the famous car dealer here in New York. He agreed to act as my guarantor of a loan in the sum of US $10,000 until the end of this year."
+        if datum['dialogue_id'] == "dialogue-363":
+            for turn in datum['dialogue']:
+                if turn['turn_id'] == '1':
+                    turn['utterance'] = "Lodge, You must come around sometime, You have to check out my new stereo."
+        if datum['dialogue_id'] == "dialogue-10059":
+            for turn in datum['dialogue']:
+                if turn['turn_id'] == '1':
+                    turn['utterance'] = "Do you feel alright?"
+        if datum['dialogue_id'] == "dialogue-3081":
+            for turn in datum['dialogue']:
+                if turn['turn_id'] == '3':
+                    turn['utterance'] = "Poor John! He is sandwiched between them."
+        if datum['dialogue_id'] == 'dialogue-3702':
+            for turn in datum['dialogue']:
+                if turn['turn_id'] == '3':
+                    turn['utterance'] = "Poor John! He is sandwiched between both of them."
+        if datum['dialogue_id'] == "dialogue-3663":
+            for turn in datum['dialogue']:
+                if turn['turn_id'] == '4':
+                    turn['utterance'] = "He certainly is. He is the Beckham of our college."
+        if datum['dialogue_id'] == "dialogue-225":
+            for turn in datum['dialogue']:
+                if turn['turn_id'] == '1':
+                    turn['utterance'] = "I think the biggest environmental problem in my country is air pollution."
+        if datum['dialogue_id'] == "dialogue-51":
+            for turn in datum['dialogue']:
+                if turn['turn_id'] == '4':
+                    turn['utterance'] = "I wish the store close to us was open 24 - hours a day."
+        if datum['dialogue_id'] == "dialogue-376":
+            for turn in datum['dialogue']:
+                if turn['turn_id'] == '2':
+                    turn['utterance'] = "Hi, Lin Tao. I haven't seen you for some time."
+        if datum['dialogue_id'] == "dialogue-305":
+            for turn in datum['dialogue']:
+                if turn['turn_id'] == '2':
+                    turn['utterance'] = "That's a great idea. It's the best season for tourists in Florida. You can also get a good suntan there."
+        if datum['dialogue_id'] == "dialogue-7":
+            for turn in datum['dialogue']:
+                if turn['turn_id'] == '4':
+                    turn['utterance'] = "Who is he marrying?"
+        if datum['dialogue_id'] == "dialogue-3":
+            for turn in datum['dialogue']:
+                if turn['turn_id'] == '4':
+                    turn['utterance'] = "The radio has too many commercials."
+        if datum['dialogue_id'] == "dialogue-5112":
+            for turn in datum['dialogue']:
+                if turn['turn_id'] == '2':
+                    turn['utterance'] = "Yes, could you cash these traveler's check for me, please?"
+        if datum['dialogue_id'] in ["dialogue-2668",'dialogue-4052']:
+            for turn in datum['dialogue']:
+                if turn['turn_id'] == '1':
+                    turn['utterance'] = "You are blue in the face, aren't you?"
+        if datum['dialogue_id'] == "dialogue-347":
+            for turn in datum['dialogue']:
+                if turn['turn_id'] == '5':
+                    turn['utterance'] = "See you on Monday. Have a great weekend."
+        if datum['dialogue_id'] == "dialogue-7944":
+            for turn in datum['dialogue']:
+                if turn['turn_id'] == '7':
+                    turn['utterance'] = "How about 10% ? This price is already a little tight, our profit margin is not that large."
+        if datum['dialogue_id'] == "dialogue-377":
+            for turn in datum['dialogue']:
+                if turn['turn_id'] == '2':
+                    turn['utterance'] = "Yeah, he has a good command of computer skills. But. . ."
+        if datum['dialogue_id'] == "dialogue-1549":
+            for turn in datum['dialogue']:
+                if turn['turn_id'] == '5':
+                    turn['utterance'] = "And why are you yawning now? Are you bored?"
+        if datum['dialogue_id'] == "dialogue-139":
+            for turn in datum['dialogue']:
+                if turn['turn_id'] == '3':
+                    turn['utterance'] = "Time to order. Barista, today I want a skinny triple latte."
+        if datum['dialogue_id'] == "dialogue-1172":
+            for turn in datum['dialogue']:
+                if turn['turn_id'] == '2':
+                    turn['utterance'] = "I'm planning to go bowling tonight. Tomorrow I was hoping to see a movie. What about you?"
+        if datum['dialogue_id'] == "dialogue-4":
+            for turn in datum['dialogue']:
+                if turn['turn_id'] == '2':
+                    turn['utterance'] = "I will be alright soon. I was terrified when I watched them fall from the wire."
+        if datum['dialogue_id'] == "dialogue-91":
+            for turn in datum['dialogue']:
+                if turn['turn_id'] == '2':
+                    turn['utterance'] = "Sorry, I'm engaged for the foxtrot. Will the next waltz be alright?"
+        if datum['dialogue_id'] == "dialogue-6555":
+            for turn in datum['dialogue']:
+                if turn['turn_id'] == '5':
+                    turn['utterance'] = "Can it go in an envelope?"
+        if datum['dialogue_id'] == "dialogue-5160":
+            for turn in datum['dialogue']:
+                if turn['turn_id'] == '5':
+                    turn['utterance'] = "OK. Can I have your original ID card and two 2 - inch photos?"
+        if datum['dialogue_id'] in ["dialogue-90","dialogue-10556"]:
+            for turn in datum['dialogue']:
+                if turn['turn_id'] == '1':
+                    turn['utterance'] = "You've been work here for nearly a month, how do you feel about the job?"
+        if datum['dialogue_id'] == "dialogue-487":
+            for turn in datum['dialogue']:
+                if turn['turn_id'] == '3':
+                    turn['utterance'] = "He can repair cars? I cannot believe it."
+        if datum['dialogue_id'] == "dialogue-169":
+            for turn in datum['dialogue']:
+                if turn['turn_id'] == '1':
+                    turn['utterance'] = "Everyone wants to be financial lose kill. You must invest your savings if you planned to retire rich. I'm thinking about buying stocks. It can be a good investment if I can manage well. What do you say?"
+        
+
     return DD_data
 
 DD_data = update_annotations_from_RECCON(DD_data, RECCON_data)

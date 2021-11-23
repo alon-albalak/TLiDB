@@ -93,19 +93,47 @@ function main() {
    python3 add_reccon_causal_emotion_annotations.py
    echo "Adding dialogue reasoning annotations from CIDER"
    python3 add_cider_annotations.py
-   # echo "Adding adversarial response selection annotations from DailyDialog++"
+   echo "Adding adversarial response selection annotations from DailyDialog++"
+   python3 add_DDpp_annotations.py
 
-   # zip -r TLiDB_Daily_Dialogue.zip TLiDB_Daily_Dialogue/
-   # rm -r "${DD_DIR}"
-   # rm -r "test"
-   # rm -r "train"
-   # rm -r "validation"
-   # for file in $DD_FILE "RECCON_train.json" "RECCON_validation.json" "RECCON_test.json" "RECCON_span_extraction_train.json" "RECCON_span_extraction_validation.json" "RECCON_span_extraction_test.json" "RECCON_entailment_train.csv" "RECCON_entailment_validation.csv" "RECCON_entailment_test.csv"
-   # do
-   #    rm $file
-   # done
+   zip -r TLiDB_Daily_Dialogue.zip TLiDB_Daily_Dialogue/
+   rm -r "${DD_DIR}"
+   rm -r "test"
+   rm -r "train"
+   rm -r "validation"
 
+   files=(
+      $DD_FILE
+      "RECCON_train.json"
+      "RECCON_validation.json"
+      "RECCON_test.json"
+      "RECCON_span_extraction_train.json"
+      "RECCON_span_extraction_validation.json"
+      "RECCON_span_extraction_test.json"
+      "RECCON_entailment_train.csv"
+      "RECCON_entailment_validation.csv"
+      "RECCON_entailment_test.csv"
+      "CIDER_main.json"
+      "CIDER_DNLI_train.tsv"
+      "CIDER_DNLI_test.tsv"
+      "CIDER_sp_ex_train.json"
+      "CIDER_sp_ex_test.json"
+      "CIDER_MCQ_train_iter0.csv"
+      "CIDER_MCQ_train_iter35.csv"
+      "CIDER_MCQ_val_iter0.csv"
+      "CIDER_MCQ_val_iter35.csv"
+      "CIDER_RP_relations.txt"
+      "CIDER_RP_train.csv"
+      "CIDER_RP_test.csv"
+      "DDpp_train.json"
+      "DDpp_dev.json"
+      "DDpp_test.json"
+   )
 
+   for file in ${files[@]}
+   do
+      rm $file
+   done
 }
 
 function check_requirements() {
