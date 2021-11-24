@@ -48,8 +48,10 @@ def run_epoch(algorithm, datasets, epoch, config, logger, train):
         #   collected properly if not detached again
         epoch_y_true[batch_t_d].append(detach_and_clone(batch_results['y_true']))
         y_pred = detach_and_clone(batch_results['y_pred'])
-        if batch_metadata['output_processing_function']:
-            y_pred = output_processing_functions[batch_metadata['output_processing_function']](y_pred)
+        
+        # TODO: the below code has been moved into the algorithm
+        # if batch_metadata['output_processing_function']:
+        #     y_pred = output_processing_functions[batch_metadata['output_processing_function']](y_pred, batch_metadata)
         epoch_y_pred[batch_t_d].append(y_pred)
         epoch_metadata[batch_t_d].append(detach_and_clone(batch_results['metadata']))
 
@@ -73,7 +75,10 @@ def run_epoch(algorithm, datasets, epoch, config, logger, train):
     logger.write('Epoch eval:\n')
     for d in datasets['datasets']:
         t_d = concat_t_d(d.task,d.dataset_name)
-        r, r_str = d.eval(epoch_y_true[t_d], epoch_y_pred[t_d])
+        # TODO: Alon left off here
+        # need to set up the evaluation so that Seq2Seq models work
+        # at the moment only EncoderAlgorithms work
+        r, r_str = d.eval(epoch_y_pred[t_d], epoch_y_true[t_d])
         results[t_d] = r
         logger.write(f"{d.dataset_name} {d.task}-\n{r_str}\n")
 

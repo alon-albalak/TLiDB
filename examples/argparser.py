@@ -32,7 +32,7 @@ def parse_args():
     parser.add_argument("--loss_functions", type=str, nargs='+')
 
     # algorithm args
-    parser.add_argument("--algorithm", type=str, default="ERM")
+    parser.add_argument("--algorithm", type=str, default="Encoder")
     parser.add_argument("--optimizer", type=str, default="Adam")
     parser.add_argument("--weight_decay", type=float, default=0.0)
 

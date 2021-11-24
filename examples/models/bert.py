@@ -7,7 +7,7 @@ SEQUENCE_TASKS = ['intent_detection', 'emotion_recognition']
 TOKEN_TASKS = []
 
 class Bert(TLiDB_model):
-    _requires_y_true = False
+    _encoder_only = True
     def __init__(self, config, datasets):
         super().__init__(config)
         self.tokenizer = get_bert_tokenizer(config.model)

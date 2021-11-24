@@ -58,8 +58,8 @@ class TLiDB_model:
     def forward(self, forward):
         self._forward = forward
 
-    def __call__(self, *args):
-        return self._forward(*args)
+    def __call__(self, *args, **kwargs):
+        return self._forward(*args, **kwargs)
 
     def transform_inputs(self, inputs):
         return NotImplementedError
@@ -68,8 +68,8 @@ class TLiDB_model:
         return NotImplementedError
 
     @property
-    def requires_y_true(self):
-        return self._requires_y_true
+    def encoder_only(self):
+        return self._encoder_only
 
     def to(self, device):
         """Convenience function to move all layers to a device"""

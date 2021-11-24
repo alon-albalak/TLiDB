@@ -16,38 +16,10 @@ class Algorithm(nn.Module):
         self.max_grad_norm = config.max_grad_norm
         self.model = model
     
+    # def objective(self, results, metric):
+    #     raise NotImplementedError
+
     def process_batch(self, batch):
-        """
-        A helper function for update() and evaluate() that process the batch
-        Args:
-            - batch: a batch of data yielded by the DataLoader
-        Output:
-            - results: a dictionary of results
-                - y_pred: the prediction of the model
-                - y_true: the ground truth
-                - metadata: the metadata of the batch
-        """
-        X, y_true, metadata = batch
-        X = self.model.transform_inputs(X)
-        y_true = self.model.transform_outputs(y_true, metadata['task'], metadata['dataset_name'])
-
-        X = move_to(X, self.device)
-        y_true = move_to(y_true, self.device)
-
-        if self.model.requires_y_true:
-            outputs = self.model(X,metadata['task'],metadata['dataset_name'],y_true)
-        else:
-            outputs = self.model(X,metadata['task'],metadata['dataset_name'])
-
-        results = {
-            'y_pred': outputs,
-            'y_true': y_true,
-            'metadata': metadata,
-            "objective": {"loss_name": metadata['loss']}
-        }
-        return results
-
-    def objective(self, results, metric):
         raise NotImplementedError
 
     def update(self, batch):
@@ -65,24 +37,36 @@ class Algorithm(nn.Module):
         """
         assert self.is_training, "Cannot update() when not in training mode"
         
-        results = self.process_batch(batch)
-        self._update(results)     
+        results, objective = self.process_batch(batch)
+        self._apply_gradients(objective)
         return self.sanitize_dict(results)
 
-    def _update(self, results):
+    def _apply_gradients(self, objective):
         """
-        Computes the objective and updates the model
+        A helper function for update() that applies the gradients to the model
         """
-        metric = initialize_loss(results['objective']['loss_name'])
-        objective = self.objective(results, metric)
-        results['objective']['loss_value'] = objective.item()
-
-        # update the model
         objective.backward()
         if self.max_grad_norm:
             nn.utils.clip_grad_norm_(self.model.parameters(), self.max_grad_norm)
         self.optimizer.step()
         self.model.zero_grad()
+
+
+
+    # def _update(self, results):
+    #     """
+    #     Computes the objective and updates the model
+    #     """
+    #     metric = initialize_loss(results['objective']['loss_name'])
+    #     objective = self.objective(results, metric)
+    #     results['objective']['loss_value'] = objective.item()
+
+    #     # update the model
+    #     objective.backward()
+    #     if self.max_grad_norm:
+    #         nn.utils.clip_grad_norm_(self.model.parameters(), self.max_grad_norm)
+    #     self.optimizer.step()
+    #     self.model.zero_grad()
 
 
     def evaluate(self, batch):
@@ -99,10 +83,7 @@ class Algorithm(nn.Module):
                 - metrics: the metrics of the batch
         """
         assert not self.is_training, "Cannot evaluate() when in training mode"
-        results = self.process_batch(batch)
-        metric = initialize_loss(results['objective']['loss_name'])
-        objective = self.objective(results, metric)
-        results['objective']['loss_value'] = objective.item()
+        results, _ = self.process_batch(batch)
         return self.sanitize_dict(results)
 
     def train(self, mode=True):
