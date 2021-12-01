@@ -1,6 +1,7 @@
 from utils import move_to
 from .algorithm import Algorithm
 from models import initialize_model
+import torch
 
 
 class Seq2SeqAlgorithm(Algorithm):
@@ -19,6 +20,11 @@ class Seq2SeqAlgorithm(Algorithm):
 
         X['lm_labels'] = y_true
         outputs, loss, y_true = self.model(**X)
+
+        if 'label_mapping' in metadata:
+            y_true = torch.tensor([metadata['label_mapping'].index(y) if y in metadata['label_mapping'] else -1 for y in y_true])
+            assert(all(y_true != -1))
+            outputs = torch.tensor([metadata['label_mapping'].index(y) if y in metadata['label_mapping'] else -1 for y in outputs])
 
         results = {
             'y_pred': outputs,

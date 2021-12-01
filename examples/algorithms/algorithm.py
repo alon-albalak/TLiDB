@@ -51,24 +51,6 @@ class Algorithm(nn.Module):
         self.optimizer.step()
         self.model.zero_grad()
 
-
-
-    # def _update(self, results):
-    #     """
-    #     Computes the objective and updates the model
-    #     """
-    #     metric = initialize_loss(results['objective']['loss_name'])
-    #     objective = self.objective(results, metric)
-    #     results['objective']['loss_value'] = objective.item()
-
-    #     # update the model
-    #     objective.backward()
-    #     if self.max_grad_norm:
-    #         nn.utils.clip_grad_norm_(self.model.parameters(), self.max_grad_norm)
-    #     self.optimizer.step()
-    #     self.model.zero_grad()
-
-
     def evaluate(self, batch):
         """
         Process the batch, and evaluate the model

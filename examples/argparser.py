@@ -32,7 +32,7 @@ def parse_args():
     parser.add_argument("--loss_functions", type=str, nargs='+')
 
     # algorithm args
-    parser.add_argument("--algorithm", type=str, default="Encoder")
+    # parser.add_argument("--model_type", type=str, default="Encoder")
     parser.add_argument("--optimizer", type=str, default="Adam")
     parser.add_argument("--weight_decay", type=float, default=0.0)
 
@@ -47,8 +47,10 @@ def parse_args():
 
     if "bert" in args.model:
         setattr(args, "output_type", "categorical")
+        setattr(args, "model_type", "Encoder")
     else:
         setattr(args, "output_type", "token")
+        setattr(args, "model_type", "Seq2Seq")
 
     if not args.cpu_only:
         setattr(args, "device", "cuda" if torch.cuda.is_available() else "cpu")

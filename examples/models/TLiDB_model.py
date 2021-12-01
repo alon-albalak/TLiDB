@@ -35,6 +35,9 @@ class TLiDB_model:
         params = []
         for layer in self.layers:
             params.extend(layer.parameters())
+        # ensure that the parameters are not duplicated
+        params = set(params)
+        
         return params
 
     def named_parameters(self):

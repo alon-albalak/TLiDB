@@ -9,11 +9,11 @@ def initialize_algorithm(config, datasets):
     Returns:    
         algorithm (Algorithm): an algorithm object
     """
-    if config.algorithm == "Encoder":
+    if config.model_type == "Encoder":
         algorithm = EncoderAlgorithm(config, datasets)
-    elif config.algorithm == "Seq2Seq":
+    elif config.model_type == "Seq2Seq":
         algorithm = Seq2SeqAlgorithm(config, datasets)
     else:
-        raise ValueError(f"Invalid algorithm name: {config.algorithm}")
+        raise ValueError(f"Invalid algorithm name: {config.model_type}")
 
     return algorithm

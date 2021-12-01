@@ -1,6 +1,5 @@
 from transformers import T5ForConditionalGeneration, T5Tokenizer
-import torch
-
+from torch.nn import CrossEntropyLoss
 from .TLiDB_model import TLiDB_model
 
 class T5(TLiDB_model):
@@ -14,7 +13,6 @@ class T5(TLiDB_model):
         self.lm_head = self.model.lm_head
         self.layers = [self.encoder, self.decoder, self.lm_head]                
     
-    # def _forward(self, inputs, y_true=None):
     def _forward(
         self,
         input_ids = None,
@@ -43,7 +41,7 @@ class T5(TLiDB_model):
         y_true = None
 
         if lm_labels is not None:
-            loss_fct = torch.nn.CrossEntropyLoss(ignore_index=-100)
+            loss_fct = CrossEntropyLoss(ignore_index=-100)
             loss = loss_fct(lm_logits.view(-1, lm_logits.size(-1)), lm_labels.view(-1))
             y_true = self.tokenizer.batch_decode(lm_labels, skip_special_tokens=True)
 
