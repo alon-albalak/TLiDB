@@ -3,7 +3,6 @@ from tqdm import tqdm
 import torch
 from examples.utils import detach_and_clone, collate_list, concat_t_d, save_algorithm_if_needed
 from TLiDB.data_loaders.data_loaders import TLiDB_DataLoader
-from configs.supported import output_processing_functions
 
 def run_epoch(algorithm, datasets, epoch, config, logger, train):
     """
@@ -28,7 +27,8 @@ def run_epoch(algorithm, datasets, epoch, config, logger, train):
 
     epoch_y_true = {t_d: [] for t_d in task_datasets}
     epoch_y_pred = {t_d: [] for t_d in task_datasets}
-    epoch_metadata = {t_d: [] for t_d in task_datasets}
+    # TODO: unclear whether epoch metadata is useful
+    # epoch_metadata = {t_d: [] for t_d in task_datasets}
 
     # Using enumerate(iterator) can sometimes leak memory in some environments (!)
     # so we manually increment the step
@@ -49,11 +49,9 @@ def run_epoch(algorithm, datasets, epoch, config, logger, train):
         epoch_y_true[batch_t_d].append(detach_and_clone(batch_results['y_true']))
         y_pred = detach_and_clone(batch_results['y_pred'])
         
-        # TODO: the below code has been moved into the algorithm
-        # if batch_metadata['output_processing_function']:
-        #     y_pred = output_processing_functions[batch_metadata['output_processing_function']](y_pred, batch_metadata)
         epoch_y_pred[batch_t_d].append(y_pred)
-        epoch_metadata[batch_t_d].append(detach_and_clone(batch_results['metadata']))
+        # TODO: unclear whether epoch metadata is useful
+        # epoch_metadata[batch_t_d].append(detach_and_clone(batch_results['metadata']))
 
         total_loss[batch_t_d] += detach_and_clone(batch_results['objective']['loss_value'])
         desc = "Train losses" if train else "Validation losses"

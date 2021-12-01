@@ -124,13 +124,6 @@ class TLiDB_Dataset(Dataset):
         """
         return self._metadata_array
 
-    @property
-    def output_processing_function(self):
-        """
-        Returns the function to convert model outputs into predictions
-        """
-        return getattr(self, "_output_processing_function", None)
-
     def get_metadata_field(self, field):
         return self.metadata_array[self.metadata_fields.index(field)]
 

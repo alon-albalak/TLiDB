@@ -19,7 +19,6 @@ class clinc150_dataset(TLiDB_Dataset):
     _dataset_name = "clinc150"
     _tasks = ["intent_detection"]
     _url = "https://drive.google.com/uc?export=download&id=1dG6KXQ6L7xpbnWmhW9Xo3vPSfYstk43E"
-    _output_processing_function="multiclass_logits_to_pred"
     def __init__(self, task, dataset_folder, output_type, split=None):
         assert task in self._tasks, f"{task} is not a valid task for {self._dataset_name}"
         super().__init__(self.dataset_name, task, output_type, dataset_folder=dataset_folder)
