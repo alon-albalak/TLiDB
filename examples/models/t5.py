@@ -3,7 +3,6 @@ from torch.nn import CrossEntropyLoss
 from .TLiDB_model import TLiDB_model
 
 class T5(TLiDB_model):
-    _encoder_only = False
     def __init__(self, config):
         super().__init__(config)
         self.tokenizer = T5Tokenizer.from_pretrained(config.model)
@@ -11,8 +10,8 @@ class T5(TLiDB_model):
         self.encoder = self.model.encoder
         self.decoder = self.model.decoder
         self.lm_head = self.model.lm_head
-        self.layers = [self.encoder, self.decoder, self.lm_head]                
-    
+        self.layers = [self.model]
+
     def _forward(
         self,
         input_ids = None,

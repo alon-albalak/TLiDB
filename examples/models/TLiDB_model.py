@@ -35,9 +35,7 @@ class TLiDB_model:
         params = []
         for layer in self.layers:
             params.extend(layer.parameters())
-        # ensure that the parameters are not duplicated
-        params = set(params)
-        
+
         return params
 
     def named_parameters(self):
@@ -69,10 +67,6 @@ class TLiDB_model:
 
     def transform_outputs(self, outputs):
         return NotImplementedError
-
-    @property
-    def encoder_only(self):
-        return self._encoder_only
 
     def to(self, device):
         """Convenience function to move all layers to a device"""

@@ -2,16 +2,13 @@ from torch.nn import CrossEntropyLoss
 from .TLiDB_model import TLiDB_model
 
 class GPT2(TLiDB_model):
-    _encoder_only = False
     def __init__(self, config):
         super().__init__(config)
         self.tokenizer, self.model = initialize_model(config)
-        # self.tokenizer = GPT2Tokenizer.from_pretrained(config.model, pad_token='<pad>')
-        # self.model = GPT2LMHeadModel.from_pretrained(config.model)
         self.model.resize_token_embeddings(len(self.tokenizer))
         self.transformer = self.model.transformer
         self.lm_head = self.model.lm_head
-        self.layers = [self.transformer, self.lm_head]
+        self.layers = [self.model]
     
     def _forward(
         self,

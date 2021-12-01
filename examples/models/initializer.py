@@ -6,7 +6,7 @@ def initialize_model(config, datasets):
     """
     if "bert" in config.model:
         model = initialize_bert_based_model(config, datasets)
-    elif "gpt2" in config.model:
+    elif "gpt" in config.model:
         model = initialize_gpt2_based_model(config)
     elif "t5" in config.model:
         model = initialize_t5_based_model(config)
