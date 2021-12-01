@@ -1,7 +1,7 @@
 from torch.utils import data
 from tqdm import tqdm
 import torch
-from examples.utils import detach_and_clone, collate_list, concat_t_d, save_algorithm_if_needed
+from examples.utils import detach_and_clone, collate_list, concat_t_d, save_algorithm_if_needed, save_pred_if_needed
 from TLiDB.data_loaders.data_loaders import TLiDB_DataLoader
 
 def run_epoch(algorithm, datasets, epoch, config, logger, train):
@@ -40,7 +40,7 @@ def run_epoch(algorithm, datasets, epoch, config, logger, train):
         _, _, batch_metadata = batch
         batch_t_d = concat_t_d(batch_metadata['task'],batch_metadata['dataset_name'])
         if train:
-            batch_results = algorithm.update(batch)
+            batch_results = algorithm.update(batch,step[batch_t_d])
         else:
             batch_results = algorithm.evaluate(batch)
         
@@ -73,9 +73,6 @@ def run_epoch(algorithm, datasets, epoch, config, logger, train):
     logger.write('Epoch eval:\n')
     for d in datasets['datasets']:
         t_d = concat_t_d(d.task,d.dataset_name)
-        # TODO: Alon left off here
-        # need to set up the evaluation so that Seq2Seq models work
-        # at the moment only EncoderAlgorithms work
         r, r_str = d.eval(epoch_y_pred[t_d], epoch_y_true[t_d])
         results[t_d] = r
         logger.write(f"{d.dataset_name} {d.task}-\n{r_str}\n")
@@ -83,8 +80,8 @@ def run_epoch(algorithm, datasets, epoch, config, logger, train):
     return results, epoch_y_pred
 
 
-def train(algorithm, datasets, config, logger, best_val_metric):
-    for epoch in range(config.num_epochs):
+def train(algorithm, datasets, config, logger, epoch_offset, best_val_metric):
+    for epoch in range(epoch_offset, config.num_epochs):
         logger.write(f'\nEpoch {epoch}\n')
         # train
         epoch_result = run_epoch(algorithm, datasets['train'], epoch, config, logger, train=True)
@@ -106,6 +103,7 @@ def train(algorithm, datasets, config, logger, best_val_metric):
 
         # save algorithm and model
         save_algorithm_if_needed(algorithm, epoch, config, best_val_metric, is_best)
+        save_pred_if_needed(y_pred, epoch, config, is_best)
 
         # TODO: save predictions if we want
 
@@ -113,5 +111,6 @@ def train(algorithm, datasets, config, logger, best_val_metric):
         logger.flush()
 
 
-def evaluate():
+def evaluate(algorithm, datasets, config, logger, epoch):
+    # TODO: work from what exists in wilds
     pass

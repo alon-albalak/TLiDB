@@ -3,7 +3,7 @@ from algorithms import initialize_algorithm
 from train import train,evaluate
 import sys
 import os
-from utils import Logger, log_config, set_seed, log_dataset_info, get_savepath_dir
+from utils import Logger, load_algorithm, log_config, set_seed, log_dataset_info, get_savepath_dir
 import argparser
 package_directory = os.path.dirname(os.path.abspath(__file__))
 TLiDB_FOLDER = os.path.join(package_directory, "..")
@@ -64,14 +64,35 @@ def main(config):
     log_dataset_info(datasets, logger)
 
     # initialize algorithm
-    algorithm = initialize_algorithm(config, datasets)
+    algorithm = initialize_algorithm(config, datasets)    
 
     # train
-    best_val_metric = None
-    train(algorithm, datasets, config, logger, best_val_metric)
+    if not config.eval_only:
+        resume_success = False
+        if resume:
+            if os.path.exists(os.path.join(save_path_dir, 'last_model.pt')):
+                prev_epoch, best_val_metric = load_algorithm(algorithm, os.path.join(save_path_dir, 'last_model.pt'))
+                epoch_offset = prev_epoch + 1
+                logger.info(f"Resuming training from epoch {prev_epoch} with best validation metric {best_val_metric}")
+                resume_success = True
+            else:
+                logger.info("No previous model found, starting from scratch")
+                epoch_offset = 0
+                best_val_metric = None
+
+        train(algorithm, datasets, config, logger, epoch_offset, best_val_metric)
 
     # TODO: test, essentially just evaluate, but with test data
+    else:
+        assert(not(config.eval_last and config.eval_best)), "cannot evaluate both last and best models"
+        assert(config.eval_last or config.eval_best), "must evaluate at least one model"
+        if config.eval_last:
+            eval_model_path = os.path.join(save_path_dir, 'last_model.pt')
+        else:
+            eval_model_path = os.path.join(save_path_dir, 'best_model.pt')
 
+        best_epoch, best_val_metric = load_algorithm(algorithm, eval_model_path)
+        evaluate(algorithm, datasets, config, logger, best_epoch)
 
 if __name__ == "__main__":
     config = argparser.parse_args()

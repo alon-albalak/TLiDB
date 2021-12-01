@@ -21,6 +21,12 @@ def parse_args():
     parser.add_argument("--save_best", type=bool, default=True)
     parser.add_argument("--save_last", type=bool, default=True)
 
+    # evaluation args
+    parser.add_argument("--eval_only", action="store_true")
+    parser.add_argument("--eval_best", action="store_true")
+    parser.add_argument("--eval_last", action="store_true")
+    
+
     # TODO: Set up supported tasks/datasets so these are choices from a specified list
     #       Convert to source/target tasks/datasets
     #           this requires train/eval for source, and train/eval/test for target
@@ -41,7 +47,8 @@ def parse_args():
     parser.add_argument("--frac", type=float, default=1.0,
         help="Convenience parameter that scales down dataset size to specified fraction, for debugging purposes")
     parser.add_argument("--debug", action="store_true", help="Setup training for debugging. For example, no logging")
-
+    parser.add_argument("--save_pred",action="store_true",help="Save predictions for each task")
+    parser.add_argument("--resume", action="store_true", help="Resume training from checkpoint")
 
     args = parser.parse_args()
 

@@ -69,8 +69,7 @@ def get_savepath_dir(config):
     if prefix == "":
         raise ValueError("Cannot create dir with empty name")
 
-    prefix = prefix[:-1]
-    prefix = os.path.join(config.log_and_model_dir, prefix)
+    prefix = os.path.join(config.log_and_model_dir, prefix, config.model)
     return prefix
 
 def save_algorithm(algorithm, epoch, best_val_metric, path):
@@ -91,6 +90,27 @@ def save_algorithm_if_needed(algorithm, epoch, config, best_val_metric, is_best)
         save_algorithm(algorithm,epoch,best_val_metric,os.path.join(save_path_dir,"last_model.pt"))
     if config.save_best and is_best:
         save_algorithm(algorithm, epoch, best_val_metric,os.path.join(save_path_dir,"best_model.pt"))    
+
+def save_pred_if_needed(y_pred, epoch, config, is_best, force_save=False):
+    if config.save_pred:
+        save_path_dir = get_savepath_dir(config)
+        if force_save:
+            save_pred(y_pred, os.path.join(save_path_dir, f"predictions_{epoch}"))
+        if (not force_save) and config.save_last:
+            save_pred(y_pred, os.path.join(save_path_dir, "last_predictions"))
+        if config.save_best and is_best:
+            save_pred(y_pred, os.path.join(save_path_dir, "best_predictions"))
+
+def save_pred(y_pred, path_prefix):
+    # Single tensor
+    if torch.is_tensor(y_pred):
+        y_pred_np = y_pred.numpy()
+        np.save(path_prefix+'.csv', y_pred_np)
+    # Dictionary
+    elif isinstance(y_pred, dict) or isinstance(y_pred, list):
+        torch.save(y_pred, path_prefix + '.pt')
+    else:
+        raise TypeError("Invalid type for save_pred")
 
 class Logger(object):
     def __init__(self, fpath=None, mode='w'):
@@ -138,10 +158,10 @@ def log_dataset_info(datasets, logger):
     # Simply write all dataset details to the logger
     logger.write('Datasets:\n')
     for split in datasets:
-        logger.write(f'{split}: ')
+        logger.write(f'{split} | ')
         for dataset, loss in zip(datasets[split]['datasets'], datasets[split]['losses']):
             logger.write(f'{dataset.dataset_name}')
             logger.write(f' - {dataset.task}')
-            logger.write(f' - {loss}')
+            logger.write(f' - {loss} | ')
         logger.write('\n')
     logger.flush()
