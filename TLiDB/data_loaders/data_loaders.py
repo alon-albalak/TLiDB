@@ -62,7 +62,6 @@ class TLiDB_DataLoader:
             metadata['task'] = self.task_names[selected_idx]
             metadata['dataset_name'] = self.dataset_names[selected_idx]
             metadata['loss'] = self.losses[selected_idx]
-            # TODO: include label mapping if dataset has labels
             meta_fields = selected_loader._dataset.metadata_fields
             meta_array = selected_loader._dataset.metadata_array
             if 'labels' in meta_fields:

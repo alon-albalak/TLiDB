@@ -15,14 +15,15 @@ class Algorithm(nn.Module):
         self.optimizer = initialize_optimizer(config, model)
         self.max_grad_norm = config.max_grad_norm
         self.model = model
+        self.gradient_accumulation_steps = config.effective_batch_size/config.gpu_batch_size
+        self.fp16 = config.fp16
+        if config.fp16:
+            self.scaler = torch.cuda.amp.GradScaler()
     
-    # def objective(self, results, metric):
-    #     raise NotImplementedError
-
     def process_batch(self, batch):
         raise NotImplementedError
 
-    def update(self, batch):
+    def update(self, batch, step):
         """
         Process the batch, and update the model
         Args:
@@ -37,19 +38,27 @@ class Algorithm(nn.Module):
         """
         assert self.is_training, "Cannot update() when not in training mode"
         
-        results, objective = self.process_batch(batch)
-        self._apply_gradients(objective)
-        return self.sanitize_dict(results)
+        if self.fp16:
+            with torch.cuda.amp.autocast():
+                results, objective = self.process_batch(batch)
+                objective = objective / self.gradient_accumulation_steps
+            self.scaler.scale(objective).backward()
+            if ((step+1)%self.gradient_accumulation_steps) == 0:
+                self.scaler.unscale_(self.optimizer)
+                nn.utils.clip_grad_norm_(self.model.parameters(), self.max_grad_norm)
+                self.scaler.step(self.optimizer)
+                self.scaler.update()
+                self.model.zero_grad(set_to_none=True)
+        else:
+            results, objective = self.process_batch(batch)
+            objective = objective / self.gradient_accumulation_steps
+            objective.backward()
+            if ((step+1)%self.gradient_accumulation_steps) == 0:
+                nn.utils.clip_grad_norm_(self.model.parameters(), self.max_grad_norm)
+                self.optimizer.step()
+                self.model.zero_grad(set_to_none=True)
 
-    def _apply_gradients(self, objective):
-        """
-        A helper function for update() that applies the gradients to the model
-        """
-        objective.backward()
-        if self.max_grad_norm:
-            nn.utils.clip_grad_norm_(self.model.parameters(), self.max_grad_norm)
-        self.optimizer.step()
-        self.model.zero_grad()
+        return self.sanitize_dict(results)
 
     def evaluate(self, batch):
         """
