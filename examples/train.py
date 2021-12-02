@@ -4,13 +4,12 @@ import torch
 from examples.utils import detach_and_clone, collate_list, concat_t_d, save_algorithm_if_needed, save_pred_if_needed
 from TLiDB.data_loaders.data_loaders import TLiDB_DataLoader
 
-def run_epoch(algorithm, datasets, epoch, config, logger, train):
+def run_epoch(algorithm, datasets, config, logger, train):
     """
     Run one epoch of training or validation.
     Args:
         algorithm: (Algorithm) the algorithm to run
         datasets: (dict) contains all information about the datasets: splits, losses, etc.
-        epoch: (int) the number of the epoch
         config: (Config) the configuration
         train: (boolean) True for training, False for validation (in val mode).
     """
@@ -84,10 +83,11 @@ def train(algorithm, datasets, config, logger, epoch_offset, best_val_metric):
     for epoch in range(epoch_offset, config.num_epochs):
         logger.write(f'\nEpoch {epoch}\n')
         # train
-        epoch_result = run_epoch(algorithm, datasets['train'], epoch, config, logger, train=True)
+        run_epoch(algorithm, datasets['train'], config, logger, train=True)
 
         # evaluate on validation set
-        val_results, y_pred = run_epoch(algorithm, datasets['dev'], epoch, config, logger, train=False)
+        val_results, y_pred = run_epoch(algorithm, datasets['dev'], config, logger, train=False)
+        # TODO: allow for user to specify specific metrics to use
         val_metrics = [val_results[d][m] for d in val_results for m in val_results[d]]
         cur_val_metric = sum(val_metrics)/len(val_metrics)
         logger.write(f'Validation metric: {cur_val_metric:0.4f}\n')
@@ -102,15 +102,46 @@ def train(algorithm, datasets, config, logger, epoch_offset, best_val_metric):
             logger.write(f'Epoch {epoch} gives best validation result so far.\n')
 
         # save algorithm and model
-        save_algorithm_if_needed(algorithm, epoch, config, best_val_metric, is_best)
+        save_algorithm_if_needed(algorithm, epoch, config, best_val_metric, is_best, logger)
+        # save predictions
         save_pred_if_needed(y_pred, epoch, config, is_best)
-
-        # TODO: save predictions if we want
 
         logger.write('\n')
         logger.flush()
 
 
-def evaluate(algorithm, datasets, config, logger, epoch):
-    # TODO: work from what exists in wilds
-    pass
+def evaluate(algorithm, datasets, config, logger, epoch, is_best):
+    algorithm.eval()
+    torch.set_grad_enabled(False)
+    for split in datasets:
+        for dataset, loader, loss in zip(datasets[split]['datasets'], datasets[split]['loaders'], datasets[split]['losses']):
+            epoch_y_true = []
+            epoch_y_pred = []
+
+            
+            t_d = concat_t_d(dataset.task,dataset.dataset_name)
+            pbar = tqdm(iter(loader)) if config.progress_bar else iter(loader)
+
+            for batch in pbar:
+                # add batch metadata to the batch
+                X, y, batch_metadata = batch
+                batch_metadata['task'] = dataset.task
+                batch_metadata['dataset_name'] = dataset.dataset_name
+                batch_metadata['loss'] = loss
+                batch = (X, y, batch_metadata)
+
+                batch_results = algorithm.evaluate(batch)
+                epoch_y_true.append(detach_and_clone(batch_results['y_true']))
+                y_pred = detach_and_clone(batch_results['y_pred'])
+                epoch_y_pred.append(y_pred)
+
+            epoch_y_pred = collate_list(epoch_y_pred)
+            epoch_y_true = collate_list(epoch_y_true)
+
+            r, r_str = dataset.eval(epoch_y_pred, epoch_y_true)
+            r['epoch'] = epoch
+            logger.write(f"Eval on {split} split at epoch {epoch}: {dataset.dataset_name} {dataset.task}-\n{r_str}\n")
+
+            # skip saving train data as the dataloader will shuffle data
+            if split != "train":
+                save_pred_if_needed(y_pred, epoch, config, is_best)
