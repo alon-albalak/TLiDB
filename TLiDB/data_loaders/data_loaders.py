@@ -14,6 +14,17 @@ def get_train_loader(dataset, batch_size, **loader_kwargs):
     """
     return DataLoader(dataset, batch_size=batch_size, shuffle=True, **loader_kwargs)
 
+def get_eval_loader(dataset, batch_size, **loader_kwargs):
+    """
+    Constructs and return the data loader for evaluation
+    Args:
+        - dataset (TLiDBDataset): The dataset to load the data from
+        - batch_size (int): The batch size for the data loader
+        - **loader_kwargs (dict): The keyword arguments for the data loader
+    Returns:
+        - data_loader (DataLoader): The data loader for evaluation
+    """
+    return DataLoader(dataset, batch_size=batch_size, shuffle=False, **loader_kwargs)
 
 class TLiDB_DataLoader:
     """
@@ -62,10 +73,6 @@ class TLiDB_DataLoader:
             metadata['task'] = self.task_names[selected_idx]
             metadata['dataset_name'] = self.dataset_names[selected_idx]
             metadata['loss'] = self.losses[selected_idx]
-            meta_fields = selected_loader._dataset.metadata_fields
-            meta_array = selected_loader._dataset.metadata_array
-            if 'labels' in meta_fields:
-                metadata['label_mapping'] = meta_array[meta_fields.index('labels')]
             return X,y,metadata
         else:
             raise StopIteration
