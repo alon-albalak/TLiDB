@@ -50,27 +50,14 @@ class EncoderAlgorithm(Algorithm):
             "objective": {"loss_name": metadata['loss']}
         }
 
-        metric = initialize_loss(results['objective']['loss_name'])
+        # the below is the original way to get the loss,
+        #   unsure of if we will have any variation,
+        #   or if we can just define it explicitly as cross entropy
+        # metric = initialize_loss(results['objective']['loss_name'])
+        metric = initialize_loss("cross_entropy")
         loss = metric.compute(outputs, y_true, return_dict=False)
 
 
         results['objective']['loss_value'] = loss.item()
 
         return results, loss
-
-    # def evaluate(self, batch):
-    #     """
-    #     Process the batch, and evaluate the model
-    #     Args:
-    #         - batch: a batch of data yielded by data loaders
-    #     Output:
-    #         - results (dict): information about the batch, such as:
-    #             - y_pred: the predicted labels
-    #             - y_true: the true labels
-    #             - metadata: the metadata of the batch
-    #             - loss: the loss of the batch
-    #             - metrics: the metrics of the batch
-    #     """
-    #     assert not self.is_training, "Cannot evaluate() when in training mode"
-    #     results, _ = self.process_batch(batch)
-    #     return self.sanitize_dict(results)
