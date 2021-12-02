@@ -33,7 +33,7 @@ class TLiDB_model:
         """Convenience function to gather all model parameters
             to be passed to a torch.optim optimizer"""
         params = []
-        for layer in self.layers:
+        for layer_name, layer in self.layers.items():
             params.extend(layer.parameters())
 
         return params
@@ -42,14 +42,29 @@ class TLiDB_model:
         """Convenience function to gather all named model parameters
             to be passed to a torch.optim optimizer"""
         named_params = chain()
-        for layer in self.layers:
+        for layer_name, layer in self.layers.items():
             named_params = chain(named_params, layer.named_parameters())
         return named_params
 
+    def state_dict(self):
+        state_dict = {}
+        for layer_name, layer in self.layers.items():
+            state_dict[layer_name] = layer.state_dict()
+        return state_dict
+
+    def load_state_dict(self, state_dict):
+        """Convenience function to load state dict for all layers"""
+        return NotImplementedError
+
     def zero_grad(self, set_to_none=True):
         """Convenience function to zero gradients for all layers"""
-        for layer in self.layers:
+        for layer_name, layer in self.layers.items():
             layer.zero_grad(set_to_none=set_to_none)
+
+    def train(self, mode=True):
+        """Convenience function to set all layers to train mode"""
+        for layer_name, layer in self.layers.items():
+            layer.train(mode)
 
     @property
     def forward(self):
@@ -70,5 +85,5 @@ class TLiDB_model:
 
     def to(self, device):
         """Convenience function to move all layers to a device"""
-        for layer in self.layers:
+        for layer_name, layer in self.layers.items():
             layer.to(device)

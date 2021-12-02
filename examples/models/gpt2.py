@@ -8,8 +8,13 @@ class GPT2(TLiDB_model):
         self.model.resize_token_embeddings(len(self.tokenizer))
         self.transformer = self.model.transformer
         self.lm_head = self.model.lm_head
-        self.layers = [self.model]
+        self.layers = {"model":self.model}
     
+    def load_state_dict(self, state_dict):
+        self.model.load_state_dict(state_dict['model'])
+        self.transformer = self.model.transformer
+        self.lm_head = self.model.lm_head
+
     def _forward(
         self,
         input_ids = None,

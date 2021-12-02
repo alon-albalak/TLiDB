@@ -5,7 +5,6 @@ import torch.nn as nn
 
 from utils import move_to, detach_and_clone
 from optimizers import initialize_optimizer
-from losses import initialize_loss
 
 class Algorithm(nn.Module):
     def __init__(self, config, model):
@@ -22,6 +21,15 @@ class Algorithm(nn.Module):
     
     def process_batch(self, batch):
         raise NotImplementedError
+    
+    def state_dict(self):
+        return self.model.state_dict()
+
+    def load_state_dict(self, state_dict):
+        """
+        Load the state dict of the model
+        """
+        self.model.load_state_dict(state_dict)
 
     def update(self, batch, step):
         """

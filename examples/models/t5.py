@@ -10,7 +10,13 @@ class T5(TLiDB_model):
         self.encoder = self.model.encoder
         self.decoder = self.model.decoder
         self.lm_head = self.model.lm_head
-        self.layers = [self.model]
+        self.layers = {"model":self.model}
+
+    def load_state_dict(self, state_dict):
+        self.model.load_state_dict(state_dict['model'])
+        self.encoder = self.layers['model'].encoder
+        self.decoder = self.layers['model'].decoder
+        self.lm_head = self.layers['model'].lm_head
 
     def _forward(
         self,

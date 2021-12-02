@@ -12,7 +12,7 @@ class Bert(TLiDB_model):
         self.tokenizer = get_bert_tokenizer(config.model)
         self.model = get_bert_model(config.model)
         self.dropout = torch.nn.Dropout(self.model.config.hidden_dropout_prob)
-        self.layers = [self.model]
+        self.layers = {"model":self.model}
         # for each task/domain, we add a new classification layer to the model
         self.classifiers = {}
         for split in datasets.keys():
@@ -27,7 +27,11 @@ class Bert(TLiDB_model):
                         "classifier": getattr(self, f"{t_d}_classifier"),
                         "labels":d.get_metadata_field("labels"),
                         "forward":forward}
-                    self.layers.append(getattr(self, f"{t_d}_classifier"))
+                    self.layers[f"{t_d}_classifier"] = getattr(self, f"{t_d}_classifier")
+
+    def load_state_dict(self, state_dict):
+        for layer_name, layer in state_dict.items():
+            self.layers[layer_name].load_state_dict(layer)
 
     def _forward(self, inputs, task, dataset_name):
         return self.classifiers[concat_t_d(task,dataset_name)]['forward'](inputs, task, dataset_name)
