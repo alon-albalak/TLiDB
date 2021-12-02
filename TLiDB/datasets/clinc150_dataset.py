@@ -24,11 +24,25 @@ class clinc150_dataset(TLiDB_Dataset):
         super().__init__(self.dataset_name, task, output_type, dataset_folder=dataset_folder)
         
         # initialize task data and metadata
+        categories = [
+            "auto and commute","banking","credit cards","home",
+            "kitchen and dining","meta","small talk","travel",
+            "utility","work"
+            ]
         self._input_array = []
         self._y_array = []
         self._metadata_fields = ["domains", "labels"]
         self._metadata_array = [[] for _ in self._metadata_fields]
-        self._metadata_array[self._metadata_fields.index("labels")] = self.task_metadata[task]['labels']
+        
+        # convert labels to human readable
+        labels = [label.replace("_"," ") for label in self.task_metadata[task]['labels']]
+        formatted_labels = []
+        for label in labels:
+            for c in categories:
+                if c == label[:len(c)]:
+                    formatted_label = c+":"+label[len(c):]
+                    formatted_labels.append(formatted_label)
+        self._metadata_array[self._metadata_fields.index("labels")] = formatted_labels
 
         for datum in self.dataset['data']:
             if split and datum['dialogue_metadata']['original_data_partition'] != split:
@@ -47,13 +61,15 @@ class clinc150_dataset(TLiDB_Dataset):
         return self._input_array[idx]
 
     def get_metadata(self, idx):
-        return {"domains": self.get_metadata_field("domains")[idx]}
+        return {
+            "domains": self.get_metadata_field("domains")[idx],
+            }
 
     def _collate_categorical(self, batch):
         X,y, metadata = [], [], {}
         for item in batch:
             X.append(item[0])
-            y.append(f"{item[1][0]}_{item[1][1]}")
+            y.append(f"{item[1][0].replace('_',' ')}: {item[1][1].replace('_',' ')}")
             for k, v in item[2].items():
                 if k not in metadata:
                     metadata[k] = []
@@ -64,11 +80,14 @@ class clinc150_dataset(TLiDB_Dataset):
         X,y, metadata = [], [], {}
         for item in batch:
             X.append(item[0])
-            y.append(item[1])
+            y.append(f"{item[1][0].replace('_',' ')}: {item[1][1].replace('_',' ')}")
             for k, v in item[2].items():
                 if k not in metadata:
                     metadata[k] = []
                 metadata[k].append(v)
+        labels = self.get_metadata_field("labels")
+        if labels:
+            metadata['labels'] = labels
         return X,y, metadata
 
     def eval(self, y_pred, y_true, prediction_fn=None):

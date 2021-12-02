@@ -70,7 +70,9 @@ class friends_ER_dataset(TLiDB_Dataset):
         return self._input_array[idx]
 
     def get_metadata(self, idx):
-        return {"domains": self.get_metadata_field("domains")[idx]}
+        return {
+            "domains": self.get_metadata_field("domains")[idx],
+        }
 
     def _collate_categorical(self, batch):
         X,y, metadata = [], [], {}
@@ -92,6 +94,9 @@ class friends_ER_dataset(TLiDB_Dataset):
                 if k not in metadata:
                     metadata[k] = []
                 metadata[k].append(v)
+        labels = self.get_metadata_field("labels")
+        if labels:
+            metadata['labels'] = labels
         return X,y, metadata
 
     def eval(self, y_pred, y_true, prediction_fn=None):
