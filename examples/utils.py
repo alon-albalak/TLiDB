@@ -69,27 +69,29 @@ def get_savepath_dir(config):
     if prefix == "":
         raise ValueError("Cannot create dir with empty name")
 
-    prefix = os.path.join(config.log_and_model_dir, prefix, config.model)
+    prefix = os.path.join(config.log_and_model_dir, prefix[:-1], config.model)
     return prefix
 
-def save_algorithm(algorithm, epoch, best_val_metric, path):
+def save_algorithm(algorithm, epoch, best_val_metric, path, logger):
     state = {}
     state['algorithm'] = algorithm.state_dict()
     state['epoch'] = epoch
     state['best_val_metric'] = best_val_metric
     torch.save(state, path)
+    logger.write(f"Saved model to {path}\n")
 
-def load_algorithm(algorithm, path):
+def load_algorithm(algorithm, path, logger):
     state = torch.load(path)
     algorithm.load_state_dict(state['algorithm'])
+    logger.write(f"Loaded model from {path}\n")
     return state['epoch'], state['best_val_metric']
 
-def save_algorithm_if_needed(algorithm, epoch, config, best_val_metric, is_best):
+def save_algorithm_if_needed(algorithm, epoch, config, best_val_metric, is_best, logger):
     save_path_dir = get_savepath_dir(config)
     if config.save_last:
-        save_algorithm(algorithm,epoch,best_val_metric,os.path.join(save_path_dir,"last_model.pt"))
+        save_algorithm(algorithm,epoch,best_val_metric,os.path.join(save_path_dir,"last_model.pt"),logger)
     if config.save_best and is_best:
-        save_algorithm(algorithm, epoch, best_val_metric,os.path.join(save_path_dir,"best_model.pt"))    
+        save_algorithm(algorithm, epoch, best_val_metric,os.path.join(save_path_dir,"best_model.pt"),logger)
 
 def save_pred_if_needed(y_pred, epoch, config, is_best, force_save=False):
     if config.save_pred:
