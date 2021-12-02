@@ -34,7 +34,10 @@ def parse_args():
     parser.add_argument("--train_datasets", type=str, nargs='+')
     parser.add_argument("--test_tasks", type=str, nargs='+')
     parser.add_argument("--test_datasets", type=str, nargs='+')
+    
     # loss args
+    # TODO: Are these predetermined according to the model/algorithm?
+    #    This may not be a necessary argument
     parser.add_argument("--loss_functions", type=str, nargs='+')
 
     # algorithm args
