@@ -13,3 +13,5 @@ venv/
 examples/logs_and_models/*
 
 **.zip
+
+dataset_preprocessing/DailyDialog/TLiDB_DailyDialog/*

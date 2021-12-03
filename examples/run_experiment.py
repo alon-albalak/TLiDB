@@ -39,10 +39,7 @@ def main(config):
     # datasets dict will contain all information about the datasets: dataset name, splits, data loaders, loss function, etc.
     datasets = {split: {"datasets": [], "loaders": [], "losses": []} for split in ['train', 'dev', 'test']}
 
-    # TODO: loss_function may be irrelevant
-    # load data into datasets dict
     for t, d, l in zip(config.train_tasks, config.train_datasets, config.loss_functions):
-        
         if not config.eval_only:
             # for debugging purposes, use original data splits
             split = "train"

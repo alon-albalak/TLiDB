@@ -46,12 +46,13 @@ class T5(TLiDB_model):
         y_true = None
 
         if lm_labels is not None:
-            loss_fct = CrossEntropyLoss(ignore_index=-100)
+            loss_fct = CrossEntropyLoss(ignore_index=self.tokenizer.pad_token_id)
             loss = loss_fct(lm_logits.view(-1, lm_logits.size(-1)), lm_labels.view(-1))
             y_true = self.tokenizer.batch_decode(lm_labels, skip_special_tokens=True)
 
-        pred_tokens = self.decode_logits(lm_logits)
-
+        # pred_tokens = self.decode_logits(lm_logits)
+        pred_tokens = self.model.generate(input_ids=input_ids, num_beams=2, num_return_sequences=1)
+        pred_tokens = self.tokenizer.batch_decode(pred_tokens, skip_special_tokens=True)
         return pred_tokens, loss, y_true
 
     def transform_inputs(self, inputs):
@@ -59,7 +60,7 @@ class T5(TLiDB_model):
         tokenized_inputs = self.tokenizer(inputs, padding="max_length",truncation=True, max_length=self.config.max_seq_length, return_tensors="pt")
         return tokenized_inputs
 
-    def transform_outputs(self, outputs, task,dataset_name):
+    def transform_outputs(self, outputs):
         """tokenizes outputs"""
         tokenized_outputs = self.tokenizer(outputs, padding="longest", truncation=True, return_tensors="pt")
         return tokenized_outputs.input_ids

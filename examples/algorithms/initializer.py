@@ -1,5 +1,6 @@
 from algorithms.EncoderAlgorithm import EncoderAlgorithm
 from algorithms.Seq2SeqAlgorithm import Seq2SeqAlgorithm
+from algorithms.DecoderAlgorithm import DecoderAlgorithm
 
 def initialize_algorithm(config, datasets):
     """Load an algorithm of type Algorithm
@@ -11,6 +12,8 @@ def initialize_algorithm(config, datasets):
     """
     if config.model_type == "Encoder":
         algorithm = EncoderAlgorithm(config, datasets)
+    elif config.model_type == "Decoder":
+        algorithm = DecoderAlgorithm(config, datasets)
     elif config.model_type == "Seq2Seq":
         algorithm = Seq2SeqAlgorithm(config, datasets)
     else:

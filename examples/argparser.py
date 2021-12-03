@@ -1,6 +1,9 @@
 import argparse
 import torch
 
+# TODO: Move args to model-specific config files
+#   For example, learning rate, optimizer, max_seq_length, etc.
+
 def parse_args():
     parser = argparse.ArgumentParser()
     # general args
@@ -58,9 +61,15 @@ def parse_args():
     if "bert" in args.model:
         setattr(args, "output_type", "categorical")
         setattr(args, "model_type", "Encoder")
+        setattr(args, "loss_functions", ["cross_entropy" for _ in args.train_tasks])
+    elif "gpt" in args.model:
+        setattr(args, "output_type", "token")
+        setattr(args, "model_type", "Decoder")
+        setattr(args, "loss_functions", ["LM_cross_entropy" for _ in args.train_tasks])
     else:
         setattr(args, "output_type", "token")
         setattr(args, "model_type", "Seq2Seq")
+        setattr(args, "loss_functions", ["LM_cross_entropy" for _ in args.train_tasks])
 
     if not args.cpu_only:
         setattr(args, "device", "cuda" if torch.cuda.is_available() else "cpu")

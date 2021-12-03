@@ -3,8 +3,12 @@ from .algorithm import Algorithm
 from models import initialize_model
 import torch
 
-
-class Seq2SeqAlgorithm(Algorithm):
+# TODO: Follow patterns for
+#   Transfertransfo: https://github.com/huggingface/transfer-learning-conv-ai/blob/master/train.py
+#   Generate: https://huggingface.co/docs/transformers/master/en/main_classes/model#transformers.generation_utils.GenerationMixin.generate
+#             https://github.com/huggingface/transformers/blob/master/src/transformers/generation_utils.py#L649
+#   GPT2 model: https://github.com/huggingface/transformers/blob/master/src/transformers/models/gpt2/modeling_gpt2.py
+class DecoderAlgorithm(Algorithm):
     def __init__(self, config, datasets):
         model = initialize_model(config, datasets)
         model.to(config.device)
@@ -12,8 +16,9 @@ class Seq2SeqAlgorithm(Algorithm):
 
     def process_batch(self, batch):
         X, y_true, metadata = batch
-        X = self.model.transform_inputs(X)
-        y_true = self.model.transform_outputs(y_true)
+
+        X = self.model.transform_inputs(X,y_true)
+        y_true = self.model.transform_outputs(X, y_true)
 
         X = move_to(X, self.device)
         y_true = move_to(y_true, self.device)
