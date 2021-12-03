@@ -86,7 +86,7 @@ function main() {
    echo "Adding topic annotations"
    python3 gather_topics.py
    echo "Converting Daily Dialog to TLiDB format"
-   python3 convert_daily_dialogue.py
+   python3 convert_DailyDialog.py
    echo "Adding improved dialogue/emotion annotations from RECCON and DailyDialog++"
    python3 add_improved_annotations.py
    echo "Adding causal emotion annotations from RECCON"
@@ -96,7 +96,7 @@ function main() {
    echo "Adding adversarial response selection annotations from DailyDialog++"
    python3 add_DDpp_annotations.py
 
-   zip -r TLiDB_Daily_Dialogue.zip TLiDB_Daily_Dialogue/
+   zip -r TLiDB_DailyDialog.zip TLiDB_DailyDialog/
    rm -r "${DD_DIR}"
    rm -r "test"
    rm -r "train"

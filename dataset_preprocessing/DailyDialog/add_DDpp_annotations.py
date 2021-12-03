@@ -5,7 +5,7 @@ from utils import untokenize, get_DD_by_ID
 import difflib
 
 # Load original DailyDialog data
-DD_data = json.load(open('TLiDB_Daily_Dialogue/TLiDB_Daily_Dialogue.json', 'r'))
+DD_data = json.load(open('TLiDB_DailyDialog/TLiDB_DailyDialog.json', 'r'))
 
 # load DailyDialogue++ data
 DD_pp = []
@@ -146,5 +146,5 @@ known_DDpp_DD_ID_mapping = [
 
 DD_data = add_DDpp_annotations(DD_data, DD_pp, known_DDpp_DD_ID_mapping)
 
-with open('TLiDB_Daily_Dialogue/TLiDB_Daily_Dialogue.json',"w", encoding='utf8') as f:
+with open('TLiDB_DailyDialog/TLiDB_DailyDialog.json',"w", encoding='utf8') as f:
     json.dump(DD_data, f, indent=2, ensure_ascii=False)

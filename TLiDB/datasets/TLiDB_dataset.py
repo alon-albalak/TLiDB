@@ -10,7 +10,7 @@ from torch.utils.data import Dataset
 def download_and_unzip(url, extract_to='.'):
     print(f"Waiting for response from {url}")
     http_response = urlopen(url)
-    print("Downloading data from {url}")
+    print(f"Downloading data from {url}")
     zipfile = ZipFile(BytesIO(http_response.read()))
     zipfile.extractall(path=extract_to)
 

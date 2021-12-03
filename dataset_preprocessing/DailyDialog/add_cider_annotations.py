@@ -5,7 +5,7 @@ from utils import untokenize, get_DD_by_ID, create_full_DD_dialogue
 from tqdm import tqdm
 
 # Load original DailyDialog data
-DD_data = json.load(open('TLiDB_Daily_Dialogue/TLiDB_Daily_Dialogue.json', 'r'))
+DD_data = json.load(open('TLiDB_DailyDialog/TLiDB_DailyDialog.json', 'r'))
 
 # load CIDER main data
 CIDER_data = json.load(open('CIDER_main.json', 'r'))
@@ -442,5 +442,5 @@ DD_data = add_CIDER_span_extraction_annotations(DD_data, CIDER_data, DD_CIDER_da
 DD_data = add_CIDER_multiple_choice_span_selection_annotations(DD_data, CIDER_data, DD_CIDER_data, CIDER_MCQ)
 DD_data = add_CIDER_commonsense_relation_prediction_annotations(DD_data, CIDER_data, DD_CIDER_data, CIDER_CRP)
 
-with open('TLiDB_Daily_Dialogue/TLiDB_Daily_Dialogue.json',"w", encoding='utf8') as f:
+with open('TLiDB_DailyDialog/TLiDB_DailyDialog.json',"w", encoding='utf8') as f:
     json.dump(DD_data, f, indent=2, ensure_ascii=False)

@@ -30,7 +30,7 @@ def format_data(original_data, formatted_data, partition):
             "topic_classification":topic_label,
             "dialogue_metadata": {
                 "emotion_recognition": None,
-                "dialogue_act": None,
+                "dialogue_act_classification": None,
                 "topic_classification": None,
                 "original_data_partition": partition
             },
@@ -54,22 +54,22 @@ def format_data(original_data, formatted_data, partition):
         formatted_data['data'].append(formatted_datum)
     return
 
-TLiDB_path="TLiDB_Daily_Dialogue"
+TLiDB_path="TLiDB_DailyDialog"
 if not os.path.isdir(TLiDB_path):
     os.mkdir(TLiDB_path)
 
 formatted_data = {
     "metadata":
     {
-        "dataset_name": "daily_dialogue",
+        "dataset_name": "DailyDialog",
         "tasks": [
             "emotion_recognition",
-            "dialogue_acts",
+            "dialogue_act_classification",
             "topic_classification"
         ],
         "task_metadata": {
             "emotion_recognition": {"labels": list(emo_dict.values()), "metrics": ["f1", "accuracy"]},
-            "dialogue_acts": {"labels": list(da_dict.values()), "metrics": ["f1", "accuracy"]},
+            "dialogue_act_classification": {"labels": list(da_dict.values()), "metrics": ["f1", "accuracy"]},
             "topic_classification": {"labels":list(topic_dict.values()), "metrics": ["f1", "accuracy"]}
         }
     },
@@ -89,5 +89,5 @@ for p in data_partitions:
 
 formatted_data['metadata']['task_metadata']['emotion_recognition']['labels'].sort()
 
-with open(os.path.join(TLiDB_path,f"TLiDB_Daily_Dialogue.json"),"w", encoding='utf8') as f:
+with open(os.path.join(TLiDB_path,f"TLiDB_DailyDialog.json"),"w", encoding='utf8') as f:
     json.dump(formatted_data, f, indent=2, ensure_ascii=False)

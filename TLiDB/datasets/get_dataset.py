@@ -25,9 +25,9 @@ def get_dataset(dataset, task, dataset_folder=DATASET_FOLDER, **dataset_kwargs):
     if dataset not in TLiDB.supported_datasets:
         raise ValueError(f"{dataset} is not a supported dataset, must be one of: {TLiDB.supported_datasets}")
 
-    if dataset == "multiwoz22":
-        from TLiDB.datasets.multiwoz22_dataset import multiwoz22_dataset
-        return multiwoz22_dataset(task, dataset_folder, **dataset_kwargs)
+    if dataset == "DailyDialog":
+        from TLiDB.datasets.DailyDialog_dataset import DailyDialog_dataset
+        return DailyDialog_dataset(task, dataset_folder, **dataset_kwargs)
 
     elif dataset == "clinc150":
         from TLiDB.datasets.clinc150_dataset import clinc150_dataset
@@ -36,3 +36,4 @@ def get_dataset(dataset, task, dataset_folder=DATASET_FOLDER, **dataset_kwargs):
     elif dataset == "friends_ER":
         from TLiDB.datasets.friends_ER_dataset import friends_ER_dataset
         return friends_ER_dataset(task, dataset_folder, **dataset_kwargs)
+

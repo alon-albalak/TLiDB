@@ -5,7 +5,7 @@ from utils import untokenize, convert_REC_ID_to_DD_ID
 from tqdm import tqdm
 
 # Load original DailyDialog data
-DD_data = json.load(open('TLiDB_Daily_Dialogue/TLiDB_Daily_Dialogue.json', 'r'))
+DD_data = json.load(open('TLiDB_DailyDialog/TLiDB_DailyDialog.json', 'r'))
 
 # load RECCON span extraction
 RECCON_sp_ex = json.load(open("RECCON_span_extraction_train.json", 'r'))
@@ -124,5 +124,5 @@ def add_RECCON_entailment_annotations(RECCON_entailment_data, RECCON_entailment_
 DD_data = add_RECCON_span_extraction_annotations(RECCON_sp_ex, DD_data)
 DD_data = add_RECCON_entailment_annotations(RECCON_ent, RECCON_ent_fields, DD_data)
 
-with open('TLiDB_Daily_Dialogue/TLiDB_Daily_Dialogue.json',"w", encoding='utf8') as f:
+with open('TLiDB_DailyDialog/TLiDB_DailyDialog.json',"w", encoding='utf8') as f:
     json.dump(DD_data, f, indent=2, ensure_ascii=False)

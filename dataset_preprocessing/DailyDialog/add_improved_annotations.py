@@ -4,7 +4,7 @@ from utils import untokenize, convert_REC_ID_to_DD_ID, get_DD_by_ID
 from tqdm import tqdm
 
 # Load original DailyDialog data
-DD_data = json.load(open('TLiDB_Daily_Dialogue/TLiDB_Daily_Dialogue.json', 'r'))
+DD_data = json.load(open('TLiDB_DailyDialog/TLiDB_DailyDialog.json', 'r'))
 
 # Load RECCON specific data
 RECCON_train = json.load(open('RECCON_train.json', 'r'))
@@ -197,5 +197,5 @@ def update_annotations_from_DDpp(DD_data):
 DD_data = update_annotations_from_RECCON(DD_data, RECCON_data)
 DD_data = update_annotations_from_DDpp(DD_data)
 
-with open('TLiDB_Daily_Dialogue/TLiDB_Daily_Dialogue.json',"w", encoding='utf8') as f:
+with open('TLiDB_DailyDialog/TLiDB_DailyDialog.json',"w", encoding='utf8') as f:
     json.dump(DD_data, f, indent=2, ensure_ascii=False)
