@@ -1,10 +1,6 @@
-import torch.nn as nn
-
 from utils import move_to
-from optimizers import initialize_optimizer
 from losses import initialize_loss
 from .algorithm import Algorithm
-from models import initialize_model
 
 # temporarily here
 # TODO this function needs a better home
@@ -18,9 +14,7 @@ def multiclass_logits_to_pred(logits):
 
 class EncoderAlgorithm(Algorithm):
     def __init__(self, config, datasets):
-        model = initialize_model(config, datasets)
-        model.to(config.device)
-        super().__init__(config, model)
+        super().__init__(config, datasets)
 
     def process_batch(self, batch):
         """
@@ -61,3 +55,6 @@ class EncoderAlgorithm(Algorithm):
         results['objective']['loss_value'] = loss.item()
 
         return results, loss
+
+    def requires_metric_calculation(self):
+        return True

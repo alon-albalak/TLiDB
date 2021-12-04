@@ -11,6 +11,7 @@ def run_epoch(algorithm, datasets, config, logger, train):
         algorithm: (Algorithm) the algorithm to run
         datasets: (dict) contains all information about the datasets: splits, losses, etc.
         config: (Config) the configuration
+        logger: (Logger) the logger
         train: (boolean) True for training, False for validation (in val mode).
     """
     if train:
@@ -68,13 +69,15 @@ def run_epoch(algorithm, datasets, config, logger, train):
         epoch_y_pred[t_d] = collate_list(epoch_y_pred[t_d])
 
 
+    # This loop is determined by the model/task/mode(train/val)
     results = {}
-    logger.write('Epoch eval:\n')
-    for d in datasets['datasets']:
-        t_d = concat_t_d(d.task,d.dataset_name)
-        r, r_str = d.eval(epoch_y_pred[t_d], epoch_y_true[t_d])
-        results[t_d] = r
-        logger.write(f"{d.dataset_name} {d.task}-\n{r_str}\n")
+    if algorithm.requires_metric_calculation():
+        logger.write('Epoch eval:\n')
+        for m, d in zip(datasets['metrics'],datasets['datasets']):
+            t_d = concat_t_d(d.task,d.dataset_name)
+            r, r_str = m.compute(epoch_y_true[t_d], epoch_y_pred[t_d])
+            results[t_d] = r
+            logger.write(f"{d.dataset_name} {d.task}-\n{r_str}\n")
 
     return results, epoch_y_pred
 

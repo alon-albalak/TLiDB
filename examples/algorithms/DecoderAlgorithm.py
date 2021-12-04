@@ -1,6 +1,5 @@
 from utils import move_to
 from .algorithm import Algorithm
-from models import initialize_model
 import torch
 
 # TODO: Follow patterns for
@@ -10,9 +9,7 @@ import torch
 #   GPT2 model: https://github.com/huggingface/transformers/blob/master/src/transformers/models/gpt2/modeling_gpt2.py
 class DecoderAlgorithm(Algorithm):
     def __init__(self, config, datasets):
-        model = initialize_model(config, datasets)
-        model.to(config.device)
-        super().__init__(config, model)
+        super().__init__(config, datasets)
 
     def process_batch(self, batch):
         X, y_true, metadata = batch
@@ -41,3 +38,8 @@ class DecoderAlgorithm(Algorithm):
         }
 
         return results, loss
+
+    def requires_metric_calculation(self):
+        if self.is_training:
+            return False
+        return True

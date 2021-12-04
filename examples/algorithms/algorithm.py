@@ -5,15 +5,17 @@ import torch.nn as nn
 
 from utils import move_to, detach_and_clone
 from optimizers import initialize_optimizer
+from models import initialize_model
 
 class Algorithm(nn.Module):
-    def __init__(self, config, model):
+    def __init__(self, config, datasets):
         super().__init__()
+        self.model = initialize_model(config, datasets)
+        self.model.to(config.device)
         self.device = config.device
         self.out_device = 'cpu'
-        self.optimizer = initialize_optimizer(config, model)
+        self.optimizer = initialize_optimizer(config, self.model)
         self.max_grad_norm = config.max_grad_norm
-        self.model = model
         self.gradient_accumulation_steps = config.effective_batch_size/config.gpu_batch_size
         self.fp16 = config.fp16
         if config.fp16:
@@ -21,6 +23,11 @@ class Algorithm(nn.Module):
     
     def process_batch(self, batch):
         raise NotImplementedError
+
+    @property
+    def requires_metric_calculation(self):
+        """Whether to calculate metrics"""
+        return NotImplementedError
     
     def state_dict(self):
         return self.model.state_dict()

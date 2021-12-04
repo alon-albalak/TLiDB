@@ -12,6 +12,7 @@ sys.path.append(TLiDB_FOLDER)
 # TLiDB imports
 from TLiDB.datasets.get_dataset import get_dataset
 from TLiDB.data_loaders.data_loaders import get_train_loader, get_eval_loader
+from TLiDB.metrics.initializer import get_metric_computer
 
 def main(config):
 
@@ -37,43 +38,47 @@ def main(config):
     set_seed(config.seed)
 
     # datasets dict will contain all information about the datasets: dataset name, splits, data loaders, loss function, etc.
-    datasets = {split: {"datasets": [], "loaders": [], "losses": []} for split in ['train', 'dev', 'test']}
+    datasets = {split: {"datasets": [], "loaders": [], "losses": [], "metrics": []} for split in ['train', 'dev', 'test']}
 
     for t, d, l in zip(config.train_tasks, config.train_datasets, config.loss_functions):
         if not config.eval_only:
             # for debugging purposes, use original data splits
             split = "train"
 
-            cur_dataset = get_dataset(dataset=d, task=t, output_type=config.output_type,split=split)
+            cur_dataset = get_dataset(dataset=d, task=t, model_type=config.model_type,split=split)
             if config.frac < 1.0:
                 cur_dataset.random_subsample(config.frac)
             datasets['train']['datasets'].append(cur_dataset)
             datasets['train']['loaders'].append(get_train_loader(cur_dataset, config.gpu_batch_size, collate_fn=cur_dataset.collate))
             datasets['train']['losses'].append(l)
+            datasets['train']['metrics'].append(get_metric_computer(t))
 
             split = "dev"
-            cur_dataset = get_dataset(dataset=d, task=t, output_type=config.output_type,split=split)
+            cur_dataset = get_dataset(dataset=d, task=t, model_type=config.model_type,split=split)
             if config.frac < 1.0:
                 cur_dataset.random_subsample(config.frac)
             datasets['dev']['datasets'].append(cur_dataset)
             datasets['dev']['loaders'].append(get_eval_loader(cur_dataset, config.gpu_batch_size, collate_fn=cur_dataset.collate))
             datasets['dev']['losses'].append(l)
+            datasets['dev']['metrics'].append(get_metric_computer(t))
 
         else:
             split = "dev"
-            cur_dataset = get_dataset(dataset=d, task=t, output_type=config.output_type,split=split)
+            cur_dataset = get_dataset(dataset=d, task=t, model_type=config.model_type,split=split)
             if config.frac < 1.0:
                 cur_dataset.random_subsample(config.frac)
             datasets['dev']['datasets'].append(cur_dataset)
             datasets['dev']['loaders'].append(get_eval_loader(cur_dataset, config.gpu_batch_size, collate_fn=cur_dataset.collate))
             datasets['dev']['losses'].append(l)
+            datasets['dev']['metrics'].append(get_metric_computer(t))
 
 
             split = "test"
-            cur_dataset = get_dataset(dataset=d, task=t, output_type=config.output_type,split=split)
+            cur_dataset = get_dataset(dataset=d, task=t, model_type=config.model_type,split=split)
             datasets['test']['datasets'].append(cur_dataset)
             datasets['test']['loaders'].append(get_eval_loader(cur_dataset, config.gpu_batch_size, collate_fn=cur_dataset.collate))
             datasets['test']['losses'].append(l)
+            datasets['test']['metrics'].append(get_metric_computer(t))
 
 
     # log dataset info

@@ -1,14 +1,11 @@
 from utils import move_to
 from .algorithm import Algorithm
-from models import initialize_model
 import torch
 
 
 class Seq2SeqAlgorithm(Algorithm):
     def __init__(self, config, datasets):
-        model = initialize_model(config, datasets)
-        model.to(config.device)
-        super().__init__(config, model)
+        super().__init__(config, datasets)
 
     def process_batch(self, batch):
         X, y_true, metadata = batch
@@ -36,3 +33,6 @@ class Seq2SeqAlgorithm(Algorithm):
         }
 
         return results, loss
+
+    def requires_metric_calculation(self):
+        return True
