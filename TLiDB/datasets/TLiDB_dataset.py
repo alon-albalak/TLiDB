@@ -40,11 +40,14 @@ class TLiDB_Dataset(Dataset):
     """
     Abstract dataset class for all TLiDB datasets
     """
-    def __init__(self, dataset_name, task, output_type, dataset_folder):
+    def __init__(self, dataset_name, task, model_type, dataset_folder):
         super().__init__()
         self.dataset = load_dataset(dataset_name, dataset_folder, self.url)
         self._task = task
-        self.task_metadata = self.dataset['metadata']['task_metadata']
+        task_metadata = self.dataset['metadata']['task_metadata']
+        self.task_labels = []
+        if task in task_metadata and 'labels' in task_metadata[task]:
+            self.task_labels = task_metadata[task]['labels']
 
         if task == "response_generation":
             #TODO:
@@ -52,14 +55,16 @@ class TLiDB_Dataset(Dataset):
             # and _y_array contains the response
             pass
         else:
-            self.metrics = self.task_metadata[task]['metrics']
+            self.metrics = task_metadata[task]['metrics']
 
-        if output_type == "categorical":
-            self._collate = self._collate_categorical
-        elif output_type == "token":
-            self._collate = self._collate_token
+        if model_type == "Encoder":
+            self._collate = self._collate_encoder
+        elif model_type == "Decoder":
+            self._collate = self._collate_decoder
+        elif model_type == "Seq2Seq":
+            self._collate = self._collate_seq2seq
         else:
-            raise ValueError(f"{output_type} is not a valid output type")
+            raise ValueError(f"{model_type} is not a valid algorithm type")
 
     @property
     def dataset_name(self):
@@ -148,10 +153,13 @@ class TLiDB_Dataset(Dataset):
     def _collate(self, batch):
         return NotImplementedError
 
-    def _collate_categorical(self, batch):
+    def _collate_encoder(self, batch):
         return NotImplementedError
     
-    def _collate_token(self, batch):
+    def _collate_decoder(self, batch):
+        return NotImplementedError
+
+    def _collate_seq2seq(self, batch):
         return NotImplementedError
 
     def __len__(self):

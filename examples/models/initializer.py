@@ -1,5 +1,3 @@
-import torch
-
 def initialize_model(config, datasets):
     """
     Initialize models according to the configuration

@@ -2,14 +2,6 @@ from .metrics import Metric, ElementwiseMetric
 import sklearn.metrics
 import torch
 
-def multiclass_logits_to_pred(logits):
-    """
-    Takes multi-class logits of size (batch_size, ..., n_classes) and returns predictions
-    by taking an argmax at the last dimension
-    """
-    assert logits.dim() > 1
-    return logits.argmax(-1)
-
 class Accuracy(ElementwiseMetric):
     def __init__(self, prediction_fn=None, name=None):
         self.prediction_fn = prediction_fn
@@ -52,3 +44,23 @@ class F1(Metric):
             y_pred = self.prediction_fn(y_pred)
         score = sklearn.metrics.f1_score(y_true, y_pred, average=self.average, labels=labels)
         return torch.tensor(score)
+
+
+class MetricGroup:
+    """
+    A simple class to group metrics together
+    """
+    _string_to_class = {
+        "F1":F1,
+        "Accuracy":Accuracy
+    }
+    def __init__(self, metrics):
+        self.metrics = [self._string_to_class[metric]() for metric in metrics]
+
+    def compute(self, y_pred, y_true):
+        results = {}
+        results_str = ""
+        for metric in self.metrics:
+            results.update(metric.compute(y_pred, y_true))
+            results_str += f'{metric.name}: {results[metric.agg_metric_field]:.4f}\n'
+        return results, results_str

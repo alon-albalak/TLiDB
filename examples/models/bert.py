@@ -25,7 +25,7 @@ class Bert(TLiDB_model):
                     forward = self.sequence_classification if d.task in SEQUENCE_TASKS else self.token_classification
                     self.classifiers[t_d] = {
                         "classifier": getattr(self, f"{t_d}_classifier"),
-                        "labels":d.get_metadata_field("labels"),
+                        "labels":d.task_labels,
                         "forward":forward}
                     self.layers[f"{t_d}_classifier"] = getattr(self, f"{t_d}_classifier")
 
