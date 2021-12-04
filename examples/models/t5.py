@@ -1,6 +1,7 @@
 from transformers import T5ForConditionalGeneration, T5Tokenizer
 from torch.nn import CrossEntropyLoss
 from .TLiDB_model import TLiDB_model
+import torch
 
 class T5(TLiDB_model):
     def __init__(self, config):
@@ -50,10 +51,7 @@ class T5(TLiDB_model):
             loss = loss_fct(lm_logits.view(-1, lm_logits.size(-1)), lm_labels.view(-1))
             y_true = self.tokenizer.batch_decode(lm_labels, skip_special_tokens=True)
 
-        # pred_tokens = self.decode_logits(lm_logits)
-        pred_tokens = self.model.generate(input_ids=input_ids, num_beams=2, num_return_sequences=1)
-        pred_tokens = self.tokenizer.batch_decode(pred_tokens, skip_special_tokens=True)
-        return pred_tokens, loss, y_true
+        return lm_logits, loss, y_true
 
     def transform_inputs(self, inputs):
         """Only tokenizes inputs"""
@@ -69,3 +67,8 @@ class T5(TLiDB_model):
         assert logits.dim() > 1
         pred_tokens = logits.argmax(-1)
         return self.tokenizer.batch_decode(pred_tokens, skip_special_tokens=True)
+
+    def generate(self, input_ids, **kwargs):
+        pred_tokens = self.model.generate(input_ids=input_ids, **kwargs)
+        pred_str = self.tokenizer.batch_decode(pred_tokens, skip_special_tokens=True)
+        return pred_str

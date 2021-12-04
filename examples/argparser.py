@@ -1,5 +1,6 @@
 import argparse
 import torch
+import configs
 
 # TODO: Move args to model-specific config files
 #   For example, learning rate, optimizer, max_seq_length, etc.
@@ -66,10 +67,14 @@ def parse_args():
         setattr(args, "output_type", "token")
         setattr(args, "model_type", "Decoder")
         setattr(args, "loss_functions", ["LM_cross_entropy" for _ in args.train_tasks])
-    else:
+        setattr(args, "generation_config", configs.GPT2_generation_config)
+    elif "t5" in args.model:
         setattr(args, "output_type", "token")
         setattr(args, "model_type", "Seq2Seq")
         setattr(args, "loss_functions", ["LM_cross_entropy" for _ in args.train_tasks])
+        setattr(args, "generation_config", configs.t5_generation_config)
+    else:
+        raise ValueError(f"Model {args.model} not supported")
 
     if not args.cpu_only:
         setattr(args, "device", "cuda" if torch.cuda.is_available() else "cpu")
