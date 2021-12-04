@@ -1,6 +1,9 @@
 from .TLiDB_dataset import TLiDB_Dataset
 from TLiDB.metrics.all_metrics import Accuracy, F1
 
+# TODO:
+# - add support for multiple choice - https://huggingface.co/docs/transformers/model_doc/bert#transformers.BertForMultipleChoice
+
 class DailyDialog_dataset(TLiDB_Dataset):
     """
     DailyDialog dataset
@@ -19,6 +22,20 @@ class DailyDialog_dataset(TLiDB_Dataset):
             - Commonsense relation prediction
         - DailyDialog++ - https://iitmnlp.github.io/DailyDialog-plusplus/
             - Adversarial response selection
+
+    Metadata:
+        13118 Total dialogues
+        Dialogues per task:
+            Emotion recognition: 13118 Dialogues
+            Dialog act classification: 13118 Dialogues
+            Topic classification: 13118 Dialogues
+            Causal emotion span extraction: 1106 Dialogues
+            Causal entailment of emotion: 1106 Dialogues
+            Dialogue level NLI: 245 Dialogues
+            Dialogue reasoning span extraction: 227 Dialogues
+            Dialogue reasoning multiple choice span selection: 226 Dialogues
+            Commonsense relation prediction: 245 Dialogues
+            Adversarial response selection: 6880 Dialogues
     """
     _dataset_name = 'DailyDialog'
     _tasks = [
@@ -28,21 +45,83 @@ class DailyDialog_dataset(TLiDB_Dataset):
         'dialogue_reasoning_commonsense_relation_prediction', 'adversarial_response_selection'
         ]
     _url = "https://drive.google.com/uc?export=download&id=1U9dUi16RbAprUiSBmEKnEpwk45USfnml"
-    def __init__(self, task, dataset_folder, output_type, split=None):
+    _task_prompts = {
+    "emotion_recognition": "emotion:",
+    "intent_classification": "intent:",
+    "intent_detection": "intent:",
+    }
+    def __init__(self, task, dataset_folder, model_type, split=None):
         assert task in self._tasks, f"{task} is not a valid task for {self._dataset_name}"
-        super().__init__(self._dataset_name, task, output_type, dataset_folder=dataset_folder)
-        
+        super().__init__(self._dataset_name, task, model_type, dataset_folder=dataset_folder)
+
+        self._input_array = []
+        self._y_array = []
+        self._metadata_fields = []
+        self._metadata_array = []
+        self._load_data(task, split)
+        self._num_classes = len(self.task_labels)
+        self._y_size = len(self._y_array)
+
+    def _load_data(self, task, split):
+        return getattr(self, f"_load_{task}")(split)
+
+    def _load_emotion_recognition(self, split):
+        for datum in self.dataset['data']:
+            # TODO: create our own splits by task
+            if split and datum['dialogue_metadata']['original_data_partition'] != split:
+                continue
+            dialogue = []
+            for turn in datum['dialogue']:
+                dialogue.append([turn['speakers'][0], turn['utterance']])
+                self._input_array.append(dialogue)
+                self._y_array.append(turn['emotion_recognition'])
+        self._num_classes = len(self.task_labels)
+        self._y_size = len(self._y_array)
+
     def get_input(self, idx):
-        pass
+        return self._input_array[idx]
 
     def get_metadata(self, idx):
+        return {}
+
+    def _collate_encoder(self, batch):
+        X, y, metadata = [], [], {}
+        for item in batch:
+            X.append(self._convert_input_to_string(item[0]))
+            y.append(item[1])
+            for k, v in item[2].items():
+                if k not in metadata:
+                    metadata.append(k)
+                metadata[k].append(v)
+        return X, y, metadata
+
+    def _collate_decoder(self, batch):
+        labels = self.task_labels
         pass
 
-    def _collate_categorical(self, batch):
-        pass
+    def _collate_seq2seq(self, batch):
+        X, y, metadata = [], [], {}
+        for item in batch:
+            X.append(self._convert_input_to_prompt(item[0]))
+            y.append(item[1])
+            for k, v in item[2].items():
+                if k not in metadata:
+                    metadata.append(k)
+                metadata[k].append(v)
+        labels = self.task_labels
+        if labels:
+            metadata['labels'] = labels
+        return X, y, metadata
 
-    def _collate_token(self, batch):
-        pass
+    def _convert_input_to_prompt(self, input):
+        context = ""
+        for (speaker, utt) in input:
+            context += f" {speaker}: {utt}"
+        prompted_input = "context:"+context+" "+self._task_prompts[self.task]
+        return prompted_input
 
-    def eval(self, y_pred, y_true, prediction_fn=None):
-        pass
+    def _convert_input_to_string(self, input):
+        dialogue = ""
+        for (speaker, utt) in input:
+            dialogue += f"{speaker}: {utt} "
+        return dialogue[:-1]
