@@ -3,6 +3,8 @@ import json
 from utils import untokenize, convert_REC_ID_to_DD_ID, get_DD_by_ID
 from tqdm import tqdm
 
+emo_dict = {'0': 'neutral', '1': 'anger', '2': 'disgust', '3': 'fear', '4': 'happiness', '5': 'sadness', '6': 'surprise'}
+
 # Load original DailyDialog data
 DD_data = json.load(open('TLiDB_DailyDialog/TLiDB_DailyDialog.json', 'r'))
 
@@ -58,6 +60,9 @@ def update_annotations_from_RECCON(DD_data, RECCON_data):
                 assert(REC_dialogue[0][i]['utterance'] == DD_datum['dialogue'][i]['utterance'])
             if REC_dialogue[0][i]['emotion'] != DD_datum['dialogue'][i]['emotion_recognition']:
                 print(f"Updated \"{REC_dialogue[0][i]['utterance']}\" from {DD_datum['dialogue'][i]['emotion_recognition']} to {REC_dialogue[0][i]['emotion']}")
+                # fix RECCON typo
+                if REC_dialogue[0][i]['emotion'] in ['happy','happines']:
+                    REC_dialogue[0][i]['emotion'] = 'happiness'
                 DD_datum['dialogue'][i]['emotion_recognition'] = REC_dialogue[0][i]['emotion']
                 num_emotion_updates += 1
 
