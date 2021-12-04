@@ -10,7 +10,7 @@
 env/
 venv/
 
-examples/logs_and_models/*
+logs_and_models/*
 
 **.zip
 

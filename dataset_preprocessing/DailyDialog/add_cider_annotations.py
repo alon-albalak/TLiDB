@@ -206,6 +206,7 @@ def add_CIDER_dialogue_nli_annotations(original_DD_data, CIDER_data, DD_CIDER_da
         
         if 'dialogue_nli' not in cur_datum:
             cur_datum['dialogue_nli'] = []
+        cur_datum['dialogue_metadata']['dialogue_nli'] = None
         cur_datum['dialogue_nli'].append({
             'head': untokenize([NLI_datum[CIDER_DNLI_fields.index('head')]]),
             'relation': untokenize([NLI_datum[CIDER_DNLI_fields.index('relation')]]),
@@ -267,6 +268,7 @@ def add_CIDER_span_extraction_annotations(DD_data, CIDER_data, DD_CIDER_data, CI
                         continue
     
             full_dialogue = create_full_DD_dialogue(cur_datum)
+            cur_datum['dialogue_metadata']['dialogue_reasoning_span_extraction'] = None
             DD_sp_ex = {'context':full_dialogue,'qas':[]}
 
         # compile the span extraction annotations in our format
@@ -343,6 +345,7 @@ def add_CIDER_multiple_choice_span_selection_annotations(DD_data, CIDER_data, DD
                         raise e
 
             full_dialogue = create_full_DD_dialogue(cur_datum)
+            cur_datum['dialogue_metadata']['dialogue_reasoning_multiple_choice_span_selection'] = None
             DD_MCQ = {'context':full_dialogue,'mcqs':[]}
 
         # compile the span selection annotations in our format
@@ -418,6 +421,7 @@ def add_CIDER_commonsense_relation_prediction_annotations(original_DD_data, CIDE
             'tail': tail.strip(),
             'relation': crp[CIDER_CRP_fields.index("relation")]
         })
+        cur_datum['dialogue_metadata']['dialogue_reasoning_commonsense_relation_prediction'] = None
 
 
     assert found_CIDER == 228
