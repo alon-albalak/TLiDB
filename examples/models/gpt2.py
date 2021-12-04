@@ -42,9 +42,9 @@ class GPT2(TLiDB_model):
             loss = loss_fct(lm_logits.view(-1, lm_logits.size(-1)), lm_labels.view(-1))
             y_true = self.tokenizer.batch_decode(lm_labels, skip_special_tokens=True)
 
-        pred_tokens = self.decode_logits(lm_logits)
+        # pred_tokens = self.decode_logits(lm_logits)
 
-        return pred_tokens, loss, y_true
+        return lm_logits, loss, y_true
 
     def transform_inputs(self, inputs, outputs):
         """Only tokenizes inputs"""
