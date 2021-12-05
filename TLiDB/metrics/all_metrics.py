@@ -16,33 +16,34 @@ class Accuracy(ElementwiseMetric):
         return (y_pred==y_true).float()
 
 class F1(Metric):
-    def __init__(self, prediction_fn=None, name=None, average='macro'):
+    def __init__(self, prediction_fn=None, name=None, average='macro', labels=None):
         """
         Calculate F1 score
         Args:
             - prediction_fn: Function to convert y_pred into the same format as y_true (for example, convert logits to max index)
             - name (str): Name of the metric
             - average (str): one of ['binary', 'micro', 'macro', 'weighted', 'samples']
+            - labels: The set of labels to include when average != 'binary'  (if None, will use all labels)
         """
         self.prediction_fn = prediction_fn
         self.average = average
+        self.labels = labels
         if name is None:
             name = 'F1'
-            if average is not None:
-                name += f'-{self.average}'
+        if average is not None:
+            name += f'-{self.average}'
         super().__init__(name=name)
 
-    def _compute(self, y_pred,y_true,labels=None):
+    def _compute(self, y_pred,y_true):
         """
         Args:
             - y_pred: Predicted labels
             - y_true: Ground truth labels
-            - labels: The set of labels to include when average != 'binary'  (if None, will use all labels)
         See https://scikit-learn.org/stable/modules/generated/sklearn.metrics.f1_score.html for further documentation
         """
         if self.prediction_fn is not None:
             y_pred = self.prediction_fn(y_pred)
-        score = sklearn.metrics.f1_score(y_true, y_pred, average=self.average, labels=labels)
+        score = sklearn.metrics.f1_score(y_true, y_pred, average=self.average, labels=self.labels)
         return torch.tensor(score)
 
 class token_F1(Metric):
