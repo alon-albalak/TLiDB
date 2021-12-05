@@ -117,12 +117,17 @@ class Exact_Match(Metric):
     def _compute(self, y_pred, y_true):
         """
         Args:
-            - y_pred: Predicted labels
-            - y_true: Ground truth labels
+            - y_pred (tensor or list): Predicted labels
+            - y_true (tensor or list): Ground truth labels
         """
         if self.prediction_fn is not None:
             y_pred = self.prediction_fn(y_pred)
-        matches = [all(pred==true) for pred, true in zip(y_pred, y_true)]
+        if isinstance(y_pred[0], list):
+            matches = [float(pred == true) for pred, true in zip(y_pred, y_true)]
+        elif isinstance(y_pred[0], torch.Tensor):
+            matches = [all(pred == true) for pred, true in zip(y_pred, y_true)]
+        else:
+            raise TypeError(f'y_pred must be a list of lists or tensors, got {type(y_pred)}')
         return torch.mean(torch.tensor(matches))
 
 
