@@ -11,6 +11,14 @@ class Seq2SeqAlgorithm(Algorithm):
     def process_batch(self, batch):
         X, y_true, metadata = batch
         X = self.model.transform_inputs(X)
+
+        # TODO: ALON LEFT OFF HERE
+        # algorithm diverges depending on task type
+        #   for span extraction task, only y_true['text'] is passed
+        #   pass in [y['text'] for y in y_true]]
+        # ~~~~~NEED TO DO SOMETHING SIMILAR FOR ENCODERALGORITHM~~~~~~
+        if metadata['task_annotation_type'] == 'span_extraction':
+            y_true = [y['text'] for y in y_true]
         y_true = self.model.transform_outputs(y_true)
 
         X = move_to(X, self.device)

@@ -79,6 +79,10 @@ class TLiDB_Dataset(Dataset):
         return self._task
 
     @property
+    def task_annotation_type(self):
+        return self._task_annotation_type
+
+    @property
     def url(self):
         return self._url
 
@@ -223,15 +227,3 @@ class TLiDB_Dataset(Dataset):
             self._metadata_array = subsampled_metadata_array
             self._metadata_fields = metadata_iterated+metadata_not_iterated
             self._y_size = num_to_retain
-
-class friends_RC_dataset(TLiDB_Dataset):
-    _dataset_name = "friends_RC"
-
-class friends_QA_dataset(TLiDB_Dataset):
-    _dataset_name = "friends_QA"
-
-class banking77_datset(TLiDB_Dataset):
-    _dataset_name = "banking77"
-
-class multidogo_datset(TLiDB_Dataset):
-    _dataset_name = "multidogo"
