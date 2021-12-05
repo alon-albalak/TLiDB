@@ -42,7 +42,7 @@ def update_annotations_from_RECCON(DD_data, RECCON_data):
             for i in range(11,16):
                 DD_datum['dialogue'][i]['utterance'] = REC_dialogue[0][i]['utterance']
                 DD_datum['dialogue'][i]['emotion_recognition'] = DD_datum['dialogue'][i+1]['emotion_recognition']
-                DD_datum['dialogue'][i]['dialogue_actions'] = DD_datum['dialogue'][i+1]['dialogue_actions']
+                DD_datum['dialogue'][i]['dialogue_act_classification'] = DD_datum['dialogue'][i+1]['dialogue_act_classification']
             DD_datum['dialogue'] = DD_datum['dialogue'][:-1]
         if DD_ID == "dialogue-3814":
             DD_datum['dialogue'][4]['utterance'] = "Here we go. There is a museum of the Beijing Opera art."

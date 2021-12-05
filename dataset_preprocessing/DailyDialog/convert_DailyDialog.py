@@ -44,7 +44,7 @@ def format_data(original_data, formatted_data, partition):
                 "speakers": [f"speaker{speaker_id}"],
                 "utterance": ut,
                 "emotion_recognition": emo,
-                "dialogue_actions": da
+                "dialogue_act_classification": da
             }
             formatted_datum['dialogue'].append(formatted_turn)
             if speaker_id == 1:
