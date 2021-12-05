@@ -10,6 +10,13 @@ class Seq2SeqAlgorithm(Algorithm):
 
     def process_batch(self, batch):
         X, y_true, metadata = batch
+
+        # for span extraction tasks, keep outputs in tokenized form
+        if 'span_extraction' in metadata['task_annotation_type']:
+            output_type = "tokens"
+        else:
+            output_type = "string"
+
         X = self.model.transform_inputs(X)
 
         # TODO: ALON LEFT OFF HERE
@@ -25,12 +32,22 @@ class Seq2SeqAlgorithm(Algorithm):
         y_true = move_to(y_true, self.device)
 
         X['lm_labels'] = y_true
-        lm_logits, loss, y_true = self.model(**X)
+        lm_logits, loss, decoded_y_true = self.model(**X)
 
         if self.is_training:
-            outputs = self.model.decode_logits(lm_logits)
+            outputs = self.model.greedy_decode_logits(lm_logits)
         else:
             outputs = self.model.generate(X['input_ids'], **self.generation_config)
+
+        if output_type == "string":
+            outputs = self.model.batch_decode(outputs)
+            y_true = decoded_y_true
+        elif output_type == "tokens":
+            # convert to list of lists of token ids
+            outputs = outputs.cpu().tolist()
+            y_true = y_true.cpu().tolist()
+        else:
+            raise ValueError(f"output_type {output_type} not recognized")
 
         if 'labels' in metadata:
             # temporarily keep these separate until we know all labels are correctly aligned

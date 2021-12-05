@@ -63,12 +63,16 @@ class T5(TLiDB_model):
         tokenized_outputs = self.tokenizer(outputs, padding="longest", truncation=True, return_tensors="pt")
         return tokenized_outputs.input_ids
 
-    def decode_logits(self, logits):
+    def greedy_decode_logits(self, logits):
         assert logits.dim() > 1
         pred_tokens = logits.argmax(-1)
-        return self.tokenizer.batch_decode(pred_tokens, skip_special_tokens=True)
+        # return self.tokenizer.batch_decode(pred_tokens, skip_special_tokens=True)
+        return pred_tokens
 
     def generate(self, input_ids, **kwargs):
         pred_tokens = self.model.generate(input_ids=input_ids, **kwargs)
-        pred_str = self.tokenizer.batch_decode(pred_tokens, skip_special_tokens=True)
-        return pred_str
+        # pred_str = self.tokenizer.batch_decode(pred_tokens, skip_special_tokens=True)
+        return pred_tokens
+
+    def batch_decode(self, tokens):
+        return self.tokenizer.batch_decode(tokens, skip_special_tokens=True)
