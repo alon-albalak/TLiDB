@@ -51,7 +51,7 @@ def main(config):
             datasets['train']['datasets'].append(cur_dataset)
             datasets['train']['loaders'].append(get_train_loader(cur_dataset, config.gpu_batch_size, collate_fn=cur_dataset.collate))
             datasets['train']['losses'].append(l)
-            datasets['train']['metrics'].append(get_metric_computer(t))
+            datasets['train']['metrics'].append(get_metric_computer(cur_dataset.metrics))
 
             split = "dev"
             cur_dataset = get_dataset(dataset=d, task=t, model_type=config.model_type,split=split)
@@ -60,7 +60,7 @@ def main(config):
             datasets['dev']['datasets'].append(cur_dataset)
             datasets['dev']['loaders'].append(get_eval_loader(cur_dataset, config.gpu_batch_size, collate_fn=cur_dataset.collate))
             datasets['dev']['losses'].append(l)
-            datasets['dev']['metrics'].append(get_metric_computer(t))
+            datasets['dev']['metrics'].append(get_metric_computer(cur_dataset.metrics))
 
         else:
             split = "dev"
@@ -70,7 +70,7 @@ def main(config):
             datasets['dev']['datasets'].append(cur_dataset)
             datasets['dev']['loaders'].append(get_eval_loader(cur_dataset, config.gpu_batch_size, collate_fn=cur_dataset.collate))
             datasets['dev']['losses'].append(l)
-            datasets['dev']['metrics'].append(get_metric_computer(t))
+            datasets['dev']['metrics'].append(get_metric_computer(cur_dataset.metrics))
 
 
             split = "test"
@@ -78,7 +78,7 @@ def main(config):
             datasets['test']['datasets'].append(cur_dataset)
             datasets['test']['loaders'].append(get_eval_loader(cur_dataset, config.gpu_batch_size, collate_fn=cur_dataset.collate))
             datasets['test']['losses'].append(l)
-            datasets['test']['metrics'].append(get_metric_computer(t))
+            datasets['test']['metrics'].append(get_metric_computer(cur_dataset.metrics))
 
 
     # log dataset info

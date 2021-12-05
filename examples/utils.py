@@ -164,6 +164,8 @@ def log_dataset_info(datasets, logger):
         for dataset, loss in zip(datasets[split]['datasets'], datasets[split]['losses']):
             logger.write(f'{dataset.dataset_name}')
             logger.write(f' - {dataset.task}')
-            logger.write(f' - {loss} | ')
+            logger.write(f' - {loss}')
+            logger.write(f' - {dataset.num_classes} classes')
+            logger.write(f' - {dataset.y_size} examples | ')
         logger.write('\n')
     logger.flush()

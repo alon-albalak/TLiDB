@@ -51,11 +51,11 @@ class MetricGroup:
     A simple class to group metrics together
     """
     _string_to_class = {
-        "F1":F1,
-        "Accuracy":Accuracy
+        "f1":F1,
+        "accuracy":Accuracy
     }
     def __init__(self, metrics):
-        self.metrics = [self._string_to_class[metric]() for metric in metrics]
+        self.metrics = [self._string_to_class[metric.lower()]() for metric in metrics]
 
     def compute(self, y_pred, y_true):
         results = {}
