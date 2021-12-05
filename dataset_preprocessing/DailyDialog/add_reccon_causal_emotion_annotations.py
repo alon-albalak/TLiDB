@@ -97,7 +97,9 @@ def add_RECCON_span_extraction_annotations(RECCON_span_extraction_data, original
 
 def add_RECCON_entailment_annotations(RECCON_entailment_data, RECCON_entailment_fields, original_DD_data):
     original_DD_data['metadata']['tasks'].append('causal_emotion_entailment')
-    original_DD_data['metadata']['task_metadata']['causal_emotion_entailment'] = {'labels': ["not entailed","entailed"], 'metrics':['f1', 'accuracy']}
+    original_DD_data['metadata']['task_metadata']['causal_emotion_entailment'] = {
+        'labels': ["not entailed","entailed"], 'metrics':['f1', 'accuracy'],
+        "metric_kwargs":{"f1":[{"average":"micro"},{"average":"macro"}]}}
 
     for ent_datum in tqdm(RECCON_entailment_data):
         d = get_DD_datum_from_RECCON_ID(ent_datum[RECCON_entailment_fields.index('id')], original_DD_data)

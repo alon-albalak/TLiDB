@@ -79,7 +79,7 @@ def add_DDpp_annotations(DD_data, DD_pp, known_DDpp_DD_ID_mapping):
 
     DD_data['metadata']['tasks'].append('adversarial_response_selection')
     DD_data['metadata']['task_metadata']['adversarial_response_selection'] = {
-        'metrics': ['accuracy', 'f1']
+        'metrics': ['accuracy']
     }
 
     not_found = 0

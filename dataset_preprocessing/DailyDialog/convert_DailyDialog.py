@@ -68,9 +68,15 @@ formatted_data = {
             "topic_classification"
         ],
         "task_metadata": {
-            "emotion_recognition": {"labels": list(emo_dict.values()), "metrics": ["f1", "accuracy"]},
-            "dialogue_act_classification": {"labels": list(da_dict.values()), "metrics": ["f1", "accuracy"]},
-            "topic_classification": {"labels":list(topic_dict.values()), "metrics": ["f1", "accuracy"]}
+            "emotion_recognition": {
+                "labels": list(emo_dict.values()), "metrics": ["f1", "accuracy"],
+                "metric_kwargs":{"f1":[{"average":"micro"},{"average":"macro"}]}},
+            "dialogue_act_classification": {
+                "labels": list(da_dict.values()), "metrics": ["f1", "accuracy"],
+                "metric_kwargs":{"f1":[{"average":"micro"},{"average":"macro"}]}},
+            "topic_classification": {
+                "labels":list(topic_dict.values()), "metrics": ["f1", "accuracy"],
+                "metric_kwargs":{"f1":[{"average":"micro"},{"average":"macro"}]}}
         }
     },
     "data": []
