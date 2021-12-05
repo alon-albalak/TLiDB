@@ -161,11 +161,14 @@ def log_dataset_info(datasets, logger):
     logger.write('Datasets:\n')
     for split in datasets:
         logger.write(f'{split} | ')
-        for dataset, loss in zip(datasets[split]['datasets'], datasets[split]['losses']):
+        for dataset, loss, metrics in zip(datasets[split]['datasets'], datasets[split]['losses'], datasets[split]['metrics']):
             logger.write(f'{dataset.dataset_name}')
             logger.write(f' - {dataset.task}')
             logger.write(f' - {loss}')
-            logger.write(f' - {dataset.num_classes} classes')
+            for metric in metrics.metrics:
+                logger.write(f' - {metric.name}')
+            if dataset.num_classes:
+                logger.write(f' - {dataset.num_classes} classes')
             logger.write(f' - {dataset.y_size} examples | ')
         logger.write('\n')
     logger.flush()
