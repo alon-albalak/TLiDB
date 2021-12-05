@@ -49,6 +49,13 @@ class DailyDialog_dataset(TLiDB_Dataset):
     "emotion_recognition": "emotion:",
     "intent_classification": "intent:",
     "intent_detection": "intent:",
+    "dialogue_act_classification": "dialogue act:",
+    "topic_classification": "topic:",
+    }
+    _task_annotation_level = {
+        "emotion_recognition": "utterance_level",
+        "dialogue_act_classification": "utterance_level",
+        "topic_classification": "dialogue_level",
     }
     def __init__(self, task, dataset_folder, model_type, split=None):
         assert task in self._tasks, f"{task} is not a valid task for {self._dataset_name}"
@@ -63,9 +70,11 @@ class DailyDialog_dataset(TLiDB_Dataset):
         self._y_size = len(self._y_array)
 
     def _load_data(self, task, split):
-        return getattr(self, f"_load_{task}")(split)
+        # get the data loader, based on whether the task is utterance level or dialogue level
+        loader = getattr(self, f"_load_{self._task_annotation_level[task]}_task")
+        return loader(task,split)
 
-    def _load_emotion_recognition(self, split):
+    def _load_utterance_level_task(self, task, split):
         for datum in self.dataset['data']:
             # TODO: create our own splits by task
             if split and datum['dialogue_metadata']['original_data_partition'] != split:
@@ -73,10 +82,19 @@ class DailyDialog_dataset(TLiDB_Dataset):
             dialogue = []
             for turn in datum['dialogue']:
                 dialogue.append([turn['speakers'][0], turn['utterance']])
+                if task in turn:
+                    self._input_array.append(dialogue.copy())
+                    self._y_array.append(turn[task])
+
+    def _load_dialogue_level_task(self, task, split):
+        for datum in self.dataset['data']:
+            # TODO: create our own splits by task
+            if split and datum['dialogue_metadata']['original_data_partition'] != split:
+                continue
+            if task in datum:
+                dialogue = [[turn['speakers'][0], turn['utterance']] for turn in datum['dialogue']]
                 self._input_array.append(dialogue)
-                self._y_array.append(turn['emotion_recognition'])
-        self._num_classes = len(self.task_labels)
-        self._y_size = len(self._y_array)
+                self._y_array.append(datum[task])
 
     def get_input(self, idx):
         return self._input_array[idx]

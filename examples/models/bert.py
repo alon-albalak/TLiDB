@@ -3,7 +3,9 @@ import torch
 from .TLiDB_model import TLiDB_model
 from examples.utils import concat_t_d
 
-SEQUENCE_TASKS = ['intent_detection', 'emotion_recognition']
+SEQUENCE_TASKS = [
+    'emotion_recognition', 'intent_detection', 'intent_classification',
+    'dialogue_act_classification', 'topic_classification']
 TOKEN_TASKS = []
 
 class Bert(TLiDB_model):
