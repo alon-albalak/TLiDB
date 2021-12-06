@@ -117,7 +117,7 @@ def evaluate(algorithm, datasets, config, logger, epoch, is_best):
     algorithm.eval()
     torch.set_grad_enabled(False)
     for split in datasets:
-        for dataset, loader, loss in zip(datasets[split]['datasets'], datasets[split]['loaders'], datasets[split]['losses']):
+        for dataset, loader, loss, metric in zip(datasets[split]['datasets'], datasets[split]['loaders'], datasets[split]['losses'], datasets[split]['metrics']):
             epoch_y_true = []
             epoch_y_pred = []
 
@@ -131,6 +131,7 @@ def evaluate(algorithm, datasets, config, logger, epoch, is_best):
                 batch_metadata['task'] = dataset.task
                 batch_metadata['dataset_name'] = dataset.dataset_name
                 batch_metadata['loss'] = loss
+                batch_metadata['task_metadata'] = dataset.task_metadata
                 batch = (X, y, batch_metadata)
 
                 batch_results = algorithm.evaluate(batch)
@@ -141,7 +142,7 @@ def evaluate(algorithm, datasets, config, logger, epoch, is_best):
             epoch_y_pred = collate_list(epoch_y_pred)
             epoch_y_true = collate_list(epoch_y_true)
 
-            r, r_str = dataset.eval(epoch_y_pred, epoch_y_true)
+            r, r_str = metric.compute(epoch_y_pred, epoch_y_true)
             r['epoch'] = epoch
             logger.write(f"Eval on {split} split at epoch {epoch}: {dataset.dataset_name} {dataset.task}-\n{r_str}\n")
 
