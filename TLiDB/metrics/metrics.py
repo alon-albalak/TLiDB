@@ -70,7 +70,7 @@ class StringMetric:
     """
     def __init__(self,name,ignore_phrases):
         self._name = name
-        self._ignore_phrases = ignore_phrases
+        self._ignore_phrases = [self._normalize_answer(text, string.punctuation, '') for text in ignore_phrases]
 
     def _compute(self, y_pred, y_true):
         """
@@ -123,8 +123,11 @@ class StringMetric:
         if numel(y_true) == 0:
             agg_metric = torch.tensor(0., device=y_true.device)
         else:
-            y_pred = [self._normalize_answer(text, string.punctuation, '') if not any([ignore_phrase in text for ignore_phrase in self.ignore_phrases]) else "" for text in y_pred]
-            y_true = [self._normalize_answer(text, string.punctuation, '') if not any([ignore_phrase in text for ignore_phrase in self.ignore_phrases]) else "" for text in y_true]
+            y_pred = [self._normalize_answer(text, string.punctuation, '') for text in y_pred]
+            y_pred = [text if not any([ignore_phrase in text for ignore_phrase in self.ignore_phrases]) else "" for text in y_pred]
+            y_true = [self._normalize_answer(text, string.punctuation, '') for text in y_true]
+            y_true = [text if not any([ignore_phrase in text for ignore_phrase in self.ignore_phrases]) else "" for text in y_true]
+
             agg_metric = self._compute(y_pred, y_true)
         if return_dict:
             results = {
