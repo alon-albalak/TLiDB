@@ -66,13 +66,27 @@ class T5(TLiDB_model):
     def greedy_decode_logits(self, logits):
         assert logits.dim() > 1
         pred_tokens = logits.argmax(-1)
-        # return self.tokenizer.batch_decode(pred_tokens, skip_special_tokens=True)
         return pred_tokens
 
     def generate(self, input_ids, **kwargs):
         pred_tokens = self.model.generate(input_ids=input_ids, **kwargs)
-        # pred_str = self.tokenizer.batch_decode(pred_tokens, skip_special_tokens=True)
         return pred_tokens
 
     def batch_decode(self, tokens):
         return self.tokenizer.batch_decode(tokens, skip_special_tokens=True)
+
+    def clean_up_special_tokens(self, tokens, ignore_list=[]):
+        """
+        Takes a list of tokens as input, removes special tokens
+        """
+        clean_tokens = []
+        for token_list in tokens:
+            clean = [t for t in token_list if t not in self.tokenizer.all_special_ids]
+            if clean in ignore_list:
+                clean = []
+            clean_tokens.append(clean)
+        return clean_tokens
+
+    def convert_str_to_ids(self, s):
+        tokens = self.tokenizer.tokenize(s)
+        return self.tokenizer.convert_tokens_to_ids(tokens)

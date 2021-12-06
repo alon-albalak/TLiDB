@@ -14,12 +14,15 @@ class Seq2SeqAlgorithm(Algorithm):
         # for span extraction tasks, keep outputs in tokenized form
         if 'span_extraction' in metadata['task_annotation_type']:
             output_type = "tokens"
+            # This should really be passed in as a parameter, probably in metadata
+            ignore_phrases = ["Impossible answer", "impossible"]
+            ignore_tokens = [self.model.convert_str_to_ids(ignore_phrase) for ignore_phrase in ignore_phrases]
         else:
             output_type = "string"
 
         X = self.model.transform_inputs(X)
 
-        # TODO: ALON LEFT OFF HERE
+        # TODO:
         # algorithm diverges depending on task type
         #   for span extraction task, only y_true['text'] is passed
         #   pass in [y['text'] for y in y_true]]
@@ -44,8 +47,8 @@ class Seq2SeqAlgorithm(Algorithm):
             y_true = decoded_y_true
         elif output_type == "tokens":
             # convert to list of lists of token ids
-            outputs = outputs.cpu().tolist()
-            y_true = y_true.cpu().tolist()
+            outputs = self.model.clean_up_special_tokens(outputs.cpu().tolist(), ignore_list = ignore_tokens)
+            y_true = self.model.clean_up_special_tokens(y_true.cpu().tolist(), ignore_list = ignore_tokens)
         else:
             raise ValueError(f"output_type {output_type} not recognized")
 
