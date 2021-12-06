@@ -70,7 +70,8 @@ formatted_data = {
         "task_metadata": {
             "emotion_recognition": {
                 "labels": list(emo_dict.values()), "metrics": ["f1", "accuracy"],
-                "metric_kwargs":{"f1":[{"average":"micro", "labels":[-1,0,1,2,3,5,6]},{"average":"macro"}]}},
+                "metric_kwargs":{# do not include "neutral" in micro-f1 (label=4)
+                    "f1":[{"average":"micro", "labels":[-1,0,1,2,3,5,6]},{"average":"macro"}]}},
             "dialogue_act_classification": {
                 "labels": list(da_dict.values()), "metrics": ["f1", "accuracy"],
                 "metric_kwargs":{"f1":[{"average":"micro"},{"average":"macro"}]}},

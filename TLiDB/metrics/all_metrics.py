@@ -123,7 +123,13 @@ class Exact_Match(StringMetric):
         """
         if self.prediction_fn is not None:
             y_pred = self.prediction_fn(y_pred)
-        matches = [float(pred == true) for pred, true in zip(y_pred, y_true)]
+        # filter out pred/truth when both are empty string
+        clean_y_true, clean_y_pred = [], []
+        for true, pred in zip(y_true, y_pred):
+            if true != '' or pred != '':
+                clean_y_true.append(true)
+                clean_y_pred.append(pred)
+        matches = [float(pred == true) for pred, true in zip(clean_y_pred, clean_y_true)]
         return torch.mean(torch.tensor(matches))
 
 
