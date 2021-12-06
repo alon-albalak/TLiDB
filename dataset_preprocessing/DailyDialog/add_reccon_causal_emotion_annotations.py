@@ -46,8 +46,12 @@ def convert_REC_context_to_DD(REC_context, DD_context):
 def add_RECCON_span_extraction_annotations(RECCON_span_extraction_data, original_DD_data):
     # update original data fields
     original_DD_data['metadata']['tasks'].append("causal_emotion_span_extraction")
-    original_DD_data['metadata']['task_metadata']['causal_emotion_span_extraction'] = {"metrics":["exact_match", "token_f1"]}
-
+    original_DD_data['metadata']['task_metadata']['causal_emotion_span_extraction'] = {
+        "metrics":["exact_match", "token_f1"],
+        "metric_kwargs":{
+            "exact_match":{"ignore_phrases":["impossible"]},
+            "token_f1":{"ignore_phrases":["impossible"]}}
+        }
     # iteratively add span extraction data from RECCON to original data
     for sp_ex in tqdm(RECCON_span_extraction_data):
         DD_sp_ex = {}

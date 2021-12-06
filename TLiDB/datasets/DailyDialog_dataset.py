@@ -57,7 +57,6 @@ class DailyDialog_dataset(TLiDB_Dataset):
             },
         "causal_emotion_span_extraction":{
             "prompt":"","type":"span_extraction","annotation_type":"span_extraction",
-            "ignore_phrases":["Impossible answer","impossible"]
             },
     }
     def __init__(self, task, dataset_folder, model_type, split=None):
