@@ -1,5 +1,5 @@
 from collections import Counter
-from .metrics import Metric, ElementwiseMetric
+from .metrics import Metric, StringMetric, ElementwiseMetric
 import sklearn.metrics
 import torch
 
@@ -46,8 +46,8 @@ class F1(Metric):
         score = sklearn.metrics.f1_score(y_true, y_pred, average=self.average, labels=self.labels)
         return torch.tensor(score)
 
-class token_F1(Metric):
-    def __init__(self, prediction_fn=None, name=None):
+class token_F1(StringMetric):
+    def __init__(self, prediction_fn=None, name=None, ignore_phrases=[]):
         """
         Calculate F1 score for token comparisons
         Args:
@@ -57,13 +57,13 @@ class token_F1(Metric):
         self.prediction_fn = prediction_fn
         if name is None:
             name = 'token_F1'
-        super().__init__(name=name)
+        super().__init__(name=name, ignore_phrases=ignore_phrases)
     
     def _compute(self, y_pred, y_true):
         """
         Args:
-            - y_pred (tensor or list): Predicted labels
-            - y_true (tensor or list): Ground truth labels
+            - y_pred (List of str): Predicted labels
+            - y_true (List of str): Ground truth labels
         """
         if self.prediction_fn is not None:
             y_pred = self.prediction_fn(y_pred)
@@ -88,12 +88,12 @@ class token_F1(Metric):
         # Visually simpler version
         tp, fp, fn = 0, 0, 0
         for pred, true in zip(y_pred, y_true):
-            for pred_token in pred:
+            for pred_token in pred.split():
                 if pred_token in true:
                     tp += 1
                 else:
                     fp += 1
-            for true_token in true:
+            for true_token in true.split():
                 if true_token not in pred:
                     fn += 1
         precision = tp / (tp + fp)
@@ -102,8 +102,8 @@ class token_F1(Metric):
         return torch.tensor(f1)
 
 
-class Exact_Match(Metric):
-    def __init__(self, prediction_fn=None, name=None):
+class Exact_Match(StringMetric):
+    def __init__(self, prediction_fn=None, name=None, ignore_phrases=[]):
         """
         Calculate exact match score
         Args:
@@ -113,22 +113,17 @@ class Exact_Match(Metric):
         self.prediction_fn = prediction_fn
         if name is None:
             name = 'Exact_Match'
-        super().__init__(name=name)
+        super().__init__(name=name, ignore_phrases=ignore_phrases)
 
     def _compute(self, y_pred, y_true):
         """
         Args:
-            - y_pred (tensor or list): Predicted labels
-            - y_true (tensor or list): Ground truth labels
+            - y_pred (List of str): Predicted labels
+            - y_true (List of str): Ground truth labels
         """
         if self.prediction_fn is not None:
             y_pred = self.prediction_fn(y_pred)
-        if isinstance(y_pred[0], list):
-            matches = [float(pred == true) for pred, true in zip(y_pred, y_true)]
-        elif isinstance(y_pred[0], torch.Tensor):
-            matches = [all(pred == true) for pred, true in zip(y_pred, y_true)]
-        else:
-            raise TypeError(f'y_pred must be a list of lists or tensors, got {type(y_pred)}')
+        matches = [float(pred == true) for pred, true in zip(y_pred, y_true)]
         return torch.mean(torch.tensor(matches))
 
 
