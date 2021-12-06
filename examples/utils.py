@@ -31,25 +31,25 @@ def detach_and_clone(obj):
         raise TypeError("Invalid type for detach_and_clone")
 
 
-def collate_list(vec):
+def collate_list(inputs):
     """
-    If vec is a list of Tensors, it concatenates them all along the first dimension.
+    If inputs is a list of Tensors, it concatenates them all along the first dimension.
 
-    If vec is a list of lists, it joins these lists together, but does not attempt to
+    If inputs is a list of lists, it joins these lists together, but does not attempt to
     recursively collate. This allows each element of the list to be, e.g., its own dict.
 
-    If vec is a list of dicts (with the same keys in each dict), it returns a single dict
+    If inputs is a list of dicts (with the same keys in each dict), it returns a single dict
     with the same keys. For each key, it recursively collates all entries in the list.
     """
-    if not isinstance(vec, list):
+    if not isinstance(inputs, list):
         raise TypeError("collate_list must take in a list")
-    elem = vec[0]
+    elem = inputs[0]
     if torch.is_tensor(elem):
-        return torch.cat(vec)
+        return torch.cat(inputs)
     elif isinstance(elem, list):
-        return [obj for sublist in vec for obj in sublist]
+        return [obj for sublist in inputs for obj in sublist]
     elif isinstance(elem, dict):
-        return {k: collate_list([d[k] for d in vec]) for k in elem}
+        return {k: collate_list([d[k] for d in inputs]) for k in elem}
     else:
         raise TypeError("Elements of the list to collate must be tensors or dicts.")
 

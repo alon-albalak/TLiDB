@@ -80,8 +80,8 @@ class TLiDB_Dataset(Dataset):
         return self._task
 
     @property
-    def task_annotation_type(self):
-        return self._task_annotation_type
+    def task_metadata(self):
+        return self._task_metadata
 
     @property
     def url(self):
