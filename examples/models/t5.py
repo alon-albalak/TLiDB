@@ -26,7 +26,7 @@ class T5(TLiDB_model):
         encoder_outputs = None,
         decoder_input_ids = None,
         decoder_attention_mask = None,
-        lm_labels = None
+        lm_labels = None,
     ):
         if encoder_outputs == None:
             encoder_outputs = self.encoder(input_ids=input_ids,attention_mask=attention_mask).last_hidden_state
@@ -44,14 +44,12 @@ class T5(TLiDB_model):
         lm_logits = self.lm_head(sequence_output)
 
         loss = None
-        y_true = None
 
         if lm_labels is not None:
             loss_fct = CrossEntropyLoss(ignore_index=self.tokenizer.pad_token_id)
             loss = loss_fct(lm_logits.view(-1, lm_logits.size(-1)), lm_labels.view(-1))
-            y_true = self.tokenizer.batch_decode(lm_labels, skip_special_tokens=True)
 
-        return lm_logits, loss, y_true
+        return lm_logits, loss
 
     def transform_inputs(self, inputs):
         """Only tokenizes inputs"""
@@ -74,19 +72,3 @@ class T5(TLiDB_model):
 
     def batch_decode(self, tokens):
         return self.tokenizer.batch_decode(tokens, skip_special_tokens=True)
-
-    def clean_up_special_tokens(self, tokens, ignore_list=[]):
-        """
-        Takes a list of tokens as input, removes special tokens
-        """
-        clean_tokens = []
-        for token_list in tokens:
-            clean = [t for t in token_list if t not in self.tokenizer.all_special_ids]
-            if clean in ignore_list:
-                clean = []
-            clean_tokens.append(clean)
-        return clean_tokens
-
-    def convert_str_to_ids(self, s):
-        tokens = self.tokenizer.tokenize(s)
-        return self.tokenizer.convert_tokens_to_ids(tokens)
