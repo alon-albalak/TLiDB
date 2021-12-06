@@ -223,8 +223,13 @@ def add_CIDER_dialogue_nli_annotations(original_DD_data, CIDER_data, DD_CIDER_da
 def add_CIDER_span_extraction_annotations(DD_data, CIDER_data, DD_CIDER_data, CIDER_sp_ex):
     # update data fields
     DD_data['metadata']['tasks'].append("dialogue_reasoning_span_extraction")
-    DD_data['metadata']['task_metadata']['dialogue_reasoning_span_extraction'] = {'metrics':['exact_match','token_f1','no_match']}
-    
+    DD_data['metadata']['task_metadata']['dialogue_reasoning_span_extraction'] = {
+        'metrics':['exact_match','token_f1','no_match'],
+        "metric_kwargs":{
+            "exact_match":{"ignore_phrases":["impossible"]},
+            "token_f1":{"ignore_phrases":["impossible"]},
+        }
+    }
     found_CIDER = 0
     found_DD = 0
     not_found = 0
