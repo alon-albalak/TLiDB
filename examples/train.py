@@ -75,7 +75,7 @@ def run_epoch(algorithm, datasets, config, logger, train):
         logger.write('Epoch eval:\n')
         for m, d in zip(datasets['metrics'],datasets['datasets']):
             t_d = concat_t_d(d.task,d.dataset_name)
-            r, r_str = m.compute(epoch_y_true[t_d], epoch_y_pred[t_d])
+            r, r_str = m.compute(epoch_y_pred[t_d], epoch_y_true[t_d])
             results[t_d] = r
             logger.write(f"{d.dataset_name} {d.task}-\n{r_str}\n")
 
