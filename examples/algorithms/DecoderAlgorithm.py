@@ -14,9 +14,7 @@ class DecoderAlgorithm(Algorithm):
 
     def process_batch(self, batch):
         X, y_true, metadata = batch
-
-        # TODO: prepare X for both LM and generation
-
+        
         X = self.model.transform_inputs(X,y_true)
         y_true = self.model.transform_outputs(X, y_true)
 

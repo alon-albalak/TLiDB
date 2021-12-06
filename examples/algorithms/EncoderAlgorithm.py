@@ -28,6 +28,12 @@ class EncoderAlgorithm(Algorithm):
                 - metadata: the metadata of the batch
         """
         X, y_true, metadata = batch
+
+        # ALON LEFT OFF HERE
+        # TODO: Do span extraction in EncoderAlgorithm + BertModel (needs a new layer type)
+
+        X, y_true, metadata = getattr(self, f"_{metadata['task_metadata']['type']}_preprocessing")(X, y_true, metadata)
+
         X = self.model.transform_inputs(X)
         y_true = self.model.transform_outputs(y_true, metadata['task'], metadata['dataset_name'])
 
@@ -36,9 +42,10 @@ class EncoderAlgorithm(Algorithm):
 
         outputs = self.model(X,metadata['task'],metadata['dataset_name'])
 
-        preds = multiclass_logits_to_pred(outputs)
+        y_pred = getattr(self, f"_{metadata['task_metadata']['type']}_postprocessing")(outputs, y_true, metadata)
+
         results = {
-            'y_pred': preds,
+            'y_pred': y_pred,
             'y_true': y_true,
             'metadata': metadata,
             "objective": {"loss_name": metadata['loss']}
@@ -58,3 +65,16 @@ class EncoderAlgorithm(Algorithm):
 
     def requires_metric_calculation(self):
         return True
+
+    def _classification_preprocessing(self, X, y_true, metadata):
+        return X, y_true, metadata
+
+    def _classification_postprocessing(self, outputs, y_true, metadata):
+        y_pred = multiclass_logits_to_pred(outputs)
+        return y_pred
+
+    def _span_extraction_preprocessing(self, X, y_true, metadata):
+        return X, y_true, metadata
+
+    def _span_extraction_postprocessing(self, outputs, y_true, metadata):
+        pass

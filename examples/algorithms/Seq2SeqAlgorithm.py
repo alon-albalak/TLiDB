@@ -20,12 +20,6 @@ class Seq2SeqAlgorithm(Algorithm):
                 - metadata: the metadata of the batch
         """
         X, y_true, metadata = batch
-
-        # TODO:
-        # algorithm diverges depending on task type
-        #   for span extraction task, only y_true['text'] is passed
-        #   pass in [y['text'] for y in y_true]]
-        # ~~~~~NEED TO DO SOMETHING SIMILAR FOR ENCODERALGORITHM~~~~~~
         X, y_true, metadata = getattr(self, f"_{metadata['task_metadata']['type']}_preprocessing")(X, y_true, metadata)
 
         X = self.model.transform_inputs(X)
