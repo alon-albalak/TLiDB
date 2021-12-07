@@ -12,6 +12,7 @@ class T5(TLiDB_model):
         self.decoder = self.model.decoder
         self.lm_head = self.model.lm_head
         self.layers = {"model":self.model}
+        self.init_weights()
 
     def load_state_dict(self, state_dict):
         self.model.load_state_dict(state_dict['model'])

@@ -20,6 +20,8 @@ class Seq2SeqAlgorithm(Algorithm):
                 - metadata: the metadata of the batch
         """
         X, y_true, metadata = batch
+        
+        # task-specific preprocessing
         X, y_true, metadata = getattr(self, f"_{metadata['task_metadata']['type']}_preprocessing")(X, y_true, metadata)
 
         X = self.model.transform_inputs(X)
@@ -36,6 +38,7 @@ class Seq2SeqAlgorithm(Algorithm):
         else:
             outputs = self.model.generate(X['input_ids'], **self.generation_config)
 
+        # task-specific postprocessing
         y_pred, y_true = getattr(self, f"_{metadata['task_metadata']['type']}_postprocessing")(outputs, y_true, metadata)
 
         if 'labels' in metadata:
