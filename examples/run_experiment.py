@@ -9,6 +9,7 @@ import argparser
 
 def main(config):
 
+    # create save path based only on train data
     config.save_path_dir = get_savepath_dir(config.train_datasets, config.train_tasks, config.seed, config.log_and_model_dir, config.model)
 
     # Initialize logs
@@ -27,21 +28,22 @@ def main(config):
 
     set_seed(config.seed)
 
-    # load datasets for training
     datasets = {}
     if config.do_train:
-        logger.write("TRAINING\n")
-        datasets['train'] = load_datasets_split("train",config)
-        datasets['dev'] = load_datasets_split("dev",config)
 
-        # log configuration
+        # load datasets for training
+        datasets['train'] = load_datasets_split("train",config.train_tasks, config.train_datasets, config)
+        datasets['dev'] = load_datasets_split("dev",config.train_tasks, config.train_datasets, config)
+
+        # log configuration and dataset info
+        logger.write("TRAINING\n")
         log_config(config,logger)
-        # log dataset info
         log_dataset_info(datasets, logger)
 
         # initialize algorithm
         algorithm = initialize_algorithm(config, datasets)
 
+        # try to resume training from a saved model
         resume_success = False
         if resume:
             if os.path.exists(os.path.join(config.save_path_dir, 'last_model.pt')):
@@ -52,6 +54,7 @@ def main(config):
             else:
                 logger.write("No previous model found, starting from scratch\n")
 
+        # if not resuming, or if resuming but no previous model found, then train from scratch
         if not resume_success:
             epoch_offset=0
             best_val_metric = None
@@ -59,59 +62,99 @@ def main(config):
         train(algorithm, datasets, config, logger, epoch_offset, best_val_metric)
 
     if config.do_finetune:
-        logger.write("FINETUNING\n")
+        # get the pre-trained model path
+        if config.do_train or (config.train_datasets and config.train_tasks):
+            # Do nothing, this means we already have a save_dir_path and a model saved there
+            pass
+        elif config.saved_model_dir:
+            # if user explcitily specified a pretrained model to finetune, then use that
+            config.save_path_dir = config.saved_model_dir
+        else:
+            raise ValueError("To run fine-tuning, use:\n--saved_model_dir to specify the pre-trained model OR\
+                \n--train_datasets and --train_tasks to specify the pretraining datasets and tasks")
+        
         # if fine tuning, set fine-tune train, and fine-tune dev to the same tasks
         config.finetune_train_tasks = config.finetune_tasks
         config.finetune_train_datasets = config.finetune_datasets
         config.finetune_dev_tasks = config.finetune_tasks
         config.finetune_dev_datasets = config.finetune_datasets
 
-        datasets['train'] = load_datasets_split("finetune_train",config)
-        datasets['dev'] = load_datasets_split("finetune_dev",config)
+        # load datasets for finetuning
+        datasets['train'] = load_datasets_split("train",config.finetune_tasks,config.finetune_datasets,config)
+        datasets['dev'] = load_datasets_split("dev", config.finetune_tasks, config.finetune_datasets, config)
 
-        # initialize algorithm
+       # initialize algorithm
         algorithm = initialize_algorithm(config, datasets)
 
-        # always load best model
+        # always load best pretrained model
         model_path = os.path.join(config.save_path_dir, 'best_model.pt')
         is_best = True
-        
         load_algorithm(algorithm, model_path, logger)
         epoch_offset = 0
         best_val_metric = None
 
+        # update save path with fine-tuning details
         config.save_path_dir = append_to_save_path_dir(config.save_path_dir, config.finetune_datasets, config.finetune_tasks, config.seed)
+        
+        # note the fine-tuning in the pretrained model log
+        logger.write(f"FINETUNING at {config.save_path_dir}\n")
+        
+        # create new logger for fine-tuning
         if not os.path.exists(config.save_path_dir):
             os.makedirs(config.save_path_dir)
+        logger = Logger(os.path.join(config.save_path_dir, 'log.txt'), mode="w")
 
-        # log configuration
+        # log configuration and dataset info
+        logger.write("FINETUNING\n")
         log_config(config,logger)
-        # log dataset info
         log_dataset_info(datasets, logger)
 
         train(algorithm, datasets, config, logger, epoch_offset, best_val_metric)
 
     if config.do_eval:
-        assert(config.do_finetune or config.eval_model_dir is not None), "Must specify --eval_model_dir"
+        # TODO
+        # Hierarchy for model path:
+        #   1. path from fine-tuning model
+        #   2. path from training model
+        #   3. User specified path
+
+        if config.do_finetune or config.do_train:
+            # Do nothing, this means we already have a save_dir_path from training/fine-tuning and a model saved there
+            pass
+        elif (config.finetune_datasets and config.finetune_tasks) and (config.train_datasets and config.train_tasks):
+            # Given all the datasets and tasks, we can infer the path to the fine-tuned model
+            config.save_path_dir = append_to_save_path_dir(config.save_path_dir, config.finetune_datasets, config.finetune_tasks, config.seed)
+        elif config.saved_model_dir:
+            # if user explcitily specified a model to evaluate, then use that
+            config.save_path_dir = config.saved_model_dir
+        else:
+            raise ValueError("To run evaluation, use:\n--saved_model_dir to specify the model to evaluate OR\
+                \n--finetune_datasets and --finetune_tasks and --train_datasets and --train_tasks to infer the path to the model")
+
+        # ensure user has specified a model to evaluate
         assert(not(config.eval_last and config.eval_best)), "cannot evaluate both last and best models"
         assert(config.eval_last or config.eval_best), "must evaluate at least one model"
+        
+        # create logger for evaluation
+        logger = Logger(os.path.join(config.save_path_dir, 'log.txt'), mode="a")
         logger.write("EVALUATING\n")
         
-        datasets['test'] = load_datasets_split("test",config)
+        # load datasets for evaluation
+        datasets['test'] = load_datasets_split("test",config.test_tasks, config.test_datasets, config)
 
-        # log dataset info
+        # log configuration and dataset info
+        log_config(config,logger)
         log_dataset_info(datasets, logger)
 
         # initialize algorithm
         algorithm = initialize_algorithm(config, datasets)  
         
-        if config.do_finetune:
-            config.eval_model_dir = config.save_path_dir
+        # load evaluation model
         if config.eval_last:
-            eval_model_path = os.path.join(config.eval_model_dir, "last_model.pt")
+            eval_model_path = os.path.join(config.save_path_dir, "last_model.pt")
             is_best = False
         else:
-            eval_model_path = os.path.join(config.eval_model_dir, 'best_model.pt')
+            eval_model_path = os.path.join(config.save_path_dir, 'best_model.pt')
             is_best = True
 
         epoch, best_val_metric = load_algorithm(algorithm, eval_model_path,logger)

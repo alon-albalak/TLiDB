@@ -19,7 +19,6 @@ def parse_args():
     parser.add_argument("--max_seq_length", type=int, default=512)
     # training args
     parser.add_argument("--do_train", action="store_true")
-    parser.add_argument("--do_finetune", action="store_true")
     parser.add_argument("-e", "--num_epochs", type=int, default=20)
     parser.add_argument("--effective_batch_size", type=int, default=8)
     parser.add_argument("--gpu_batch_size", type=int, default=5)
@@ -28,6 +27,10 @@ def parse_args():
     parser.add_argument("--max_grad_norm", type=float, default=1.0)
     parser.add_argument("--save_best", type=bool, default=True)
     parser.add_argument("--save_last", type=bool, default=True)
+
+    # fine-tuning args
+    parser.add_argument("--do_finetune", action="store_true")
+    parser.add_argument("--finetune_model_dir", type=str)
 
     # evaluation args
     parser.add_argument("--do_eval", action="store_true")
