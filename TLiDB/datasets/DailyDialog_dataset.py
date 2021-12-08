@@ -82,7 +82,7 @@ class DailyDialog_dataset(TLiDB_Dataset):
 
     def _load_utterance_level_classification_task(self, task, split):
         for datum in self.dataset['data']:
-            if task in datum:
+            if task in datum['dialogue_metadata']:
                 # TODO: create our own splits by task
                 if split and datum['dialogue_metadata']['original_data_partition'] != split:
                     continue
@@ -95,7 +95,7 @@ class DailyDialog_dataset(TLiDB_Dataset):
 
     def _load_dialogue_level_classification_task(self, task, split):
         for datum in self.dataset['data']:
-            if task in datum:
+            if task in datum['dialogue_metadata']:
                 # TODO: create our own splits by task
                 if split and datum['dialogue_metadata']['original_data_partition'] != split:
                     continue
@@ -106,7 +106,7 @@ class DailyDialog_dataset(TLiDB_Dataset):
         
     def _load_span_extraction_task(self, task, split):
         for datum in self.dataset['data']:
-            if task in datum:
+            if task in datum['dialogue_metadata']:
                 # TODO: create our own splits by task
                 if split and datum['dialogue_metadata']['original_data_partition'] != split:
                     continue
@@ -121,7 +121,7 @@ class DailyDialog_dataset(TLiDB_Dataset):
 
     def _load_causal_emotion_entailment_task(self, task, split):
         for datum in self.dataset['data']:
-            if task in datum:
+            if task in datum['dialogue_metadata']:
                 # TODO: create our own splits by task
                 if split:
                     if isinstance(datum['dialogue_metadata'][task], dict) and datum['dialogue_metadata'][task]['original_data_partition'] != split:
