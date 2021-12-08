@@ -102,14 +102,15 @@ def main(config):
         # create new logger for fine-tuning
         if not os.path.exists(config.save_path_dir):
             os.makedirs(config.save_path_dir)
-        logger = Logger(os.path.join(config.save_path_dir, 'log.txt'), mode="w")
+        finetune_logger = Logger(os.path.join(config.save_path_dir, 'log.txt'), mode="w")
 
         # log configuration and dataset info
-        logger.write("FINETUNING\n")
-        log_config(config,logger)
-        log_dataset_info(datasets, logger)
+        finetune_logger.write("FINETUNING\n")
+        log_config(config,finetune_logger)
+        log_dataset_info(datasets, finetune_logger)
 
-        train(algorithm, datasets, config, logger, epoch_offset, best_val_metric)
+        train(algorithm, datasets, config, finetune_logger, epoch_offset, best_val_metric)
+        finetune_logger.close()
 
     if config.do_eval:
         # TODO
@@ -136,15 +137,15 @@ def main(config):
         assert(config.eval_last or config.eval_best), "must evaluate at least one model"
         
         # create logger for evaluation
-        logger = Logger(os.path.join(config.save_path_dir, 'log.txt'), mode="a")
-        logger.write("EVALUATING\n")
+        eval_logger = Logger(os.path.join(config.save_path_dir, 'log.txt'), mode="a")
+        eval_logger.write("EVALUATING\n")
         
         # load datasets for evaluation
         datasets['test'] = load_datasets_split("test",config.test_tasks, config.test_datasets, config)
 
         # log configuration and dataset info
-        log_config(config,logger)
-        log_dataset_info(datasets, logger)
+        log_config(config,eval_logger)
+        log_dataset_info(datasets, eval_logger)
 
         # initialize algorithm
         algorithm = initialize_algorithm(config, datasets)  
@@ -157,9 +158,10 @@ def main(config):
             eval_model_path = os.path.join(config.save_path_dir, 'best_model.pt')
             is_best = True
 
-        epoch, best_val_metric = load_algorithm(algorithm, eval_model_path,logger)
-        evaluate(algorithm, datasets, config, logger, epoch, is_best)
+        epoch, best_val_metric = load_algorithm(algorithm, eval_model_path,eval_logger)
+        evaluate(algorithm, datasets, config, eval_logger, epoch, is_best)
 
+        eval_logger.close()
     logger.close()
 
 if __name__ == "__main__":
