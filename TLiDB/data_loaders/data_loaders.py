@@ -51,6 +51,7 @@ class TLiDB_DataLoader:
         self.lengths = [len(d) for d in self.dataloaders]
         self.remaining_batches = [len(d) for d in self.dataloaders]
         self.task_metadatas = [d.task_metadata for d in dataloader_dict['datasets']]
+        self.task_weights = [1/l**(1/2) for l in self.lengths]
 
     def _reset(self):
         pass
@@ -73,6 +74,7 @@ class TLiDB_DataLoader:
             metadata['task'] = self.task_names[selected_idx]
             metadata['dataset_name'] = self.dataset_names[selected_idx]
             metadata['task_metadata'] = self.task_metadatas[selected_idx]
+            metadata['task_weight'] = self.task_weights[selected_idx]
             return X,y,metadata
         else:
             raise StopIteration

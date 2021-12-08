@@ -29,6 +29,7 @@ def parse_args():
     parser.add_argument("--max_grad_norm", type=float, default=1.0)
     parser.add_argument("--save_best", type=bool, default=True)
     parser.add_argument("--save_last", type=bool, default=True)
+    parser.add_argument("--imbalanced_task_weighting", type=bool, default=True)
 
     # evaluation args
     parser.add_argument("--do_eval", action="store_true")

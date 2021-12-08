@@ -18,6 +18,7 @@ class Algorithm(nn.Module):
         self.max_grad_norm = config.max_grad_norm
         self.gradient_accumulation_steps = config.effective_batch_size/config.gpu_batch_size
         self.fp16 = config.fp16
+        self.imbalanced_task_weighting = config.imbalanced_task_weighting
         if config.fp16:
             self.scaler = torch.cuda.amp.GradScaler()
     
@@ -56,6 +57,9 @@ class Algorithm(nn.Module):
         if self.fp16:
             with torch.cuda.amp.autocast():
                 results, objective = self.process_batch(batch)
+                if self.imbalanced_task_weighting:
+                    task_weight = torch.tensor(batch['task_weight']).to(self.device)
+                    objective = task_weight * objective
                 objective = objective / self.gradient_accumulation_steps
             self.scaler.scale(objective).backward()
             if ((step+1)%self.gradient_accumulation_steps) == 0:
@@ -66,6 +70,9 @@ class Algorithm(nn.Module):
                 self.model.zero_grad(set_to_none=True)
         else:
             results, objective = self.process_batch(batch)
+            if self.imbalanced_task_weighting:
+                task_weight = torch.tensor(batch['task_weight']).to(self.device)
+                objective = task_weight * objective
             objective = objective / self.gradient_accumulation_steps
             objective.backward()
             if ((step+1)%self.gradient_accumulation_steps) == 0:
