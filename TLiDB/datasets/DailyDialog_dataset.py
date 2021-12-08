@@ -55,9 +55,12 @@ class DailyDialog_dataset(TLiDB_Dataset):
         "topic_classification":{
             "prompt":"topic:","type":"classification","annotation_type":"dialogue_level_classification"
             },
-        "causal_emotion_span_extraction":{
+        "causal_emotion_span_extraction":{# data already contains the prompt
             "prompt":"","type":"span_extraction","annotation_type":"span_extraction",
             },
+        "causal_emotion_entailment":{
+            "prompt":"causal emotion entailment:","type":"classification","annotation_type":"causal_emotion_entailment",
+            }
     }
     def __init__(self, task, dataset_folder, model_type, split=None):
         assert task in self._tasks, f"{task} is not a valid task for {self._dataset_name}"
@@ -79,32 +82,35 @@ class DailyDialog_dataset(TLiDB_Dataset):
 
     def _load_utterance_level_classification_task(self, task, split):
         for datum in self.dataset['data']:
-            # TODO: create our own splits by task
-            if split and datum['dialogue_metadata']['original_data_partition'] != split:
-                continue
-            dialogue = []
-            for turn in datum['dialogue']:
-                dialogue.append([turn['speakers'][0], turn['utterance']])
-                if task in turn:
-                    self._input_array.append(dialogue.copy())
-                    self._y_array.append(turn[task])
+            if task in datum:
+                # TODO: create our own splits by task
+                if split and datum['dialogue_metadata']['original_data_partition'] != split:
+                    continue
+                dialogue = []
+                for turn in datum['dialogue']:
+                    dialogue.append([turn['speakers'][0], turn['utterance']])
+                    if task in turn:
+                        self._input_array.append(dialogue.copy())
+                        self._y_array.append(turn[task])
 
     def _load_dialogue_level_classification_task(self, task, split):
         for datum in self.dataset['data']:
-            # TODO: create our own splits by task
-            if split and datum['dialogue_metadata']['original_data_partition'] != split:
-                continue
             if task in datum:
+                # TODO: create our own splits by task
+                if split and datum['dialogue_metadata']['original_data_partition'] != split:
+                    continue
+            
                 dialogue = [[turn['speakers'][0], turn['utterance']] for turn in datum['dialogue']]
                 self._input_array.append(dialogue)
                 self._y_array.append(datum[task])
         
     def _load_span_extraction_task(self, task, split):
         for datum in self.dataset['data']:
-            # TODO: create our own splits by task
-            if split and datum['dialogue_metadata']['original_data_partition'] != split:
-                continue
             if task in datum:
+                # TODO: create our own splits by task
+                if split and datum['dialogue_metadata']['original_data_partition'] != split:
+                    continue
+            
                 for qas in datum[task]:
                     for qa in qas['qas']:
                         for answer in qa['answers']:
@@ -112,6 +118,23 @@ class DailyDialog_dataset(TLiDB_Dataset):
                                 "context":qas['context'],"question":qa['question']
                             })
                             self._y_array.append(answer)
+
+    def _load_causal_emotion_entailment_task(self, task, split):
+        for datum in self.dataset['data']:
+            if task in datum:
+                # TODO: create our own splits by task
+                if split:
+                    if isinstance(datum['dialogue_metadata'][task], dict) and datum['dialogue_metadata'][task]['original_data_partition'] != split:
+                        continue
+                    elif datum['dialogue_metadata']['original_data_partition'] != split:
+                        continue
+            
+                for sample in datum[task]:
+                    self._input_array.append({
+                        "premise":sample['history'],
+                        "hypothesis": f"{sample['causal_utterance']} causes {sample['emotion']} in {sample['target_utterance']}",
+                    })
+                    self._y_array.append(sample['labels'])
 
     def get_input(self, idx):
         return self._input_array[idx]
@@ -122,10 +145,14 @@ class DailyDialog_dataset(TLiDB_Dataset):
     def _collate_encoder(self, batch):
         X, y, metadata = [], [], {}
         for item in batch:
-            if self._task_metadata['type'] == 'span_extraction':
+            if self._task_metadata['annotation_type'] == 'span_extraction':
                 X.append(self._join_strings(item[0]['context'],item[0]['question']))
-            else:
+            elif "entailment" in self._task_metadata['annotation_type']:
+                X.append(self._join_strings(item[0]['hypothesis'],item[0]['premise']))
+            elif "classification" in self._task_metadata['annotation_type']:
                 X.append(self._convert_dialogue_to_string(item[0]))
+            else:
+                raise NotImplementedError(f"annotation_type {self._task_metadata['annotation_type']} not implemented")
             y.append(item[1])
             for k, v in item[2].items():
                 if k not in metadata:
@@ -140,11 +167,15 @@ class DailyDialog_dataset(TLiDB_Dataset):
     def _collate_seq2seq(self, batch):
         X, y, metadata = [], [], {}
         for item in batch:
-            if self._task_metadata['type'] == "span_extraction":
+            if self._task_metadata['annotation_type'] == "span_extraction":
                 X.append(self._join_strings("context:",item[0]['context'],item[0]['question']))
-            else:
+            elif "entailment" in self._task_metadata['annotation_type']:
+                X.append(self._join_strings(item[0]['premise'],self._task_metadata['prompt'],item[0]['hypothesis']))
+            elif "classification" in self._task_metadata['annotation_type']:
                 dialogue = self._convert_dialogue_to_string(item[0])
-                X.append(self._join_strings("context:",dialogue,self._task_metadata['prompt']))                
+                X.append(self._join_strings("context:",dialogue,self._task_metadata['prompt']))
+            else:
+                raise NotImplementedError(f"annotation_type {self._task_metadata['annotation_type']} not implemented")       
             y.append(item[1])
             for k, v in item[2].items():
                 if k not in metadata:

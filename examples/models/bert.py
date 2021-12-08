@@ -5,7 +5,7 @@ from examples.utils import concat_t_d
 
 SEQUENCE_TASKS = [
     'emotion_recognition', 'intent_detection', 'intent_classification',
-    'dialogue_act_classification', 'topic_classification']
+    'dialogue_act_classification', 'topic_classification', 'causal_emotion_entailment']
 TOKEN_TASKS = []
 SPAN_EXTRACTION_TASKS = [
     "causal_emotion_span_extraction"

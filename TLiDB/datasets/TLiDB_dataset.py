@@ -173,36 +173,6 @@ class TLiDB_Dataset(Dataset):
         """
         return len(self.y_array)
 
-    # def eval(self, y_pred, y_true):
-    #     """
-    #     Evaluates the model performance
-    #     Args:
-    #         - y_pred (Tensor): Predicted targets
-    #         - y_true (Tensor): True targets
-    #     Returns:
-    #         - results (dict): Dictionary of metrics
-    #     """
-    #     return NotImplementedError
-
-    # @staticmethod
-    # def standard_eval(metric, y_pred, y_true):
-    #     """
-    #     Args:
-    #         - metric (Metric): Metric to use for eval
-    #         - y_pred (Tensor): Predicted targets
-    #         - y_true (Tensor): True targets
-    #     Output:
-    #         - results (dict): Dictionary of results
-    #         - results_str (str): Pretty print version of the results
-    #     """
-    #     results = {
-    #         **metric.compute(y_pred, y_true),
-    #     }
-    #     results_str = (
-    #         f"Average {metric.name}: {results[metric.agg_metric_field]:0.4f}\n"
-    #     )
-    #     return results, results_str
-
     def random_subsample(self, frac=1.0):
         """
         Subsamples the dataset
