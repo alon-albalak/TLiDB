@@ -59,7 +59,8 @@ class Bert(TLiDB_model):
 
     def load_state_dict(self, state_dict):
         for layer_name, layer in state_dict.items():
-            self.layers[layer_name].load_state_dict(layer)
+            if layer_name in self.layers.keys():
+                self.layers[layer_name].load_state_dict(layer)
 
     def _forward(self, inputs, task, dataset_name):
         return self.classifiers[concat_t_d(task,dataset_name)]['forward'](inputs, task, dataset_name)

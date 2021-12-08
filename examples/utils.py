@@ -4,6 +4,30 @@ import random
 import numpy as np
 import torch
 
+package_directory = os.path.dirname(os.path.abspath(__file__))
+TLiDB_FOLDER = os.path.join(package_directory, "..")
+sys.path.append(TLiDB_FOLDER)
+
+# TLiDB imports
+from TLiDB.datasets.get_dataset import get_dataset
+from TLiDB.data_loaders.data_loaders import get_train_loader, get_eval_loader
+from TLiDB.metrics.initializer import get_metric_computer
+
+def load_datasets_split(split, config):
+    split_datasets = {"datasets":[], "loaders":[], "metrics":[]}
+    tasks = getattr(config, f"{split}_tasks")
+    datasets = getattr(config, f"{split}_datasets")
+    split = "train" if split == "finetune_train" else split
+    split = "dev" if split == "finetune_dev" else split
+    for t, d in zip(tasks, datasets):
+        cur_dataset = get_dataset(dataset=d,task=t,model_type=config.model_type,split=split)
+        if config.frac < 1.0:
+            cur_dataset.random_subsample(config.frac)
+        split_datasets["datasets"].append(cur_dataset)
+        split_datasets["loaders"].append(get_train_loader(cur_dataset, config.gpu_batch_size, collate_fn=cur_dataset.collate))
+        split_datasets["metrics"].append(get_metric_computer(cur_dataset.metrics, **cur_dataset.metric_kwargs))
+    return split_datasets
+
 def concat_t_d(task, dataset_name):
     return f"{task}_{dataset_name}"
 
@@ -60,17 +84,27 @@ def set_seed(seed):
         np.random.seed(seed)
         torch.manual_seed(seed)
 
-def get_savepath_dir(config):
-    prefix = ""
-    for dataset,task in zip(config.train_datasets, config.train_tasks):
+def get_savepath_dir(datasets, tasks, seed, log_dir, model):
+    prefix = "PRETRAINED_"
+    for dataset,task in zip(datasets, tasks):
         prefix += f"{dataset}.{task}_"
-    if config.seed > -1:
-        prefix += f"seed.{config.seed}_"
-    if prefix == "":
+    if seed > -1:
+        prefix += f"seed.{seed}_"
+    if prefix == "PRETRAINED_":
         raise ValueError("Cannot create dir with empty name")
 
-    prefix = os.path.join(config.log_and_model_dir, prefix[:-1], config.model)
+    prefix = os.path.join(log_dir, prefix[:-1], model)
     return prefix
+
+def append_to_save_path_dir(save_path_dir, datasets, tasks, seed):
+    postfix = "FINETUNED_"
+    for dataset,task in zip(datasets, tasks):
+        postfix += f"{dataset}.{task}_"
+    if seed > -1:
+        postfix += f"seed.{seed}_"
+    if postfix == "FINETUNED_":
+        raise ValueError("Cannot create dir with empty name")
+    return os.path.join(save_path_dir,postfix[:-1])
 
 def save_algorithm(algorithm, epoch, best_val_metric, path, logger):
     state = {}
@@ -87,15 +121,15 @@ def load_algorithm(algorithm, path, logger):
     return state['epoch'], state['best_val_metric']
 
 def save_algorithm_if_needed(algorithm, epoch, config, best_val_metric, is_best, logger):
-    save_path_dir = get_savepath_dir(config)
     if config.save_last:
-        save_algorithm(algorithm,epoch,best_val_metric,os.path.join(save_path_dir,"last_model.pt"),logger)
+        save_algorithm(algorithm,epoch,best_val_metric,os.path.join(config.save_path_dir,"last_model.pt"),logger)
     if config.save_best and is_best:
-        save_algorithm(algorithm, epoch, best_val_metric,os.path.join(save_path_dir,"best_model.pt"),logger)
+        save_algorithm(algorithm, epoch, best_val_metric,os.path.join(config.save_path_dir,"best_model.pt"),logger)
 
-def save_pred_if_needed(y_pred, epoch, config, is_best, force_save=False):
+def save_pred_if_needed(y_pred, epoch, config, is_best, force_save=False, save_path_dir=None):
     if config.save_pred:
-        save_path_dir = get_savepath_dir(config)
+        if not save_path_dir:
+            save_path_dir = get_savepath_dir(config)
         if force_save:
             save_pred(y_pred, os.path.join(save_path_dir, f"predictions_{epoch}"))
         if (not force_save) and config.save_last:
@@ -161,10 +195,9 @@ def log_dataset_info(datasets, logger):
     logger.write('Datasets:\n')
     for split in datasets:
         logger.write(f'{split} | ')
-        for dataset, loss, metrics in zip(datasets[split]['datasets'], datasets[split]['losses'], datasets[split]['metrics']):
+        for dataset, metrics in zip(datasets[split]['datasets'], datasets[split]['metrics']):
             logger.write(f'{dataset.dataset_name}')
             logger.write(f' - {dataset.task}')
-            logger.write(f' - {loss}')
             for metric in metrics.metrics:
                 logger.write(f' - {metric.name}')
             if dataset.num_classes:

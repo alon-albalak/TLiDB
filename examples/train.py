@@ -1,3 +1,4 @@
+from warnings import simplefilter
 from torch.utils import data
 from tqdm import tqdm
 import torch
@@ -40,7 +41,7 @@ def run_epoch(algorithm, datasets, config, logger, train):
         _, _, batch_metadata = batch
         batch_t_d = concat_t_d(batch_metadata['task'],batch_metadata['dataset_name'])
         if train:
-            batch_results = algorithm.update(batch,step[batch_t_d])
+            batch_results = algorithm.update(batch,sum(step.values()))
         else:
             batch_results = algorithm.evaluate(batch)
         
@@ -57,8 +58,7 @@ def run_epoch(algorithm, datasets, config, logger, train):
         desc = "Train losses" if train else "Validation losses"
         for t_d in task_datasets:
             desc += f" | {t_d}: {total_loss[t_d]/(step[t_d]+1):0.4f}"
-        #     pbar.set_description(f"{desc} loss: {total_loss[t_d]:.3f}")
-        # desc += f": {total_loss/(step+1):0.4f}"
+
         pbar.set_description(desc)
         step[batch_t_d] += 1
 
@@ -117,12 +117,10 @@ def evaluate(algorithm, datasets, config, logger, epoch, is_best):
     algorithm.eval()
     torch.set_grad_enabled(False)
     for split in datasets:
-        for dataset, loader, loss, metric in zip(datasets[split]['datasets'], datasets[split]['loaders'], datasets[split]['losses'], datasets[split]['metrics']):
+        for dataset, loader, metric in zip(datasets[split]['datasets'], datasets[split]['loaders'], datasets[split]['metrics']):
             epoch_y_true = []
             epoch_y_pred = []
 
-            
-            t_d = concat_t_d(dataset.task,dataset.dataset_name)
             pbar = tqdm(iter(loader)) if config.progress_bar else iter(loader)
 
             for batch in pbar:
@@ -130,7 +128,6 @@ def evaluate(algorithm, datasets, config, logger, epoch, is_best):
                 X, y, batch_metadata = batch
                 batch_metadata['task'] = dataset.task
                 batch_metadata['dataset_name'] = dataset.dataset_name
-                batch_metadata['loss'] = loss
                 batch_metadata['task_metadata'] = dataset.task_metadata
                 batch = (X, y, batch_metadata)
 
