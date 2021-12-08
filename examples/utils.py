@@ -13,12 +13,8 @@ from TLiDB.datasets.get_dataset import get_dataset
 from TLiDB.data_loaders.data_loaders import get_train_loader, get_eval_loader
 from TLiDB.metrics.initializer import get_metric_computer
 
-def load_datasets_split(split, config):
+def load_datasets_split(split, tasks, datasets, config):
     split_datasets = {"datasets":[], "loaders":[], "metrics":[]}
-    tasks = getattr(config, f"{split}_tasks")
-    datasets = getattr(config, f"{split}_datasets")
-    split = "train" if split == "finetune_train" else split
-    split = "dev" if split == "finetune_dev" else split
     for t, d in zip(tasks, datasets):
         cur_dataset = get_dataset(dataset=d,task=t,model_type=config.model_type,split=split)
         if config.frac < 1.0:
