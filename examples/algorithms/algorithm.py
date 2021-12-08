@@ -58,7 +58,7 @@ class Algorithm(nn.Module):
             with torch.cuda.amp.autocast():
                 results, objective = self.process_batch(batch)
                 if self.imbalanced_task_weighting:
-                    task_weight = torch.tensor(batch['task_weight']).to(self.device)
+                    task_weight = torch.tensor(batch[2]['task_weight']).to(self.device)
                     objective = task_weight * objective
                 objective = objective / self.gradient_accumulation_steps
             self.scaler.scale(objective).backward()
@@ -71,7 +71,7 @@ class Algorithm(nn.Module):
         else:
             results, objective = self.process_batch(batch)
             if self.imbalanced_task_weighting:
-                task_weight = torch.tensor(batch['task_weight']).to(self.device)
+                task_weight = torch.tensor(batch[2]['task_weight']).to(self.device)
                 objective = task_weight * objective
             objective = objective / self.gradient_accumulation_steps
             objective.backward()
