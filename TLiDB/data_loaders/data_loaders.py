@@ -48,7 +48,6 @@ class TLiDB_DataLoader:
         self.dataset_names = [d.dataset_name for d in dataloader_dict['datasets']]
         self.task_names = [d.task for d in dataloader_dict['datasets']]
         self.dataloaders = [iter(d) for d in dataloader_dict['loaders']]
-        self.losses = dataloader_dict['losses']
         self.lengths = [len(d) for d in self.dataloaders]
         self.remaining_batches = [len(d) for d in self.dataloaders]
         self.task_metadatas = [d.task_metadata for d in dataloader_dict['datasets']]
@@ -73,7 +72,6 @@ class TLiDB_DataLoader:
             X, y, metadata = batch
             metadata['task'] = self.task_names[selected_idx]
             metadata['dataset_name'] = self.dataset_names[selected_idx]
-            metadata['loss'] = self.losses[selected_idx]
             metadata['task_metadata'] = self.task_metadatas[selected_idx]
             return X,y,metadata
         else:

@@ -41,7 +41,7 @@ class DecoderAlgorithm(Algorithm):
             'y_true': y_true,
             'metadata': metadata,
             "objective": {
-                "loss_name": metadata['loss'],
+                "loss_name": "LM_cross_entropy",
                 "loss_value": loss.item()}
         }
 

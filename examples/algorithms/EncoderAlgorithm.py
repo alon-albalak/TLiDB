@@ -51,7 +51,7 @@ class EncoderAlgorithm(Algorithm):
             'y_pred': y_pred,
             'y_true': y_true,
             'metadata': metadata,
-            "objective": {"loss_name": metadata['loss']}
+            "objective": {"loss_name": "cross_entropy"}
         }
 
         results['objective']['loss_value'] = loss.item()
