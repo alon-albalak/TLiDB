@@ -88,6 +88,10 @@ def train(algorithm, datasets, config, logger, epoch_offset, best_val_metric):
         # train
         run_epoch(algorithm, datasets['train'], config, logger, train=True)
 
+        # allow for training without dev set, will not save model
+        if not datasets['dev'].get('datasets', None):
+            continue
+
         # evaluate on validation set
         val_results, y_pred = run_epoch(algorithm, datasets['dev'], config, logger, train=False)
         # TODO: allow for user to specify specific metrics to use
