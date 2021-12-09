@@ -10,11 +10,12 @@ sys.path.append(TLiDB_FOLDER)
 
 # TLiDB imports
 from TLiDB.datasets.get_dataset import get_dataset
-from TLiDB.data_loaders.data_loaders import get_train_loader, get_eval_loader
+from TLiDB.data_loaders.data_loaders import get_loader
 from TLiDB.metrics.initializer import get_metric_computer
 
 def load_datasets_split(split, tasks, datasets, config):
     split_datasets = {"datasets":[], "loaders":[], "metrics":[]}
+    get_data_loader = get_loader(split)
     for t, d in zip(tasks, datasets):
         cur_dataset = get_dataset(dataset=d,task=t,model_type=config.model_type,split=split)
         if config.frac < 1.0:
@@ -25,7 +26,7 @@ def load_datasets_split(split, tasks, datasets, config):
             continue
 
         split_datasets["datasets"].append(cur_dataset)
-        split_datasets["loaders"].append(get_train_loader(cur_dataset, config.gpu_batch_size, collate_fn=cur_dataset.collate))
+        split_datasets["loaders"].append(get_data_loader(cur_dataset, config.gpu_batch_size, config, collate_fn=cur_dataset.collate))
         split_datasets["metrics"].append(get_metric_computer(cur_dataset.metrics, **cur_dataset.metric_kwargs))
     return split_datasets
 

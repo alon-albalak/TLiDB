@@ -2,7 +2,7 @@ from torch.utils.data import DataLoader
 import numpy as np
 import random
 
-def get_train_loader(dataset, batch_size, **loader_kwargs):
+def get_train_loader(dataset, batch_size, config, **loader_kwargs):
     """
     Constructs and return the data loader for training
     Args:
@@ -12,9 +12,13 @@ def get_train_loader(dataset, batch_size, **loader_kwargs):
     Returns:
         - data_loader (DataLoader): The data loader for training
     """
+    if dataset.task_metadata['type'] == "multiple_choice" and config.model_type == "Encoder":
+        # Encoder-only models split multiple choice into num_choices samples
+        #   so we need to downscale the batch_size accordingly
+        batch_size = batch_size // dataset.task_metadata['num_choices']
     return DataLoader(dataset, batch_size=batch_size, shuffle=True, **loader_kwargs)
 
-def get_eval_loader(dataset, batch_size, **loader_kwargs):
+def get_eval_loader(dataset, batch_size, config, **loader_kwargs):
     """
     Constructs and return the data loader for evaluation
     Args:
@@ -24,7 +28,17 @@ def get_eval_loader(dataset, batch_size, **loader_kwargs):
     Returns:
         - data_loader (DataLoader): The data loader for evaluation
     """
+    if dataset.task_metadata['type'] == "multiple_choice" and config.model_type == "Encoder":
+        # Encoder-only models split multiple choice into num_choices samples
+        #   so we need to downscale the batch_size accordingly
+        batch_size = batch_size // dataset.task_metadata['num_choices']
     return DataLoader(dataset, batch_size=batch_size, shuffle=False, **loader_kwargs)
+
+def get_loader(split):
+    if split == 'train':
+        return get_train_loader
+    else:
+        return get_eval_loader
 
 class TLiDB_DataLoader:
     """
