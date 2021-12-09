@@ -195,7 +195,7 @@ def add_CIDER_span_extraction_annotations(DD_data, DD_CIDER_data, CIDER_sp_ex):
     if "dialogue_readability" not in DD_data['metadata']['tasks']:
         DD_data['metadata']['tasks'].append("dialogue_reasoning_span_extraction")
         DD_data['metadata']['task_metadata']['dialogue_reasoning_span_extraction'] = {
-            'metrics':['exact_match','token_f1','no_match'],
+            'metrics':['exact_match','token_f1'],
             "metric_kwargs":{
                 "exact_match":{"ignore_phrases":["impossible"]},
                 "token_f1":{"ignore_phrases":["impossible"]},
@@ -247,21 +247,21 @@ def add_CIDER_span_extraction_annotations(DD_data, DD_CIDER_data, CIDER_sp_ex):
             full_dialogue = create_full_DD_dialogue(cur_datum)
             if 'dialogue_reasoning_span_extraction' not in cur_datum['dialogue_metadata']:
                 cur_datum['dialogue_metadata']['dialogue_reasoning_span_extraction'] = None
-            DD_sp_ex = {'context':full_dialogue,'qas':[]}
+            DD_sp_ex = [{'context':full_dialogue,'qas':[]}]
 
         # compile the span extraction annotations in our format
         for qa in sp_ex['qas']:
             DD_qa = {'question':qa['question'], 'answers':[]}
             for answer in qa['answers']:
                 text = untokenize([answer['text']])
-                answer_start = DD_sp_ex['context'].find(text)
+                answer_start = DD_sp_ex[0]['context'].find(text)
                 # for some reason in CIDER, they sometimes create synthetic answers that are not in the context
                 if answer_start == -1:
                     num_missing_answer += 1
-                    DD_sp_ex['context'] += f" {text}"
-                    answer_start = DD_sp_ex['context'].find(text)
+                    DD_sp_ex[0]['context'] += f" {text}"
+                    answer_start = DD_sp_ex[0]['context'].find(text)
                 DD_qa['answers'].append({'text':text, 'answer_start':answer_start})
-            DD_sp_ex['qas'].append(DD_qa)
+            DD_sp_ex[0]['qas'].append(DD_qa)
             
     assert found_CIDER == 243
     assert found_DD == 0
@@ -277,7 +277,8 @@ def mcq_in_DD_MCQ(q, options, label, DD_MCQ):
 
 def add_CIDER_multiple_choice_span_selection_annotations(DD_data, DD_CIDER_data, CIDER_MCQ):
     DD_data['metadata']['tasks'].append("dialogue_reasoning_multiple_choice_span_selection")
-    DD_data['metadata']['task_metadata']['dialogue_reasoning_multiple_choice_span_selection'] = {'metrics':['accuracy']}
+    DD_data['metadata']['task_metadata']['dialogue_reasoning_multiple_choice_span_selection'] = {
+        'metrics':['accuracy'], "labels":["0","1","2","3"]}
     
     found_CIDER = 0
     found_DD = 0
@@ -335,6 +336,10 @@ def add_CIDER_multiple_choice_span_selection_annotations(DD_data, DD_CIDER_data,
             DD_MCQ['mcqs'].append({'question':q, 'options':options, 'label':label})
         else:
             duplicate_mcqs += 1
+
+    # make sure to add the final datum
+    if DD_MCQ:
+        cur_datum['dialogue_reasoning_multiple_choice_span_selection'] = DD_MCQ
 
     assert(found_CIDER == 241)
     assert(found_DD == 0)
