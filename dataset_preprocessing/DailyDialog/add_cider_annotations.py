@@ -349,10 +349,11 @@ def add_CIDER_multiple_choice_span_selection_annotations(DD_data, DD_CIDER_data,
     return DD_data
 
 def add_CIDER_commonsense_relation_prediction_annotations(original_DD_data, DD_CIDER_data, CIDER_CRP, partition):
-    original_DD_data['metadata']['tasks'].append("dialogue_reasoning_commonsense_relation_prediction")
-    original_DD_data['metadata']['task_metadata']['dialogue_reasoning_commonsense_relation_prediction'] = {
-        'labels':CIDER_CRP_labels, 'metrics':['accuracy']
-        }
+    if "dialogue_reasoning_commonsense_relation_prediction" not in original_DD_data['metadata']['tasks']:
+        original_DD_data['metadata']['tasks'].append("dialogue_reasoning_commonsense_relation_prediction")
+        original_DD_data['metadata']['task_metadata']['dialogue_reasoning_commonsense_relation_prediction'] = {
+            'labels':CIDER_CRP_labels, 'metrics':['accuracy']
+            }
     
     found_CIDER = 0
     found_DD = 0
@@ -398,10 +399,12 @@ def add_CIDER_commonsense_relation_prediction_annotations(original_DD_data, DD_C
             cur_datum['dialogue_metadata']['dialogue_reasoning_commonsense_relation_prediction'] = {"original_data_partition":partition}
 
         head,tail = crp[CIDER_CRP_fields.index("entities")].split("[SEP]")
+        relation = crp[CIDER_CRP_fields.index("relation")]
+        relation = relation if relation != "NULL" else "None"
         cur_datum['dialogue_reasoning_commonsense_relation_prediction'].append({
             'head': head.strip(),
             'tail': tail.strip(),
-            'relation': crp[CIDER_CRP_fields.index("relation")]
+            'relation': relation
         })
         assert(cur_datum['dialogue_metadata']['dialogue_reasoning_commonsense_relation_prediction']['original_data_partition'] == partition)
         
@@ -461,6 +464,8 @@ DD_data = add_CIDER_multiple_choice_span_selection_annotations(DD_data, DD_CIDER
 
 # load CIDER commonsense relation prediction data
 CIDER_CRP_labels = sorted(open("CIDER_RP_relations.txt", "r").read().splitlines())
+NULL_index = CIDER_CRP_labels.index("NULL")
+CIDER_CRP_labels[NULL_index] = "None"
 CIDER_CRP_fields = ["_", "context", "entities", "relation"]
 for p in data_partitions:
     CIDER_CRP = list(csv.reader(open(f"CIDER_RP_{p}.csv", "r")))[1:]
