@@ -4,34 +4,6 @@ import re
 from utils import untokenize, get_DD_by_ID, create_full_DD_dialogue
 from tqdm import tqdm
 
-# Load original DailyDialog data
-DD_data = json.load(open('TLiDB_DailyDialog/TLiDB_DailyDialog.json', 'r'))
-
-# load CIDER main data
-CIDER_data = json.load(open('CIDER_main.json', 'r'))
-
-# load CIDER NLI data
-CIDER_DNLI_fields = ["dialogue", "head", "relation", "tail", "label"]
-CIDER_DNLI = list(csv.reader(open("CIDER_DNLI_train.tsv", "r"), delimiter='\t'))
-CIDER_DNLI.extend(list(csv.reader(open("CIDER_DNLI_test.tsv", "r"), delimiter='\t')))
-
-# load CIDER span extraction data
-CIDER_sp_ex = json.load(open("CIDER_sp_ex_train.json","r"))
-CIDER_sp_ex.extend(json.load(open("CIDER_sp_ex_test.json","r")))
-
-# load CIDER multiple choice span selection
-CIDER_MCQ_fields = ["_", "CIDER_ID", "fold", "question", "context", "_", "_", "option0","option1","option2","option3","label"]
-CIDER_MCQ = list(csv.reader(open("CIDER_MCQ_train_iter0.csv", "r")))[1:]
-CIDER_MCQ.extend(list(csv.reader(open("CIDER_MCQ_train_iter35.csv", "r")))[1:])
-CIDER_MCQ.extend(list(csv.reader(open("CIDER_MCQ_val_iter0.csv", "r")))[1:])
-CIDER_MCQ.extend(list(csv.reader(open("CIDER_MCQ_val_iter35.csv", "r")))[1:])
-CIDER_MCQ = sorted(CIDER_MCQ, key=lambda x: x[CIDER_MCQ_fields.index('CIDER_ID')])
-
-CIDER_CRP_labels = sorted(open("CIDER_RP_relations.txt", "r").read().splitlines())
-CIDER_CRP_fields = ["_", "context", "entities", "relation"]
-CIDER_CRP = list(csv.reader(open("CIDER_RP_train.csv", "r")))[1:]
-CIDER_CRP.extend(list(csv.reader(open("CIDER_RP_test.csv", "r")))[1:])
-
 def convert_CIDER_dialogue_to_NLI_format(CIDER_dialogue):
     NLI_format = ""
     CIDER_dialogue = CIDER_dialogue.split('    ')
@@ -162,13 +134,14 @@ def annotate_CIDER_data(original_DD_data, CIDER_data, accepted_CIDER_DD_differen
         DD_CIDER_data.append(CIDER_datum)
     return DD_CIDER_data
 
-def add_CIDER_dialogue_nli_annotations(original_DD_data, CIDER_data, DD_CIDER_data, CIDER_DNLI):
+def add_CIDER_dialogue_nli_annotations(original_DD_data, DD_CIDER_data, CIDER_DNLI, partition):
     # update data fields
-    original_DD_data['metadata']['tasks'].append("dialogue_nli")
-    original_DD_data['metadata']['task_metadata']['dialogue_nli'] = {
-        'labels':['contradiction','entailment'],'metrics':['f1', 'precision', 'recall'],
-        "metric_kwargs":{"f1":[{"average":"micro"},{"average":"weighted"}]}
-    }
+    if "dialogue_nli" not in original_DD_data['metadata']['tasks']:
+        original_DD_data['metadata']['tasks'].append("dialogue_nli")
+        original_DD_data['metadata']['task_metadata']['dialogue_nli'] = {
+            'labels':['contradiction','entailment'],'metrics':['f1', 'precision', 'recall'],
+            "metric_kwargs":{"f1":[{"average":"micro"},{"average":"weighted"}]}
+        }
 
     found_CIDER = 0
     found_DD = 0
@@ -207,29 +180,27 @@ def add_CIDER_dialogue_nli_annotations(original_DD_data, CIDER_data, DD_CIDER_da
         
         if 'dialogue_nli' not in cur_datum:
             cur_datum['dialogue_nli'] = []
-        cur_datum['dialogue_metadata']['dialogue_nli'] = None
+            cur_datum['dialogue_metadata']['dialogue_nli'] = {"original_data_partition":partition}
+        assert(cur_datum['dialogue_metadata']['dialogue_nli']['original_data_partition'] == partition)
         cur_datum['dialogue_nli'].append({
             'head': untokenize([NLI_datum[CIDER_DNLI_fields.index('head')]]),
             'relation': untokenize([NLI_datum[CIDER_DNLI_fields.index('relation')]]),
             'tail': untokenize([NLI_datum[CIDER_DNLI_fields.index('tail')]]),
             'label': untokenize([NLI_datum[CIDER_DNLI_fields.index('label')]])})
 
-    assert found_CIDER == 228
-    assert found_DD== 17
-    assert not_found == 561
+    return original_DD_data, found_CIDER, found_DD, not_found
 
-    return original_DD_data
-
-def add_CIDER_span_extraction_annotations(DD_data, CIDER_data, DD_CIDER_data, CIDER_sp_ex):
+def add_CIDER_span_extraction_annotations(DD_data, DD_CIDER_data, CIDER_sp_ex):
     # update data fields
-    DD_data['metadata']['tasks'].append("dialogue_reasoning_span_extraction")
-    DD_data['metadata']['task_metadata']['dialogue_reasoning_span_extraction'] = {
-        'metrics':['exact_match','token_f1','no_match'],
-        "metric_kwargs":{
-            "exact_match":{"ignore_phrases":["impossible"]},
-            "token_f1":{"ignore_phrases":["impossible"]},
+    if "dialogue_readability" not in DD_data['metadata']['tasks']:
+        DD_data['metadata']['tasks'].append("dialogue_reasoning_span_extraction")
+        DD_data['metadata']['task_metadata']['dialogue_reasoning_span_extraction'] = {
+            'metrics':['exact_match','token_f1','no_match'],
+            "metric_kwargs":{
+                "exact_match":{"ignore_phrases":["impossible"]},
+                "token_f1":{"ignore_phrases":["impossible"]},
+            }
         }
-    }
     found_CIDER = 0
     found_DD = 0
     not_found = 0
@@ -274,7 +245,8 @@ def add_CIDER_span_extraction_annotations(DD_data, CIDER_data, DD_CIDER_data, CI
                         continue
     
             full_dialogue = create_full_DD_dialogue(cur_datum)
-            cur_datum['dialogue_metadata']['dialogue_reasoning_span_extraction'] = None
+            if 'dialogue_reasoning_span_extraction' not in cur_datum['dialogue_metadata']:
+                cur_datum['dialogue_metadata']['dialogue_reasoning_span_extraction'] = None
             DD_sp_ex = {'context':full_dialogue,'qas':[]}
 
         # compile the span extraction annotations in our format
@@ -303,7 +275,7 @@ def mcq_in_DD_MCQ(q, options, label, DD_MCQ):
             return True
     return False
 
-def add_CIDER_multiple_choice_span_selection_annotations(DD_data, CIDER_data, DD_CIDER_data, CIDER_MCQ):
+def add_CIDER_multiple_choice_span_selection_annotations(DD_data, DD_CIDER_data, CIDER_MCQ):
     DD_data['metadata']['tasks'].append("dialogue_reasoning_multiple_choice_span_selection")
     DD_data['metadata']['task_metadata']['dialogue_reasoning_multiple_choice_span_selection'] = {'metrics':['accuracy']}
     
@@ -371,7 +343,7 @@ def add_CIDER_multiple_choice_span_selection_annotations(DD_data, CIDER_data, DD
     
     return DD_data
 
-def add_CIDER_commonsense_relation_prediction_annotations(original_DD_data, CIDER_data, DD_CIDER_data, CIDER_CRP):
+def add_CIDER_commonsense_relation_prediction_annotations(original_DD_data, DD_CIDER_data, CIDER_CRP, partition):
     original_DD_data['metadata']['tasks'].append("dialogue_reasoning_commonsense_relation_prediction")
     original_DD_data['metadata']['task_metadata']['dialogue_reasoning_commonsense_relation_prediction'] = {
         'labels':CIDER_CRP_labels, 'metrics':['accuracy']
@@ -381,8 +353,6 @@ def add_CIDER_commonsense_relation_prediction_annotations(original_DD_data, CIDE
     found_DD = 0
     not_found = 0
     cur_datum = None
-    cur_ID = None
-    DD_CRP = None
 
     prev_dialogue = ""
     prev_dialogue_failed = False
@@ -420,6 +390,7 @@ def add_CIDER_commonsense_relation_prediction_annotations(original_DD_data, CIDE
         
         if 'dialogue_reasoning_commonsense_relation_prediction' not in cur_datum:
             cur_datum['dialogue_reasoning_commonsense_relation_prediction'] = []
+            cur_datum['dialogue_metadata']['dialogue_reasoning_commonsense_relation_prediction'] = {"original_data_partition":partition}
 
         head,tail = crp[CIDER_CRP_fields.index("entities")].split("[SEP]")
         cur_datum['dialogue_reasoning_commonsense_relation_prediction'].append({
@@ -427,15 +398,17 @@ def add_CIDER_commonsense_relation_prediction_annotations(original_DD_data, CIDE
             'tail': tail.strip(),
             'relation': crp[CIDER_CRP_fields.index("relation")]
         })
-        cur_datum['dialogue_metadata']['dialogue_reasoning_commonsense_relation_prediction'] = None
+        assert(cur_datum['dialogue_metadata']['dialogue_reasoning_commonsense_relation_prediction']['original_data_partition'] == partition)
+        
 
 
-    assert found_CIDER == 228
-    assert found_DD== 17
-    assert not_found == 561
+    return original_DD_data, found_CIDER, found_DD, not_found
 
-    return original_DD_data
+# Load original DailyDialog data
+DD_data = json.load(open('TLiDB_DailyDialog/TLiDB_DailyDialog.json', 'r'))
 
+# load CIDER main data
+CIDER_data = json.load(open('CIDER_main.json', 'r'))
 
 # Known differences between CIDER and DD to accept (typos, etc.)
 accepted_CIDER_DD_differences = [
@@ -447,10 +420,50 @@ rejected_CIDER_DD_differences = [
         ['dialogue-585','dialogue-6167']]
 
 DD_CIDER_data = annotate_CIDER_data(DD_data, CIDER_data, accepted_CIDER_DD_differences, rejected_CIDER_DD_differences)
-DD_data = add_CIDER_dialogue_nli_annotations(DD_data, CIDER_data, DD_CIDER_data, CIDER_DNLI)
-DD_data = add_CIDER_span_extraction_annotations(DD_data, CIDER_data, DD_CIDER_data, CIDER_sp_ex)
-DD_data = add_CIDER_multiple_choice_span_selection_annotations(DD_data, CIDER_data, DD_CIDER_data, CIDER_MCQ)
-DD_data = add_CIDER_commonsense_relation_prediction_annotations(DD_data, CIDER_data, DD_CIDER_data, CIDER_CRP)
+
+
+data_partitions = ["train","test"]
+
+# load CIDER NLI data
+CIDER_DNLI_fields = ["dialogue", "head", "relation", "tail", "label"]
+found_CIDER, found_DD, not_found = 0, 0, 0
+for p in data_partitions:
+    CIDER_DNLI = list(csv.reader(open(f"CIDER_DNLI_{p}.tsv", "r"), delimiter="\t"))
+    DD_data, f_CIDER, f_DD, nf = add_CIDER_dialogue_nli_annotations(DD_data, DD_CIDER_data, CIDER_DNLI, p)
+    found_CIDER += f_CIDER
+    found_DD += f_DD
+    not_found += nf
+# make sure we found all the CIDER data
+assert found_CIDER == 228
+assert found_DD== 17
+assert not_found == 561
+
+# load CIDER span extraction data
+# CIDER span extraction datums are not split by dialogue, some datums from training and testing come from the same underlying DD dialogue
+CIDER_sp_ex = json.load(open("CIDER_sp_ex_train.json","r"))
+CIDER_sp_ex.extend(json.load(open("CIDER_sp_ex_test.json","r")))
+DD_data = add_CIDER_span_extraction_annotations(DD_data, DD_CIDER_data, CIDER_sp_ex)
+
+# load CIDER multiple choice span selection
+# CIDER MCQ datums are not split by dialogue, some datums from training and validation come from the same underlying DD dialogue
+CIDER_MCQ_fields = ["_", "CIDER_ID", "fold", "question", "context", "_", "_", "option0","option1","option2","option3","label"]
+CIDER_MCQ = list(csv.reader(open("CIDER_MCQ_train_iter0.csv", "r")))[1:]
+CIDER_MCQ.extend(list(csv.reader(open("CIDER_MCQ_train_iter35.csv", "r")))[1:])
+CIDER_MCQ.extend(list(csv.reader(open("CIDER_MCQ_val_iter0.csv", "r")))[1:])
+CIDER_MCQ.extend(list(csv.reader(open("CIDER_MCQ_val_iter35.csv", "r")))[1:])
+CIDER_MCQ = sorted(CIDER_MCQ, key=lambda x: x[CIDER_MCQ_fields.index('CIDER_ID')])
+DD_data = add_CIDER_multiple_choice_span_selection_annotations(DD_data, DD_CIDER_data, CIDER_MCQ)
+
+# load CIDER commonsense relation prediction data
+CIDER_CRP_labels = sorted(open("CIDER_RP_relations.txt", "r").read().splitlines())
+CIDER_CRP_fields = ["_", "context", "entities", "relation"]
+for p in data_partitions:
+    CIDER_CRP = list(csv.reader(open(f"CIDER_RP_{p}.csv", "r")))[1:]
+    DD_data, f_CIDER, f_DD, nf = add_CIDER_commonsense_relation_prediction_annotations(DD_data, DD_CIDER_data, CIDER_CRP, p)
+# make sure we found all the CIDER data
+assert found_CIDER == 228
+assert found_DD== 17
+assert not_found == 561
 
 with open('TLiDB_DailyDialog/TLiDB_DailyDialog.json',"w", encoding='utf8') as f:
     json.dump(DD_data, f, indent=2, ensure_ascii=False)

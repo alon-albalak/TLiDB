@@ -125,9 +125,6 @@ data_partitions = [["train","train"],["validation","dev"],["test","test"]]
 for p in data_partitions:
     RECCON_sp_ex = json.load(open(f"RECCON_span_extraction_{p[0]}.json","r"))
     DD_data = add_RECCON_span_extraction_annotations(RECCON_sp_ex, DD_data,p[1])
-# RECCON_sp_ex = json.load(open("RECCON_span_extraction_train.json", 'r'))
-# RECCON_sp_ex.extend(json.load(open("RECCON_span_extraction_validation.json", 'r')))
-# RECCON_sp_ex.extend(json.load(open("RECCON_span_extraction_test.json", 'r')))
 
 # load RECCON entailment
 for p in data_partitions:
@@ -135,13 +132,6 @@ for p in data_partitions:
     RECCON_ent_fields = RECCON_ent[0]
     RECCON_ent = RECCON_ent[1:]
     DD_data = add_RECCON_entailment_annotations(RECCON_ent, RECCON_ent_fields, DD_data, p[1])
-
-# RECCON_ent = list(csv.reader(open("RECCON_entailment_train.csv", "r")))
-# RECCON_ent.extend(list(csv.reader(open("RECCON_entailment_validation.csv", "r")))[1:])
-# RECCON_ent.extend(list(csv.reader(open("RECCON_entailment_test.csv", "r")))[1:])
-
-# DD_data = add_RECCON_span_extraction_annotations(RECCON_sp_ex, DD_data)
-# DD_data = add_RECCON_entailment_annotations(RECCON_ent, RECCON_ent_fields, DD_data)
 
 with open('TLiDB_DailyDialog/TLiDB_DailyDialog.json',"w", encoding='utf8') as f:
     json.dump(DD_data, f, indent=2, ensure_ascii=False)

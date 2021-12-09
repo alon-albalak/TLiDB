@@ -19,6 +19,11 @@ def load_datasets_split(split, tasks, datasets, config):
         cur_dataset = get_dataset(dataset=d,task=t,model_type=config.model_type,split=split)
         if config.frac < 1.0:
             cur_dataset.random_subsample(config.frac)
+        # TODO: remove this when done debugging
+        #   for debugging purposes, some datasets have no data under certain splits
+        if len(cur_dataset) == 0:
+            continue
+
         split_datasets["datasets"].append(cur_dataset)
         split_datasets["loaders"].append(get_train_loader(cur_dataset, config.gpu_batch_size, collate_fn=cur_dataset.collate))
         split_datasets["metrics"].append(get_metric_computer(cur_dataset.metrics, **cur_dataset.metric_kwargs))
@@ -172,7 +177,6 @@ class Logger(object):
             os.fsync(self.file.fileno())
 
     def close(self):
-        self.flush()
         self.console.close()
         if self.file is not None:
             self.file.close()
