@@ -79,3 +79,10 @@ class Seq2SeqAlgorithm(Algorithm):
 
     def _preprocess_span_extraction_outputs(self, y_true):
         return [y['text'] for y in y_true]
+
+    def _multiple_choice_preprocessing(self, X, y_true, metadata):
+        return X, y_true, metadata
+
+    def _multiple_choice_postprocessing(self, outputs, y_true, metadata):
+        y_pred = self.model.batch_decode(outputs)
+        return y_pred, y_true

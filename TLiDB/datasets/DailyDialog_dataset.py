@@ -69,6 +69,14 @@ class DailyDialog_dataset(TLiDB_Dataset):
         "dialogue_nli":{
             "prompt":"entailment:","type":"classification","loader":"dialogue_nli",
             "collate_type":"nli"
+        },
+        "dialogue_reasoning_span_extraction":{
+            "prompt":"", "type":"span_extraction","loader":"span_extraction",
+            "collate_type":"span_extraction"
+        },
+        "dialogue_reasoning_multiple_choice_span_selection":{
+            "prompt":"The correct option is:", "type":"multiple_choice","loader":"multiple_choice",
+            "collate_type":"multiple_choice", "num_choices":4
         }
     }
     def __init__(self, task, dataset_folder, model_type, split=None):
@@ -129,6 +137,8 @@ class DailyDialog_dataset(TLiDB_Dataset):
                             self._input_array.append({
                                 "context":qas['context'],"question":qa['question']
                             })
+                            # move the answer start back by len(question)
+                            answer['answer_start'] += len(qa['question'])+1
                             self._y_array.append(answer)
 
     def _load_causal_emotion_entailment_task(self, task, split):
@@ -164,6 +174,25 @@ class DailyDialog_dataset(TLiDB_Dataset):
                     })
                     self._y_array.append(sample['label'])
 
+    def _load_multiple_choice_task(self, task, split):
+        for datum in self.dataset['data']:
+            if task in datum['dialogue_metadata']:
+                # TODO: create our own splits by task
+                if split:
+                    if isinstance(datum['dialogue_metadata'][task], dict) and datum['dialogue_metadata'][task]['original_data_partition'] != split:
+                        continue
+                    elif datum['dialogue_metadata']['original_data_partition'] != split:
+                        continue
+                context = datum[task]['context']
+                mcqs = datum[task]['mcqs']
+                for q in mcqs:
+                    self._input_array.append({
+                        "context": context,
+                        "question": q['question'],
+                        "options": q['options']
+                    })
+                    self._y_array.append(q['label'])
+
     def get_input(self, idx):
         return self._input_array[idx]
 
@@ -174,11 +203,19 @@ class DailyDialog_dataset(TLiDB_Dataset):
         X, y, metadata = [], [], {}
         for item in batch:
             if self._task_metadata['collate_type'] == 'span_extraction':
-                X.append(self._join_strings(item[0]['context'],item[0]['question']))
+                X.append(self._join_strings(item[0]['question'],item[0]['context']))
             elif self._task_metadata['collate_type'] == 'nli':
                 X.append(self._join_strings(item[0]['hypothesis'],item[0]['premise']))
             elif self._task_metadata['collate_type'] == 'classification':
                 X.append(self._convert_dialogue_to_string(item[0]))
+            elif self._task_metadata['collate_type'] == 'multiple_choice':
+                mcq_inputs = []
+                context = item[0]['context']
+                question = item[0]['question']
+                options = item[0]['options']
+                for option in options:
+                    mcq_inputs.append(self._join_strings(context,"[SEP]", question, "[SEP]", option))
+                X.append(mcq_inputs)
             else:
                 raise NotImplementedError(f"Collate type {self._task_metadata['collate_type']} not implemented")
             y.append(item[1])
@@ -202,6 +239,10 @@ class DailyDialog_dataset(TLiDB_Dataset):
             elif self._task_metadata['collate_type'] == 'classification':
                 dialogue = self._convert_dialogue_to_string(item[0])
                 X.append(self._join_strings("context:",dialogue,self._task_metadata['prompt']))
+            elif self._task_metadata['collate_type'] == 'multiple_choice':
+                options_str = " ".join(f"option {i}: {option}" for i, option in enumerate(item[0]['options']))
+                X.append(self._join_strings("context:",item[0]['context'],"question:",item[0]['question'],\
+                    options_str,self._task_metadata['prompt']))
             else:
                 raise NotImplementedError(f"Collate type {self._task_metadata['collate_type']} not implemented")       
             y.append(item[1])

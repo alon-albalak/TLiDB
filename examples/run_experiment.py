@@ -113,14 +113,9 @@ def main(config):
         finetune_logger.close()
 
     if config.do_eval:
-        # TODO
-        # Hierarchy for model path:
-        #   1. path from fine-tuning model
-        #   2. path from training model
-        #   3. User specified path
-
+        # If coming from training/fine-tuning, 
+        #   this means we already have a save_dir_path from training/fine-tuning and a model saved there
         if config.do_finetune or config.do_train:
-            # Do nothing, this means we already have a save_dir_path from training/fine-tuning and a model saved there
             pass
         elif (config.finetune_datasets and config.finetune_tasks) and (config.train_datasets and config.train_tasks):
             # Given all the datasets and tasks, we can infer the path to the fine-tuned model

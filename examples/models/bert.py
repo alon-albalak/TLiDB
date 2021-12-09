@@ -9,8 +9,9 @@ SEQUENCE_TASKS = [
     'dialogue_nli']
 TOKEN_TASKS = []
 SPAN_EXTRACTION_TASKS = [
-    "causal_emotion_span_extraction"
+    "causal_emotion_span_extraction", "dialogue_reasoning_span_extraction"
 ]
+MULTIPLE_CHOICE_TASKS = ["dialogue_reasoning_multiple_choice_span_selection"]
 
 class Bert(TLiDB_model):
     def __init__(self, config, datasets):
@@ -45,6 +46,8 @@ class Bert(TLiDB_model):
             return torch.nn.Linear(self.model.config.hidden_size, dataset.num_classes)
         elif dataset.task in SPAN_EXTRACTION_TASKS:
             return torch.nn.Linear(self.model.config.hidden_size, 2)
+        elif dataset.task in MULTIPLE_CHOICE_TASKS:
+            return torch.nn.Linear(self.model.config.hidden_size, 1)
         else:
             raise ValueError(f"Unsupported task: {dataset.task}")
 
@@ -55,6 +58,8 @@ class Bert(TLiDB_model):
             return self.token_classification
         elif task in SPAN_EXTRACTION_TASKS:
             return self.span_extraction
+        elif task in MULTIPLE_CHOICE_TASKS:
+            return self.multiple_choice
         else:
             raise ValueError(f"Unsupported task: {task}")
 
@@ -68,21 +73,27 @@ class Bert(TLiDB_model):
 
     def transform_inputs(self, inputs, metadata):
         """Only tokenizes inputs"""
+        # specify if we need the offset mapping
+        if 'return_offsets_mapping' in metadata:
+            return_offsets_mapping = metadata['return_offsets_mapping']
+        else:
+            return_offsets_mapping = False
+
         tokenized_inputs = self.tokenizer(inputs, padding="max_length",truncation=True, max_length=self.config.max_seq_length,\
-                return_offsets_mapping=metadata['return_offsets_mapping'],return_tensors="pt")
+                return_offsets_mapping=return_offsets_mapping,return_tensors="pt")
         return tokenized_inputs
     
-    def transform_outputs(self, inputs, outputs, task_type, task, dataset_name):
+    def transform_outputs(self, inputs, outputs, task_type, metadata):
         """Calls the classification layer associated with task and dataset_name"""
-        t_d = concat_t_d(task,dataset_name)
-        outputs = getattr(self, f"transform_{task_type}_outputs")(inputs, outputs, t_d)
+        t_d = concat_t_d(metadata['task'],metadata['dataset_name'])
+        outputs = getattr(self, f"transform_{task_type}_outputs")(inputs, outputs, t_d, metadata)
         return outputs
 
-    def transform_classification_outputs(self,inputs, outputs, t_d):
+    def transform_classification_outputs(self,inputs, outputs, t_d, metadata):
         outputs = [self.classifiers[t_d]['labels'].index(y) for y in outputs]
         return torch.tensor(outputs, dtype=torch.long)
 
-    def transform_span_extraction_outputs(self, inputs, outputs, t_d):
+    def transform_span_extraction_outputs(self, inputs, outputs, t_d, metadata):
         start_indices, end_indices = [], []
 
         for offset_mapping,output in zip(inputs.offset_mapping,outputs):
@@ -91,6 +102,9 @@ class Bert(TLiDB_model):
             end_indices.append(end_idx)
         
         return [torch.tensor(start_indices,dtype=torch.long), torch.tensor(end_indices,dtype=torch.long)]
+    
+    def transform_multiple_choice_outputs(self, inputs, outputs, t_d, metadata):
+        return torch.tensor(outputs, dtype=torch.long)
 
     # classify a sequence
     def sequence_classification(self, tokenized_sequences, task, dataset_name):
@@ -115,6 +129,14 @@ class Bert(TLiDB_model):
         """Extract spans from a sequence of tokens"""
         t_d = concat_t_d(task,dataset_name)
         outputs = self.model(input_ids=tokenized_sequences.input_ids, attention_mask=tokenized_sequences.attention_mask)['last_hidden_state']
+        outputs = self.dropout(outputs)
+        logits = self.classifiers[t_d]['classifier'](outputs)
+        return logits
+
+    def multiple_choice(self, tokenized_sequences, task, dataset_name):
+        """Multiple choice classification"""
+        t_d = concat_t_d(task,dataset_name)
+        outputs = self.model(input_ids=tokenized_sequences.input_ids, attention_mask=tokenized_sequences.attention_mask)['pooler_output']
         outputs = self.dropout(outputs)
         logits = self.classifiers[t_d]['classifier'](outputs)
         return logits
