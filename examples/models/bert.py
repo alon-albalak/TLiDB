@@ -6,12 +6,13 @@ from examples.utils import concat_t_d
 SEQUENCE_TASKS = [
     'emotion_recognition', 'intent_detection', 'intent_classification',
     'dialogue_act_classification', 'topic_classification', 'causal_emotion_entailment',
-    'dialogue_nli']
+    'dialogue_nli', "dialogue_reasoning_commonsense_relation_prediction"]
 TOKEN_TASKS = []
 SPAN_EXTRACTION_TASKS = [
     "causal_emotion_span_extraction", "dialogue_reasoning_span_extraction"
 ]
-MULTIPLE_CHOICE_TASKS = ["dialogue_reasoning_multiple_choice_span_selection"]
+MULTIPLE_CHOICE_TASKS = ["dialogue_reasoning_multiple_choice_span_selection",
+    "adversarial_response_selection"]
 
 class Bert(TLiDB_model):
     def __init__(self, config, datasets):

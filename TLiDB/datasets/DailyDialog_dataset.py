@@ -1,5 +1,6 @@
 from .TLiDB_dataset import TLiDB_Dataset
 from TLiDB.metrics.all_metrics import Accuracy, F1
+import random
 
 # TODO:
 # - add support for multiple choice - https://huggingface.co/docs/transformers/model_doc/bert#transformers.BertForMultipleChoice
@@ -75,8 +76,16 @@ class DailyDialog_dataset(TLiDB_Dataset):
             "collate_type":"span_extraction"
         },
         "dialogue_reasoning_multiple_choice_span_selection":{
-            "prompt":"The correct option is:", "type":"multiple_choice","loader":"multiple_choice",
+            "prompt":"The correct option is", "type":"multiple_choice","loader":"multiple_choice",
             "collate_type":"multiple_choice", "num_choices":4
+        },
+        "dialogue_reasoning_commonsense_relation_prediction":{
+            "prompt":"", "type":"classification","loader":"relation_extraction",
+            "collate_type":"relation_extraction"
+        },
+        "adversarial_response_selection":{
+            "prompt":"","type":"multiple_choice","loader":"adversarial_response_selection",
+            "collate_type":"multiple_choice", "num_choices":3
         }
     }
     def __init__(self, task, dataset_folder, model_type, split=None):
@@ -106,8 +115,9 @@ class DailyDialog_dataset(TLiDB_Dataset):
                 dialogue = []
                 for turn in datum['dialogue']:
                     dialogue.append([turn['speakers'][0], turn['utterance']])
+                    str_dialogue = self._convert_dialogue_to_string(dialogue)
                     if task in turn:
-                        self._input_array.append(dialogue.copy())
+                        self._input_array.append(str_dialogue)
                         self._y_array.append(turn[task])
 
     def _load_dialogue_level_classification_task(self, task, split):
@@ -118,7 +128,8 @@ class DailyDialog_dataset(TLiDB_Dataset):
                     continue
             
                 dialogue = [[turn['speakers'][0], turn['utterance']] for turn in datum['dialogue']]
-                self._input_array.append(dialogue)
+                str_dialogue = self._convert_dialogue_to_string(dialogue)
+                self._input_array.append(str_dialogue)
                 self._y_array.append(datum[task])
         
     def _load_span_extraction_task(self, task, split):
@@ -193,6 +204,53 @@ class DailyDialog_dataset(TLiDB_Dataset):
                     })
                     self._y_array.append(q['label'])
 
+    def _load_relation_extraction_task(self, task, split):
+        for datum in self.dataset['data']:
+            if task in datum['dialogue_metadata']:
+                # TODO: create our own splits by task
+                if split:
+                    if isinstance(datum['dialogue_metadata'][task], dict) and datum['dialogue_metadata'][task]['original_data_partition'] != split:
+                        continue
+                    elif datum['dialogue_metadata']['original_data_partition'] != split:
+                        continue
+                dialogue = [[turn['speakers'][0], turn['utterance']] for turn in datum['dialogue']]
+                for sample in datum[task]:
+                    self._input_array.append({
+                        "context": dialogue,
+                        "head": sample['head'],
+                        "tail": sample['tail']
+                    })
+                    self._y_array.append(sample['relation'])
+                
+    def _load_adversarial_response_selection_task(self, task, split):
+        for datum in self.dataset['data']:
+            if task in datum['dialogue_metadata']:
+                # TODO: create our own splits by task
+                if split:
+                    if isinstance(datum['dialogue_metadata'][task], dict) and datum['dialogue_metadata'][task]['original_data_partition'] != split:
+                        continue
+                    elif datum['dialogue_metadata']['original_data_partition'] != split:
+                        continue
+                for sample in datum[task]:
+                    context = []
+                    for turn in datum['dialogue']:
+                        if turn['turn_id'] in sample['context_turns']:
+                            context.append([turn['speakers'][0], turn['utterance']])
+
+                    # context_turns = datum['dialogue'][int(sample['context_turns'][0]):int(sample['context_turns'][-1])]
+                    # context = [[turn['speakers'][0], turn['utterance']] for turn in context_turns]
+                    context = self._convert_dialogue_to_string(context)
+                    for pos_resp, random_neg_resp, adv_neg_resp in zip(sample['positive_responses'], sample['random_negative_responses'], sample['adversarial_negative_responses']):
+                        # shuffle the options
+                        options = [pos_resp, random_neg_resp, adv_neg_resp]
+                        random.shuffle(options)
+                        self._input_array.append({
+                            "context": context,
+                            "options": options,
+                            "question":"Which option is the best response?"
+                        })
+                        self._y_array.append(str(options.index(pos_resp)))
+
     def get_input(self, idx):
         return self._input_array[idx]
 
@@ -207,7 +265,7 @@ class DailyDialog_dataset(TLiDB_Dataset):
             elif self._task_metadata['collate_type'] == 'nli':
                 X.append(self._join_strings(item[0]['hypothesis'],item[0]['premise']))
             elif self._task_metadata['collate_type'] == 'classification':
-                X.append(self._convert_dialogue_to_string(item[0]))
+                X.append(item[0])
             elif self._task_metadata['collate_type'] == 'multiple_choice':
                 mcq_inputs = []
                 context = item[0]['context']
@@ -216,6 +274,9 @@ class DailyDialog_dataset(TLiDB_Dataset):
                 for option in options:
                     mcq_inputs.append(self._join_strings(context,"[SEP]", question, "[SEP]", option))
                 X.append(mcq_inputs)
+            elif self._task_metadata['collate_type'] == "relation_extraction":
+                context = self._convert_dialogue_to_string(item[0]['context'])
+                X.append(self._join_strings(item[0]['head'],"[SEP]",item[0]['tail'],"[SEP]",context))
             else:
                 raise NotImplementedError(f"Collate type {self._task_metadata['collate_type']} not implemented")
             y.append(item[1])
@@ -237,12 +298,15 @@ class DailyDialog_dataset(TLiDB_Dataset):
             elif self._task_metadata['collate_type'] == 'nli':
                 X.append(self._join_strings(item[0]['premise'],self._task_metadata['prompt'],item[0]['hypothesis']))
             elif self._task_metadata['collate_type'] == 'classification':
-                dialogue = self._convert_dialogue_to_string(item[0])
+                dialogue = item[0]
                 X.append(self._join_strings("context:",dialogue,self._task_metadata['prompt']))
             elif self._task_metadata['collate_type'] == 'multiple_choice':
                 options_str = " ".join(f"option {i}: {option}" for i, option in enumerate(item[0]['options']))
                 X.append(self._join_strings("context:",item[0]['context'],"question:",item[0]['question'],\
                     options_str,self._task_metadata['prompt']))
+            elif self._task_metadata['collate_type'] == "relation_extraction":
+                context = self._convert_dialogue_to_string(item[0]['context'])
+                X.append(self._join_strings("context:",context,f"The relation between '{item[0]['head']}' and '{item[0]['tail']}' is:"))
             else:
                 raise NotImplementedError(f"Collate type {self._task_metadata['collate_type']} not implemented")       
             y.append(item[1])

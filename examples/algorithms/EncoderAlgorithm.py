@@ -62,6 +62,7 @@ class EncoderAlgorithm(Algorithm):
         return True
 
     def _classification_preprocessing(self, X, y_true, metadata):
+        X = [self.replace_sep_token(x) for x in X]
         return X, y_true, metadata
 
     def _classification_postprocessing(self, X, outputs, y_true, transformed_y_true, metadata):
@@ -109,7 +110,7 @@ class EncoderAlgorithm(Algorithm):
 
     def _multiple_choice_preprocessing(self, X, y_true, metadata):
         # needs to unsqueeze the inputs
-        X = [x.replace("[SEP]",self.model.tokenizer.sep_token) for q in X for x in q]
+        X = [self.replace_sep_token(x) for q in X for x in q]
 
         # keep outputs as indices
         y_true = [int(y) for y in y_true]
@@ -126,3 +127,6 @@ class EncoderAlgorithm(Algorithm):
         metric = initialize_loss("cross_entropy")
         loss = metric.compute(outputs, y_true, return_dict=return_dict)
         return loss
+
+    def replace_sep_token(self, string):
+        return string.replace("[SEP]",self.model.tokenizer.sep_token)
