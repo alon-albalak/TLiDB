@@ -153,6 +153,8 @@ def main(config):
             eval_model_path = os.path.join(config.save_path_dir, 'best_model.pt')
             is_best = True
 
+        # TODO: evaluate runs on all datasets
+        #       set datasets to empty for each section (train, finetune, eval)?
         epoch, best_val_metric = load_algorithm(algorithm, eval_model_path,eval_logger)
         evaluate(algorithm, datasets, config, eval_logger, epoch, is_best)
 
