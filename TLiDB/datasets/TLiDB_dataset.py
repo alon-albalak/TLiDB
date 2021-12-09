@@ -181,6 +181,8 @@ class TLiDB_Dataset(Dataset):
         """
         if frac < 1.0:
             num_to_retain = int(self.y_size * frac)
+            if num_to_retain == 0:
+                return
             idxs_to_retain = np.sort(np.random.permutation(len(self))[:num_to_retain]).tolist()
             subsampled_input_array, subsampled_y_array, subsampled_metadata_array = [], [], []
             for idx in idxs_to_retain:
