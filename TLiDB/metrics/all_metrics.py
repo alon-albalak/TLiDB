@@ -46,6 +46,68 @@ class F1(Metric):
         score = sklearn.metrics.f1_score(y_true, y_pred, average=self.average, labels=self.labels)
         return torch.tensor(score)
 
+class Precision(Metric):
+    def __init__(self, prediction_fn=None, name=None, average='macro', labels=None):
+        """
+        Calculate Precision
+        Args:
+            - prediction_fn: Function to convert y_pred into the same format as y_true (for example, convert logits to max index)
+            - name (str): Name of the metric
+            - average (str): one of ['binary', 'micro', 'macro', 'weighted', 'samples']
+            - labels: The set of labels to include when average != 'binary'  (if None, will use all labels)
+        """
+        self.prediction_fn = prediction_fn
+        self.average = average
+        self.labels = labels
+        if name is None:
+            name = 'Precision'
+        if average is not None:
+            name += f'-{self.average}'
+        super().__init__(name=name)
+
+    def _compute(self, y_pred,y_true):
+        """
+        Args:
+            - y_pred: Predicted labels
+            - y_true: Ground truth labels
+        See https://scikit-learn.org/stable/modules/generated/sklearn.metrics.precision_score.html for further documentation
+        """
+        if self.prediction_fn is not None:
+            y_pred = self.prediction_fn(y_pred)
+        score = sklearn.metrics.precision_score(y_true, y_pred, average=self.average, labels=self.labels)
+        return torch.tensor(score)
+
+class Recall(Metric):
+    def __init__(self, prediction_fn=None, name=None, average='macro', labels=None):
+        """
+        Calculate Recall
+        Args:
+            - prediction_fn: Function to convert y_pred into the same format as y_true (for example, convert logits to max index)
+            - name (str): Name of the metric
+            - average (str): one of ['binary', 'micro', 'macro', 'weighted', 'samples']
+            - labels: The set of labels to include when average != 'binary'  (if None, will use all labels)
+        """
+        self.prediction_fn = prediction_fn
+        self.average = average
+        self.labels = labels
+        if name is None:
+            name = 'Recall'
+        if average is not None:
+            name += f'-{self.average}'
+        super().__init__(name=name)
+
+    def _compute(self, y_pred,y_true):
+        """
+        Args:
+            - y_pred: Predicted labels
+            - y_true: Ground truth labels
+        See https://scikit-learn.org/stable/modules/generated/sklearn.metrics.recall_score.html for further documentation
+        """
+        if self.prediction_fn is not None:
+            y_pred = self.prediction_fn(y_pred)
+        score = sklearn.metrics.recall_score(y_true, y_pred, average=self.average, labels=self.labels)
+        return torch.tensor(score)
+
 class token_F1(StringMetric):
     def __init__(self, prediction_fn=None, name=None, ignore_phrases=[]):
         """
@@ -139,6 +201,8 @@ class MetricGroup:
     """
     _string_to_class = {
         "f1":F1,
+        "precision":Precision,
+        "recall":Recall,
         "accuracy":Accuracy,
         "token_f1":token_F1,
         "exact_match":Exact_Match
