@@ -27,9 +27,8 @@ def main(config):
     logger = Logger(os.path.join(config.save_path_dir, 'log.txt'), mode)
 
     set_seed(config.seed)
-
-    datasets = {}
     if config.do_train:
+        datasets = {}
 
         # load datasets for training
         datasets['train'] = load_datasets_split("train",config.train_tasks, config.train_datasets, config)
@@ -62,6 +61,7 @@ def main(config):
         train(algorithm, datasets, config, logger, epoch_offset, best_val_metric)
 
     if config.do_finetune:
+        datasets = {}
         # get the pre-trained model path
         if config.do_train or (config.train_datasets and config.train_tasks):
             # Do nothing, this means we already have a save_dir_path and a model saved there
@@ -114,6 +114,7 @@ def main(config):
         finetune_logger.close()
 
     if config.do_eval:
+        datasets = {}
         # If coming from training/fine-tuning, 
         #   this means we already have a save_dir_path from training/fine-tuning and a model saved there
         if config.do_finetune or config.do_train:
@@ -137,7 +138,7 @@ def main(config):
         eval_logger.write("EVALUATING\n")
         
         # load datasets for evaluation
-        datasets['test'] = load_datasets_split("test",config.test_tasks, config.test_datasets, config)
+        datasets['test'] = load_datasets_split("test",config.eval_tasks, config.eval_datasets, config)
 
         # log configuration and dataset info
         log_config(config,eval_logger)
