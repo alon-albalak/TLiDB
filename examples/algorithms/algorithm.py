@@ -16,7 +16,7 @@ class Algorithm(nn.Module):
         self.out_device = 'cpu'
         self.optimizer = initialize_optimizer(config, self.model)
         self.max_grad_norm = config.max_grad_norm
-        self.gradient_accumulation_steps = config.effective_batch_size/config.gpu_batch_size
+        self.gradient_accumulation_steps = max(config.effective_batch_size//config.gpu_batch_size,1)
         self.fp16 = config.fp16
         self.imbalanced_task_weighting = config.imbalanced_task_weighting
         if config.fp16:

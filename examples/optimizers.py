@@ -1,5 +1,5 @@
 from torch.optim import SGD, Adam
-from transformers import AdamW
+from transformers import AdamW, Adafactor
 
 def initialize_optimizer(config, model):
     # initialize optimizers
@@ -28,6 +28,15 @@ def initialize_optimizer(config, model):
             params,
             lr=lr,
             weight_decay=config.weight_decay)
+    elif config.optimizer == 'Adafactor':
+        params = model.parameters()
+        optimizer = Adafactor(
+            params,
+            scale_parameter=False,
+            relative_step=False,
+            warmup_init=False,
+            lr=lr,
+            )
     else:
         raise ValueError(f'Optimizer {config.optimizer} not recognized.')
 

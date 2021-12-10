@@ -9,6 +9,9 @@ incompatible_with_fp16 = ["t5-base"]
 
 def parse_args():
     parser = argparse.ArgumentParser()
+    # configs for experimentation ease
+    parser.add_argument("--model_config",type=str, default=None)
+
     # general args
     parser.add_argument("--cpu_only", action="store_true")
     parser.add_argument("--seed", type=int, default=42)
@@ -16,7 +19,7 @@ def parse_args():
     parser.add_argument("--saved_model_dir", type=str, default=None, help="To load a saved model for fine-tuning or evaluation")
 
     # model args
-    parser.add_argument("--model", type=str, required=True)
+    parser.add_argument("--model", type=str)
     parser.add_argument("--max_seq_length", type=int, default=512)
     # training args
     parser.add_argument("--do_train", action="store_true")
@@ -68,6 +71,11 @@ def parse_args():
     parser.add_argument("--resume", action="store_true", help="Resume training from checkpoint")
 
     args = parser.parse_args()
+
+
+    if args.model_config is not None:
+        for attr, value in configs.__dict__[f"{args.model_config}_config"].items():
+            setattr(args, attr, value)
 
     if "bert" in args.model:
         setattr(args, "output_type", "categorical")
