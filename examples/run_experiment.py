@@ -80,8 +80,8 @@ def main(config):
         config.finetune_dev_datasets = config.finetune_datasets
 
         # load datasets for finetuning
-        datasets['train'] = load_datasets_split("train",config.finetune_tasks,config.finetune_datasets,config)
-        datasets['dev'] = load_datasets_split("dev", config.finetune_tasks, config.finetune_datasets, config)
+        datasets['train'] = load_datasets_split("train",config.finetune_train_tasks,config.finetune_train_datasets,config)
+        datasets['dev'] = load_datasets_split("dev", config.finetune_dev_tasks, config.finetune_dev_datasets, config)
 
        # initialize algorithm
         algorithm = initialize_algorithm(config, datasets)
