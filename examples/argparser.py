@@ -21,9 +21,9 @@ def parse_args():
     # training args
     parser.add_argument("--do_train", action="store_true")
     parser.add_argument("--do_finetune", action="store_true")
-    parser.add_argument("-e", "--num_epochs", type=int, default=20)
-    parser.add_argument("--effective_batch_size", type=int, default=8)
-    parser.add_argument("--gpu_batch_size", type=int, default=5)
+    parser.add_argument("-e", "--num_epochs", type=int, default=10)
+    parser.add_argument("--effective_batch_size", type=int, default=40)
+    parser.add_argument("--gpu_batch_size", type=int, default=20)
     parser.add_argument("-lr", "--learning_rate", type=float, default=3e-5)
     parser.add_argument("--fp16", action="store_true")
     parser.add_argument("--max_grad_norm", type=float, default=1.0)
@@ -46,8 +46,8 @@ def parse_args():
     parser.add_argument("--dev_datasets", type=str, nargs='+')
     parser.add_argument("--finetune_tasks", type=str, nargs='+')
     parser.add_argument("--finetune_datasets", type=str, nargs='+')
-    parser.add_argument("--test_tasks", type=str, nargs='+')
-    parser.add_argument("--test_datasets", type=str, nargs='+')
+    parser.add_argument("--eval_tasks", type=str, nargs='+')
+    parser.add_argument("--eval_datasets", type=str, nargs='+')
     
     # loss args
     # TODO: Are these predetermined according to the model/algorithm?

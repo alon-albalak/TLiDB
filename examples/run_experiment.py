@@ -106,6 +106,7 @@ def main(config):
 
         # log configuration and dataset info
         finetune_logger.write("FINETUNING\n")
+        finetune_logger.write(f"Loaded pretrained model from {model_path}\n")
         log_config(config,finetune_logger)
         log_dataset_info(datasets, finetune_logger)
 
