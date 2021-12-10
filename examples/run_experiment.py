@@ -33,7 +33,7 @@ def main(config):
 
         # load datasets for training
         datasets['train'] = load_datasets_split("train",config.train_tasks, config.train_datasets, config)
-        datasets['dev'] = load_datasets_split("dev",config.train_tasks, config.train_datasets, config)
+        datasets['dev'] = load_datasets_split("dev",config.dev_tasks, config.dev_datasets, config)
 
         # log configuration and dataset info
         logger.write("TRAINING\n")
