@@ -1,4 +1,4 @@
-from .TLiDB_dataset import TLiDB_Dataset
+from .TLiDB_dataset import TLiDB_Dataset, load_split_ids
 from TLiDB.metrics.all_metrics import Accuracy, F1
 import random
 
@@ -88,7 +88,7 @@ class DailyDialog_dataset(TLiDB_Dataset):
             "collate_type":"multiple_choice", "num_choices":3
         }
     }
-    def __init__(self, task, dataset_folder, model_type, split=None):
+    def __init__(self, task, dataset_folder, model_type, split):
         assert task in self._tasks, f"{task} is not a valid task for {self._dataset_name}"
         super().__init__(self._dataset_name, task, model_type, dataset_folder=dataset_folder)
         self._task_metadata = self._task_metadatas[task]
@@ -96,160 +96,121 @@ class DailyDialog_dataset(TLiDB_Dataset):
         self._y_array = []
         self._metadata_fields = []
         self._metadata_array = []
-        self._load_data(task, split)
+        split_ids = load_split_ids(self._dataset_name, dataset_folder, split)
+        self._load_data(task, split_ids)
         self._num_classes = len(self.task_labels)
         self._y_size = len(self._y_array)
         
 
-    def _load_data(self, task, split):
+    def _load_data(self, task, split_ids,data_setting="full_data"):
         # get the data loader, based on whether the task is utterance level or dialogue level
         loader = getattr(self, f"_load_{self._task_metadata['loader']}_task")
-        return loader(task,split)
+        return loader(task,split_ids)
 
-    def _load_utterance_level_classification_task(self, task, split):
+    def _load_utterance_level_classification_task(self, task, split_ids):
         for datum in self.dataset['data']:
-            if task in datum['dialogue_metadata']:
-                # TODO: create our own splits by task
-                if split and datum['dialogue_metadata']['original_data_partition'] != split:
-                    continue
-                dialogue = []
-                for turn in datum['dialogue']:
-                    dialogue.append([turn['speakers'][0], turn['utterance']])
-                    str_dialogue = self._convert_dialogue_to_string(dialogue)
-                    if task in turn:
-                        self._input_array.append(str_dialogue)
-                        self._y_array.append(turn[task])
-
-    def _load_dialogue_level_classification_task(self, task, split):
-        for datum in self.dataset['data']:
-            if task in datum['dialogue_metadata']:
-                # TODO: create our own splits by task
-                if split and datum['dialogue_metadata']['original_data_partition'] != split:
-                    continue
-            
-                dialogue = [[turn['speakers'][0], turn['utterance']] for turn in datum['dialogue']]
-                str_dialogue = self._convert_dialogue_to_string(dialogue)
-                self._input_array.append(str_dialogue)
-                self._y_array.append(datum[task])
-        
-    def _load_span_extraction_task(self, task, split):
-        for datum in self.dataset['data']:
-            if task in datum['dialogue_metadata']:
-                # TODO: create our own splits by task
-                if split:
-                    if isinstance(datum['dialogue_metadata'][task], dict) and datum['dialogue_metadata'][task]['original_data_partition'] != split:
-                        continue
-                    elif datum['dialogue_metadata']['original_data_partition'] != split:
-                        continue
-
-                for qas in datum[task]:
-                    for qa in qas['qas']:
-                        for answer in qa['answers']:
-                            self._input_array.append({
-                                "context":qas['context'],"question":qa['question']
-                            })
-                            # move the answer start back by len(question)
-                            answer['answer_start'] += len(qa['question'])+1
-                            self._y_array.append(answer)
-
-    def _load_causal_emotion_entailment_task(self, task, split):
-        for datum in self.dataset['data']:
-            if task in datum['dialogue_metadata']:
-                # TODO: create our own splits by task
-                if split:
-                    if isinstance(datum['dialogue_metadata'][task], dict) and datum['dialogue_metadata'][task]['original_data_partition'] != split:
-                        continue
-                    elif datum['dialogue_metadata']['original_data_partition'] != split:
-                        continue
-            
-                for sample in datum[task]:
-                    self._input_array.append({
-                        "premise":sample['history'],
-                        "hypothesis": f"{sample['causal_utterance']} causes {sample['emotion']} in {sample['target_utterance']}",
-                    })
-                    self._y_array.append(sample['labels'])
-
-    def _load_dialogue_nli_task(self, task, split):
-        for datum in self.dataset['data']:
-            if task in datum['dialogue_metadata']:
-                # TODO: create our own splits by task
-                if split:
-                    if isinstance(datum['dialogue_metadata'][task], dict) and datum['dialogue_metadata'][task]['original_data_partition'] != split:
-                        continue
-                    elif datum['dialogue_metadata']['original_data_partition'] != split:
-                        continue
-                for sample in datum[task]:
-                    self._input_array.append({
-                        "premise": self._convert_dialogue_to_string([[turn['speakers'][0], turn['utterance']] for turn in datum['dialogue']]),
-                        "hypothesis": f"{sample['head']} {sample['relation']} {sample['tail']}"
-                    })
-                    self._y_array.append(sample['label'])
-
-    def _load_multiple_choice_task(self, task, split):
-        for datum in self.dataset['data']:
-            if task in datum['dialogue_metadata']:
-                # TODO: create our own splits by task
-                if split:
-                    if isinstance(datum['dialogue_metadata'][task], dict) and datum['dialogue_metadata'][task]['original_data_partition'] != split:
-                        continue
-                    elif datum['dialogue_metadata']['original_data_partition'] != split:
-                        continue
-                context = datum[task]['context']
-                mcqs = datum[task]['mcqs']
-                for q in mcqs:
-                    self._input_array.append({
-                        "context": context,
-                        "question": q['question'],
-                        "options": q['options']
-                    })
-                    self._y_array.append(q['label'])
-
-    def _load_relation_extraction_task(self, task, split):
-        for datum in self.dataset['data']:
-            if task in datum['dialogue_metadata']:
-                # TODO: create our own splits by task
-                if split:
-                    if isinstance(datum['dialogue_metadata'][task], dict) and datum['dialogue_metadata'][task]['original_data_partition'] != split:
-                        continue
-                    elif datum['dialogue_metadata']['original_data_partition'] != split:
-                        continue
-                dialogue = [[turn['speakers'][0], turn['utterance']] for turn in datum['dialogue']]
-                for sample in datum[task]:
-                    self._input_array.append({
-                        "context": dialogue,
-                        "head": sample['head'],
-                        "tail": sample['tail']
-                    })
-                    self._y_array.append(sample['relation'])
-                
-    def _load_adversarial_response_selection_task(self, task, split):
-        for datum in self.dataset['data']:
-            if task in datum['dialogue_metadata']:
-                # TODO: create our own splits by task
-                if split:
-                    if isinstance(datum['dialogue_metadata'][task], dict) and datum['dialogue_metadata'][task]['original_data_partition'] != split:
-                        continue
-                    elif datum['dialogue_metadata']['original_data_partition'] != split:
-                        continue
-                for sample in datum[task]:
-                    context = []
+            if datum['dialogue_id'] in split_ids:
+                if task in datum['dialogue_metadata']:
+                    dialogue = []
                     for turn in datum['dialogue']:
-                        if turn['turn_id'] in sample['context_turns']:
-                            context.append([turn['speakers'][0], turn['utterance']])
+                        dialogue.append([turn['speakers'][0], turn['utterance']])
+                        str_dialogue = self._convert_dialogue_to_string(dialogue)
+                        if task in turn:
+                            self._input_array.append(str_dialogue)
+                            self._y_array.append(turn[task])
 
-                    # context_turns = datum['dialogue'][int(sample['context_turns'][0]):int(sample['context_turns'][-1])]
-                    # context = [[turn['speakers'][0], turn['utterance']] for turn in context_turns]
-                    context = self._convert_dialogue_to_string(context)
-                    for pos_resp, random_neg_resp, adv_neg_resp in zip(sample['positive_responses'], sample['random_negative_responses'], sample['adversarial_negative_responses']):
-                        # shuffle the options
-                        options = [pos_resp, random_neg_resp, adv_neg_resp]
-                        random.shuffle(options)
+    def _load_dialogue_level_classification_task(self, task, split_ids):
+        for datum in self.dataset['data']:
+            if datum['dialogue_id'] in split_ids:
+                if task in datum['dialogue_metadata']:            
+                    dialogue = [[turn['speakers'][0], turn['utterance']] for turn in datum['dialogue']]
+                    str_dialogue = self._convert_dialogue_to_string(dialogue)
+                    self._input_array.append(str_dialogue)
+                    self._y_array.append(datum[task])
+        
+    def _load_span_extraction_task(self, task, split_ids):
+        for datum in self.dataset['data']:
+            if datum['dialogue_id'] in split_ids:
+                if task in datum['dialogue_metadata']:
+                    for qas in datum[task]:
+                        for qa in qas['qas']:
+                            for answer in qa['answers']:
+                                self._input_array.append({
+                                    "context":qas['context'],"question":qa['question']
+                                })
+                                # move the answer start back by len(question)
+                                answer['answer_start'] += len(qa['question'])+1
+                                self._y_array.append(answer)
+
+    def _load_causal_emotion_entailment_task(self, task, split_ids):
+        for datum in self.dataset['data']:
+            if datum['dialogue_id'] in split_ids:
+                if task in datum['dialogue_metadata']:
+                    for sample in datum[task]:
+                        self._input_array.append({
+                            "premise":sample['history'],
+                            "hypothesis": f"{sample['causal_utterance']} causes {sample['emotion']} in {sample['target_utterance']}",
+                        })
+                        self._y_array.append(sample['labels'])
+
+    def _load_dialogue_nli_task(self, task, split_ids):
+        for datum in self.dataset['data']:
+            if datum['dialogue_id'] in split_ids:
+                if task in datum['dialogue_metadata']:
+                    for sample in datum[task]:
+                        self._input_array.append({
+                            "premise": self._convert_dialogue_to_string([[turn['speakers'][0], turn['utterance']] for turn in datum['dialogue']]),
+                            "hypothesis": f"{sample['head']} {sample['relation']} {sample['tail']}"
+                        })
+                        self._y_array.append(sample['label'])
+
+    def _load_multiple_choice_task(self, task, split_ids):
+        for datum in self.dataset['data']:
+            if datum['dialogue_id'] in split_ids:
+                if task in datum['dialogue_metadata']:
+                    context = datum[task]['context']
+                    mcqs = datum[task]['mcqs']
+                    for q in mcqs:
                         self._input_array.append({
                             "context": context,
-                            "options": options,
-                            "question":"Which option is the best response?"
+                            "question": q['question'],
+                            "options": q['options']
                         })
-                        self._y_array.append(str(options.index(pos_resp)))
+                        self._y_array.append(q['label'])
+
+    def _load_relation_extraction_task(self, task, split_ids):
+        for datum in self.dataset['data']:
+            if datum['dialogue_id'] in split_ids:
+                if task in datum['dialogue_metadata']:
+                    dialogue = [[turn['speakers'][0], turn['utterance']] for turn in datum['dialogue']]
+                    for sample in datum[task]:
+                        self._input_array.append({
+                            "context": dialogue,
+                            "head": sample['head'],
+                            "tail": sample['tail']
+                        })
+                        self._y_array.append(sample['relation'])
+                
+    def _load_adversarial_response_selection_task(self, task, split_ids):
+        for datum in self.dataset['data']:
+            if datum['dialogue_id'] in split_ids:
+                if task in datum['dialogue_metadata']:
+                    for sample in datum[task]:
+                        context = []
+                        for turn in datum['dialogue']:
+                            if turn['turn_id'] in sample['context_turns']:
+                                context.append([turn['speakers'][0], turn['utterance']])
+                        context = self._convert_dialogue_to_string(context)
+                        for pos_resp, random_neg_resp, adv_neg_resp in zip(sample['positive_responses'], sample['random_negative_responses'], sample['adversarial_negative_responses']):
+                            # shuffle the options
+                            options = [pos_resp, random_neg_resp, adv_neg_resp]
+                            random.shuffle(options)
+                            self._input_array.append({
+                                "context": context,
+                                "options": options,
+                                "question":"Which option is the best response?"
+                            })
+                            self._y_array.append(str(options.index(pos_resp)))
 
     def get_input(self, idx):
         return self._input_array[idx]

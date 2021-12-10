@@ -36,6 +36,13 @@ def load_dataset(name, dataset_folder, url):
 
     return ds
 
+def load_split_ids(name, dataset_folder, split):
+    if f"TLiDB_{name}" not in os.listdir(dataset_folder):
+        raise ValueError("Dataset not found")
+    with open(f"{dataset_folder}/TLiDB_{name}/TTiDB_{split}_ids.txt") as f:
+        ids = f.read().splitlines()
+    return ids
+
 class TLiDB_Dataset(Dataset):
     """
     Abstract dataset class for all TLiDB datasets
