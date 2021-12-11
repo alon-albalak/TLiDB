@@ -97,6 +97,8 @@ function main() {
    python3 add_DDpp_annotations.py
    echo "Generating TTiDB splits"
    python3 generate_full_data_TTiDB_ids.py
+   echo "Generating Few-Shot TTiDB splits"
+   python3 generate_few_shot_data_TTiDB_ids.py
 
    zip -r TLiDB_DailyDialog.zip TLiDB_DailyDialog/
    rm -r "${DD_DIR}"
