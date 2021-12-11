@@ -2,9 +2,6 @@ from .TLiDB_dataset import TLiDB_Dataset, load_split_ids
 from TLiDB.metrics.all_metrics import Accuracy, F1
 import random
 
-# TODO:
-# - add support for multiple choice - https://huggingface.co/docs/transformers/model_doc/bert#transformers.BertForMultipleChoice
-
 class DailyDialog_dataset(TLiDB_Dataset):
     """
     DailyDialog dataset
@@ -138,8 +135,9 @@ class DailyDialog_dataset(TLiDB_Dataset):
                                 self._input_array.append({
                                     "context":qas['context'],"question":qa['question']
                                 })
-                                # move the answer start back by len(question)
-                                answer['answer_start'] += len(qa['question'])+1
+                                # move the answer start back by len(question) if not impossible
+                                if answer['answer_start'] > 0:
+                                    answer['answer_start'] += len(qa['question'])+1
                                 self._y_array.append(answer)
 
     def _load_causal_emotion_entailment_task(self, task, split_ids):
