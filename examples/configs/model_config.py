@@ -1,7 +1,7 @@
 t5_config = {
     "model": "t5-base",
     "optimizer": "Adafactor",
-    "learning_rate": 0.001,
+    "learning_rate": 3e-5,
     "fp16": False,
     "effective_batch_size":128
 }
