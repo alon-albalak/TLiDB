@@ -85,4 +85,6 @@ class Seq2SeqAlgorithm(Algorithm):
 
     def _multiple_choice_postprocessing(self, outputs, y_true, metadata):
         y_pred = self.model.batch_decode(outputs)
+        num_choices = metadata['task_metadata']['num_choices']
+        metadata['labels'] = [str(i) for i in range(num_choices)]
         return y_pred, y_true
