@@ -139,8 +139,8 @@ def add_CIDER_dialogue_nli_annotations(original_DD_data, DD_CIDER_data, CIDER_DN
     if "dialogue_nli" not in original_DD_data['metadata']['tasks']:
         original_DD_data['metadata']['tasks'].append("dialogue_nli")
         original_DD_data['metadata']['task_metadata']['dialogue_nli'] = {
-            'labels':['contradiction','entailment'],'metrics':['f1', 'precision', 'recall'],
-            "metric_kwargs":{"f1":[{"average":"micro"},{"average":"weighted"}]}
+            'labels':['contradiction','entailment'],'metrics':['f1'],
+            "metric_kwargs":{"f1":[{"average":"micro"},{"average":"weighted"},{"average":"macro"}]},
         }
 
     found_CIDER = 0
@@ -352,7 +352,8 @@ def add_CIDER_commonsense_relation_prediction_annotations(original_DD_data, DD_C
     if "dialogue_reasoning_commonsense_relation_prediction" not in original_DD_data['metadata']['tasks']:
         original_DD_data['metadata']['tasks'].append("dialogue_reasoning_commonsense_relation_prediction")
         original_DD_data['metadata']['task_metadata']['dialogue_reasoning_commonsense_relation_prediction'] = {
-            'labels':CIDER_CRP_labels, 'metrics':['accuracy']
+            'labels':CIDER_CRP_labels, 'metrics':['accuracy',"f1"],
+            "metric_kwargs":{"f1":{"average":"macro"}}
             }
     
     found_CIDER = 0
