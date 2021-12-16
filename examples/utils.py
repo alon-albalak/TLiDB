@@ -86,8 +86,10 @@ def set_seed(seed):
         np.random.seed(seed)
         torch.manual_seed(seed)
 
-def get_savepath_dir(datasets, tasks, seed, log_dir, model):
+def get_savepath_dir(datasets, tasks, seed, log_dir, model, cotraining=False):
     prefix = "PRETRAINED_"
+    if cotraining:
+        prefix = "COTRAINED_"
     for dataset,task in zip(datasets, tasks):
         prefix += f"{dataset}.{task}_"
     if seed > -1:
@@ -128,13 +130,9 @@ def save_algorithm_if_needed(algorithm, epoch, config, best_val_metric, is_best,
     if config.save_best and is_best:
         save_algorithm(algorithm, epoch, best_val_metric,os.path.join(config.save_path_dir,"best_model.pt"),logger)
 
-def save_pred_if_needed(y_pred, epoch, config, is_best, force_save=False, save_path_dir=None):
+def save_pred_if_needed(y_pred, epoch, config, is_best, save_path_dir):
     if config.save_pred:
-        if not save_path_dir:
-            save_path_dir = get_savepath_dir(config)
-        if force_save:
-            save_pred(y_pred, os.path.join(save_path_dir, f"predictions_{epoch}"))
-        if (not force_save) and config.save_last:
+        if config.save_last:
             save_pred(y_pred, os.path.join(save_path_dir, "last_predictions"))
         if config.save_best and is_best:
             save_pred(y_pred, os.path.join(save_path_dir, "best_predictions"))

@@ -111,7 +111,7 @@ def train(algorithm, datasets, config, logger, epoch_offset, best_val_metric):
         # save algorithm and model
         save_algorithm_if_needed(algorithm, epoch, config, best_val_metric, is_best, logger)
         # save predictions
-        save_pred_if_needed(y_pred, epoch, config, is_best)
+        save_pred_if_needed(y_pred, epoch, config, is_best, config.save_path_dir)
 
         logger.write('\n')
         logger.flush()
@@ -149,4 +149,4 @@ def evaluate(algorithm, datasets, config, logger, epoch, is_best):
 
             # skip saving train data as the dataloader will shuffle data
             if split != "train":
-                save_pred_if_needed(y_pred, epoch, config, is_best)
+                save_pred_if_needed(y_pred, epoch, config, is_best, config.save_path_dir)
