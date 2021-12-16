@@ -197,9 +197,8 @@ def add_CIDER_span_extraction_annotations(DD_data, DD_CIDER_data, CIDER_sp_ex):
         DD_data['metadata']['task_metadata']['dialogue_reasoning_span_extraction'] = {
             'metrics':['exact_match','token_f1'],
             "metric_kwargs":{
-                "exact_match":{"ignore_phrases":["impossible"]},
-                "token_f1":{"ignore_phrases":["impossible"]},
-            }
+                "token_f1":{"average":"macro"}
+                }
         }
     found_CIDER = 0
     found_DD = 0

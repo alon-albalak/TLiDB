@@ -38,8 +38,12 @@ def add_RECCON_span_extraction_annotations(RECCON_span_extraction_data, original
         original_DD_data['metadata']['task_metadata']['causal_emotion_span_extraction'] = {
             "metrics":["exact_match", "token_f1"],
             "metric_kwargs":{
-                "exact_match":{"ignore_phrases":["impossible"]},
-                "token_f1":{"ignore_phrases":["impossible"]}}
+                "exact_match":{"unanswerable_phrases":["impossible"], "ignore_unanswerable":True},
+                "token_f1":[
+                    {"unanswerable_phrases":["impossible"], "average":"macro"},
+                    {"unanswerable_phrases":["impossible"], "average":"micro"}
+                ]
+                }
             }
     # iteratively add span extraction data from RECCON to original data
     for sp_ex in tqdm(RECCON_span_extraction_data):
