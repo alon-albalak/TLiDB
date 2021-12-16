@@ -109,7 +109,7 @@ class Recall(Metric):
         return torch.tensor(score)
 
 class token_F1(StringMetric):
-    def __init__(self, prediction_fn=None, name=None, ignore_phrases=[]):
+    def __init__(self, prediction_fn=None, name=None, average="macro", unanswerable_phrases=[]):
         """
         Calculate F1 score for token comparisons
         Args:
@@ -117,9 +117,12 @@ class token_F1(StringMetric):
             - name (str): Name of the metric
         """
         self.prediction_fn = prediction_fn
+        self.average = average
         if name is None:
             name = 'token_F1'
-        super().__init__(name=name, ignore_phrases=ignore_phrases)
+        if average is not None:
+            name += f'-{self.average}'
+        super().__init__(name=name, unanswerable_phrases=unanswerable_phrases)
     
     def _compute(self, y_pred, y_true):
         """
@@ -130,42 +133,52 @@ class token_F1(StringMetric):
         if self.prediction_fn is not None:
             y_pred = self.prediction_fn(y_pred)
 
-        # complicated, but maybe faster, version
         # Taken from https://github.com/google-research/text-to-text-transfer-transformer/blob/main/t5/evaluation/metrics.py
-        # def _get_token_f1(y_pred, y_true):
-        #     common_token_counts = (
-        #         Counter(y_true) &
-        #         Counter(y_pred))
-        #     sum_common = sum(common_token_counts.values())
-        #     if sum_common == 0:
-        #         return 0
-        #     precision = 1.0 * sum_common / len(y_pred)
-        #     recall = 1.0 * sum_common / len(y_true)
-        #     f1 = (2 * precision * recall) / (precision + recall)
-        #     return f1
-        # f1s = []
-        # for p, t in zip(y_pred, y_true):
-        #     f1s.append(_get_token_f1(p, t))
-        
-        # Visually simpler version
-        tp, fp, fn = 0, 0, 0
-        for pred, true in zip(y_pred, y_true):
-            for pred_token in pred.split():
-                if pred_token in true:
-                    tp += 1
-                else:
-                    fp += 1
-            for true_token in true.split():
-                if true_token not in pred:
-                    fn += 1
-        precision = tp / (tp + fp)
-        recall = tp / (tp + fn)
-        f1 = 2 * precision * recall / (precision + recall)
-        return torch.tensor(f1)
+        def _get_token_f1_macro(y_pred, y_true):
+            common_token_counts = (
+                Counter(y_true) &
+                Counter(y_pred))
+            sum_common = sum(common_token_counts.values())
+            if len(y_pred) == 0 or len(y_true) == 0:
+                return int(y_pred == y_true)
+            if sum_common == 0:
+                return 0
+            precision = 1.0 * sum_common / len(y_pred)
+            recall = 1.0 * sum_common / len(y_true)
+            f1 = (2 * precision * recall) / (precision + recall)
+            return f1
 
+        def _get_token_f1_micro(y_pred, y_true):
+            common_token_counts = (
+                Counter(y_true) &
+                Counter(y_pred))
+            sum_common = sum(common_token_counts.values())
+            if len(y_pred) == 0 or len(y_true) == 0:
+                return int(y_pred == y_true), len(y_pred), len(y_true)
+            return sum_common, len(y_pred)-sum_common, len(y_true)-sum_common
+
+        if self.average == "macro":
+            f1s = []
+            for p, t in zip(y_pred, y_true):
+                f1s.append(_get_token_f1_macro(p.split(), t.split()))
+            return torch.mean(torch.tensor(f1s))
+            
+        elif self.average == "micro":
+            tp, fp, fn = 0, 0, 0
+            for pred, true in zip(y_pred, y_true):
+                tp_, fp_, fn_ = _get_token_f1_micro(pred.split(), true.split())
+                tp += tp_
+                fp += fp_
+                fn += fn_
+            precision = tp / (tp + fp)
+            recall = tp / (tp + fn)
+            f1 = 2 * precision * recall / (precision + recall)
+            return torch.tensor(f1)
+        else:
+            raise ValueError(f"Unknown average: {self.average}")
 
 class Exact_Match(StringMetric):
-    def __init__(self, prediction_fn=None, name=None, ignore_phrases=[]):
+    def __init__(self, prediction_fn=None, name=None, unanswerable_phrases=[], ignore_unanswerable=False):
         """
         Calculate exact match score
         Args:
@@ -175,7 +188,9 @@ class Exact_Match(StringMetric):
         self.prediction_fn = prediction_fn
         if name is None:
             name = 'Exact_Match'
-        super().__init__(name=name, ignore_phrases=ignore_phrases)
+        if ignore_unanswerable:
+            name += '_pos_only'
+        super().__init__(name=name, unanswerable_phrases=unanswerable_phrases, ignore_unanswerable=ignore_unanswerable)
 
     def _compute(self, y_pred, y_true):
         """
@@ -185,15 +200,9 @@ class Exact_Match(StringMetric):
         """
         if self.prediction_fn is not None:
             y_pred = self.prediction_fn(y_pred)
-        # filter out pred/truth when both are empty string
-        clean_y_true, clean_y_pred = [], []
-        for true, pred in zip(y_true, y_pred):
-            if true != '' or pred != '':
-                clean_y_true.append(true)
-                clean_y_pred.append(pred)
-        matches = [float(pred == true) for pred, true in zip(clean_y_pred, clean_y_true)]
-        return torch.mean(torch.tensor(matches))
 
+        matches = [float(pred == true) for pred, true in zip(y_pred, y_true)]
+        return torch.mean(torch.tensor(matches))
 
 class MetricGroup:
     """

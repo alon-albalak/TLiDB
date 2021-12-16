@@ -68,9 +68,10 @@ class StringMetric:
     """
     Parent class for string metrics
     """
-    def __init__(self,name,ignore_phrases):
+    def __init__(self,name,unanswerable_phrases, ignore_unanswerable=False):
         self._name = name
-        self._ignore_phrases = [self._normalize_answer(text, string.punctuation, '') for text in ignore_phrases]
+        self._unanswerable_phrases = [self._normalize_answer(text, string.punctuation, '') for text in unanswerable_phrases]
+        self._ignore_unanswerable = ignore_unanswerable
 
     def _compute(self, y_pred, y_true):
         """
@@ -93,11 +94,11 @@ class StringMetric:
         return self._name
 
     @property
-    def ignore_phrases(self):
+    def unanswerable_phrases(self):
         """
         List of phrases to ignore when computing the metric.
         """
-        return self._ignore_phrases
+        return self._unanswerable_phrases
 
     @property
     def agg_metric_field(self):
@@ -124,9 +125,18 @@ class StringMetric:
             agg_metric = torch.tensor(0., device=y_true.device)
         else:
             y_pred = [self._normalize_answer(text, string.punctuation, '') for text in y_pred]
-            y_pred = [text if not any([ignore_phrase in text for ignore_phrase in self.ignore_phrases]) else "" for text in y_pred]
             y_true = [self._normalize_answer(text, string.punctuation, '') for text in y_true]
-            y_true = [text if not any([ignore_phrase in text for ignore_phrase in self.ignore_phrases]) else "" for text in y_true]
+            if self._unanswerable_phrases:
+                y_pred = [text if not any([unanswerable_phrase in text for unanswerable_phrase in self.unanswerable_phrases]) else "" for text in y_pred]
+                y_true = [text if not any([unanswerable_phrase in text for unanswerable_phrase in self.unanswerable_phrases]) else "" for text in y_true]
+                if self._ignore_unanswerable:
+                    pos_pred, pos_true = [], []
+                    for pred, true in zip(y_pred, y_true):
+                        if true != '':
+                            pos_pred.append(pred)
+                            pos_true.append(true)
+                    y_pred = pos_pred
+                    y_true = pos_true
 
             agg_metric = self._compute(y_pred, y_true)
         if return_dict:
