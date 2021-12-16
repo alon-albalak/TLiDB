@@ -8,10 +8,9 @@ train_eval_source(){
         --model_config $MODEL \
         --gpu_batch_size $GPU_BATCH_SIZE \
         --do_train \
-        --train_tasks $SOURCE_TASK --train_datasets DailyDialog \
-        --dev_tasks $SOURCE_TASK --dev_datasets DailyDialog \
+        --source_tasks $SOURCE_TASK --source_datasets DailyDialog \
         --num_epochs=10 \
-        --do_eval --eval_best --eval_tasks $SOURCE_TASK --eval_datasets DailyDialog
+        --do_eval --eval_best --target_tasks $SOURCE_TASK --target_datasets DailyDialog
 }
 
 finetune_eval_target(){
@@ -20,11 +19,11 @@ finetune_eval_target(){
     CUDA_VISIBLE_DEVICES=$GPU python3 run_experiment.py \
         --model_config $MODEL \
         --gpu_batch_size $GPU_BATCH_SIZE \
-        --train_tasks $SOURCE_TASK --train_datasets DailyDialog \
+        --source_tasks $SOURCE_TASK --source_datasets DailyDialog \
         --do_finetune \
-        --finetune_tasks $TARGET_TASK --finetune_datasets DailyDialog \
+        --target_tasks $TARGET_TASK --target_datasets DailyDialog \
         --num_epochs=10 \
-        --do_eval --eval_best --eval_tasks $TARGET_TASK --eval_datasets DailyDialog
+        --do_eval --eval_best
 }
 
 

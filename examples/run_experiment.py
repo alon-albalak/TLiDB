@@ -9,8 +9,29 @@ import argparser
 
 def main(config):
 
+    # TODO: add full-data / few-shot flag, and target tasks always get few-shot data, but source tasks get full-data
+
+    # if cotraining, then train on both source+target tasks, and dev is target only
+    if config.cotraining:
+        config.train_datasets = config.source_datasets+config.target_datasets
+        config.train_tasks = config.source_tasks+config.target_tasks
+        config.dev_datasets = config.target_datasets
+        config.dev_tasks = config.target_tasks
+    # if training only on source tasks, then train/dev are the same
+    else:
+        config.train_datasets = config.source_datasets
+        config.train_tasks = config.source_tasks
+        config.dev_datasets = config.source_datasets
+        config.dev_tasks = config.source_tasks
+
+    # always finetune and evaluate on target tasks
+    config.finetune_datasets = config.target_datasets
+    config.finetune_tasks = config.target_tasks
+    config.eval_datasets = config.target_datasets
+    config.eval_tasks = config.target_tasks
+
     # create save path based only on train data
-    config.save_path_dir = get_savepath_dir(config.train_datasets, config.train_tasks, config.seed, config.log_and_model_dir, config.model)
+    config.save_path_dir = get_savepath_dir(config.train_datasets, config.train_tasks, config.seed, config.log_and_model_dir, config.model, config.cotraining)
 
     # Initialize logs
     if os.path.exists(config.save_path_dir) and \
@@ -119,12 +140,12 @@ def main(config):
         #   this means we already have a save_dir_path from training/fine-tuning and a model saved there
         if config.do_finetune or config.do_train:
             pass
-        elif (config.finetune_datasets and config.finetune_tasks) and (config.train_datasets and config.train_tasks):
-            # Given all the datasets and tasks, we can infer the path to the fine-tuned model
-            config.save_path_dir = append_to_save_path_dir(config.save_path_dir, config.finetune_datasets, config.finetune_tasks, config.seed)
         elif config.saved_model_dir:
             # if user explcitily specified a model to evaluate, then use that
             config.save_path_dir = config.saved_model_dir
+        elif (config.finetune_datasets and config.finetune_tasks) and (config.train_datasets and config.train_tasks):
+            # Given all the datasets and tasks, we can infer the path to the fine-tuned model
+            config.save_path_dir = append_to_save_path_dir(config.save_path_dir, config.finetune_datasets, config.finetune_tasks, config.seed)
         else:
             raise ValueError("To run evaluation, use:\n--saved_model_dir to specify the model to evaluate OR\
                 \n--finetune_datasets and --finetune_tasks and --train_datasets and --train_tasks to infer the path to the model")
@@ -155,8 +176,6 @@ def main(config):
             eval_model_path = os.path.join(config.save_path_dir, 'best_model.pt')
             is_best = True
 
-        # TODO: evaluate runs on all datasets
-        #       set datasets to empty for each section (train, finetune, eval)?
         epoch, best_val_metric = load_algorithm(algorithm, eval_model_path,eval_logger)
         evaluate(algorithm, datasets, config, eval_logger, epoch, is_best)
 

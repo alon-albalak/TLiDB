@@ -21,6 +21,7 @@ def parse_args():
     # model args
     parser.add_argument("--model", type=str)
     parser.add_argument("--max_seq_length", type=int, default=512)
+    
     # training args
     parser.add_argument("--do_train", action="store_true")
     parser.add_argument("--do_finetune", action="store_true")
@@ -40,25 +41,16 @@ def parse_args():
     parser.add_argument("--eval_last", action="store_true")
     
 
-    # TODO: Set up supported tasks/datasets so these are choices from a specified list
-    #       Convert to source/target tasks/datasets
-    #           this requires train/eval for source, and train/eval/test for target
-    parser.add_argument("--train_tasks",type=str,nargs='+')
-    parser.add_argument("--train_datasets", type=str, nargs='+')
-    parser.add_argument("--dev_tasks", type=str, nargs='+')
-    parser.add_argument("--dev_datasets", type=str, nargs='+')
-    parser.add_argument("--finetune_tasks", type=str, nargs='+')
-    parser.add_argument("--finetune_datasets", type=str, nargs='+')
-    parser.add_argument("--eval_tasks", type=str, nargs='+')
-    parser.add_argument("--eval_datasets", type=str, nargs='+')
-    
-    # loss args
-    # TODO: Are these predetermined according to the model/algorithm?
-    #    This may not be a necessary argument
-    # parser.add_argument("--loss_functions", type=str, nargs='+')
+    parser.add_argument("--source_tasks", type=str,nargs='+',required=True)
+    parser.add_argument("--source_datasets", type=str,nargs='+',required=True)
+    parser.add_argument("--target_tasks", type=str,nargs='+',required=True)
+    parser.add_argument("--target_datasets", type=str,nargs='+',required=True)
 
+    # TTiDB args
+    parser.add_argument("--cotraining", action="store_true")
+    parser.add_argument("--few_shot", action="store_true")
+    
     # algorithm args
-    # parser.add_argument("--model_type", type=str, default="Encoder")
     parser.add_argument("--optimizer", type=str, default="Adam")
     parser.add_argument("--weight_decay", type=float, default=0.0)
 
