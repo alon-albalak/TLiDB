@@ -3,7 +3,7 @@ import torch
 import configs
 
 # TODO: Move args to model-specific config files
-#   For example, learning rate, optimizer, max_seq_length, etc.
+#   For example, learning rate, optimizer, etc.
 
 incompatible_with_fp16 = ["t5-base"]
 
@@ -27,7 +27,6 @@ def parse_args():
 
     # model args
     parser.add_argument("--model", type=str)
-    parser.add_argument("--max_seq_length", type=int, default=512)
     
     # training args
     parser.add_argument("--do_train", action="store_true")

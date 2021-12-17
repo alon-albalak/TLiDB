@@ -34,7 +34,7 @@ class T5(TLiDB_model):
 
     def transform_inputs(self, inputs):
         """Only tokenizes inputs"""
-        tokenized_inputs = self.tokenizer(inputs, padding="longest",truncation=True, max_length=self.config.max_seq_length, return_tensors="pt")
+        tokenized_inputs = self.tokenizer(inputs, padding="longest",truncation=True, return_tensors="pt")
         return tokenized_inputs
 
     def transform_outputs(self, outputs):

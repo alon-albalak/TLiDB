@@ -80,8 +80,7 @@ class Bert(TLiDB_model):
         else:
             return_offsets_mapping = False
 
-        tokenized_inputs = self.tokenizer(inputs, padding="max_length",truncation=True, max_length=self.config.max_seq_length,\
-                return_offsets_mapping=return_offsets_mapping,return_tensors="pt")
+        tokenized_inputs = self.tokenizer(inputs, padding="max_length",truncation=True, return_offsets_mapping=return_offsets_mapping,return_tensors="pt")
         return tokenized_inputs
     
     def transform_outputs(self, inputs, outputs, task_type, metadata):
