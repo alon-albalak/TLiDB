@@ -96,7 +96,8 @@ class Algorithm(nn.Module):
                 - metrics: the metrics of the batch
         """
         assert not self.is_training, "Cannot evaluate() when in training mode"
-        results, _ = self.process_batch(batch)
+        with torch.no_grad():
+            results, _ = self.process_batch(batch)
         return self.sanitize_dict(results)
 
     def train(self, mode=True):
