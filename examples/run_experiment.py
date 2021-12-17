@@ -24,11 +24,12 @@ def main(config):
         config.dev_datasets = config.source_datasets
         config.dev_tasks = config.source_tasks
 
-    # always finetune and evaluate on target tasks
-    config.finetune_datasets = config.target_datasets
-    config.finetune_tasks = config.target_tasks
-    config.eval_datasets = config.target_datasets
-    config.eval_tasks = config.target_tasks
+    if config.target_datasets and config.target_tasks:
+        # always finetune and evaluate on target tasks
+        config.finetune_datasets = config.target_datasets
+        config.finetune_tasks = config.target_tasks
+        config.eval_datasets = config.target_datasets
+        config.eval_tasks = config.target_tasks
 
     # create save path based only on train data
     config.save_path_dir = get_savepath_dir(config.train_datasets, config.train_tasks, config.seed, config.log_and_model_dir, config.model, config.cotraining)
@@ -45,7 +46,11 @@ def main(config):
 
     if not os.path.exists(config.save_path_dir):
         os.makedirs(config.save_path_dir)
-    logger = Logger(os.path.join(config.save_path_dir, 'log.txt'), mode)
+
+    if config.debug:
+        logger = Logger(mode='w')
+    else:
+        logger = Logger(os.path.join(config.save_path_dir, 'log.txt'), mode)
 
     set_seed(config.seed)
     if config.do_train:
@@ -82,6 +87,7 @@ def main(config):
         train(algorithm, datasets, config, logger, epoch_offset, best_val_metric)
 
     if config.do_finetune:
+        assert(config.target_datasets and config.target_tasks),"Must specify target datasets and tasks to finetune"
         datasets = {}
         # get the pre-trained model path
         if config.do_train or (config.train_datasets and config.train_tasks):
@@ -123,7 +129,10 @@ def main(config):
         # create new logger for fine-tuning
         if not os.path.exists(config.save_path_dir):
             os.makedirs(config.save_path_dir)
-        finetune_logger = Logger(os.path.join(config.save_path_dir, 'log.txt'), mode="w")
+        if config.debug:
+            finetune_logger = Logger(mode='w')
+        else:
+            finetune_logger = Logger(os.path.join(config.save_path_dir, 'log.txt'), mode="w")
 
         # log configuration and dataset info
         finetune_logger.write("FINETUNING\n")
@@ -135,6 +144,7 @@ def main(config):
         finetune_logger.close()
 
     if config.do_eval:
+        assert(config.target_datasets and config.target_tasks),"Must specify target datasets and tasks to finetune"
         datasets = {}
         # If coming from training/fine-tuning, 
         #   this means we already have a save_dir_path from training/fine-tuning and a model saved there
@@ -155,7 +165,10 @@ def main(config):
         assert(config.eval_last or config.eval_best), "must evaluate at least one model"
         
         # create logger for evaluation
-        eval_logger = Logger(os.path.join(config.save_path_dir, 'log.txt'), mode="a")
+        if config.debug:
+            eval_logger = Logger(mode='w')
+        else:
+            eval_logger = Logger(os.path.join(config.save_path_dir, 'log.txt'), mode="a")
         eval_logger.write("EVALUATING\n")
         
         # load datasets for evaluation
