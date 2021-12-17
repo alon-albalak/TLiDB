@@ -9,6 +9,13 @@ incompatible_with_fp16 = ["t5-base"]
 
 def parse_args():
     parser = argparse.ArgumentParser()
+    
+    # debugging args
+    parser.add_argument("--frac", type=float, default=1.0,
+        help="Convenience parameter that scales down dataset size to specified fraction, for debugging purposes")
+    parser.add_argument("--debug", action="store_true", help="Setup training for debugging. For example, no logging")
+    parser.add_argument("--generate_during_training", action="store_true")
+
     # configs for experimentation ease
     parser.add_argument("--model_config",type=str, default=None)
 
@@ -26,7 +33,7 @@ def parse_args():
     parser.add_argument("--do_train", action="store_true")
     parser.add_argument("--do_finetune", action="store_true")
     parser.add_argument("-e", "--num_epochs", type=int, default=10)
-    parser.add_argument("--effective_batch_size", type=int, default=40)
+    parser.add_argument("--effective_batch_size", type=int, default=60)
     parser.add_argument("--gpu_batch_size", type=int, default=20)
     parser.add_argument("-lr", "--learning_rate", type=float, default=3e-5)
     parser.add_argument("--fp16", action="store_true")
@@ -40,11 +47,11 @@ def parse_args():
     parser.add_argument("--eval_best", action="store_true")
     parser.add_argument("--eval_last", action="store_true")
     
-
+    # task args
     parser.add_argument("--source_tasks", type=str,nargs='+',required=True)
     parser.add_argument("--source_datasets", type=str,nargs='+',required=True)
-    parser.add_argument("--target_tasks", type=str,nargs='+',required=True)
-    parser.add_argument("--target_datasets", type=str,nargs='+',required=True)
+    parser.add_argument("--target_tasks", type=str,nargs='+')
+    parser.add_argument("--target_datasets", type=str,nargs='+')
 
     # TTiDB args
     parser.add_argument("--cotraining", action="store_true")
@@ -56,14 +63,14 @@ def parse_args():
 
     # misc. args
     parser.add_argument("--progress_bar", type=bool, default=True)
-    parser.add_argument("--frac", type=float, default=1.0,
-        help="Convenience parameter that scales down dataset size to specified fraction, for debugging purposes")
-    parser.add_argument("--debug", action="store_true", help="Setup training for debugging. For example, no logging")
     parser.add_argument("--save_pred",action="store_true",help="Save predictions for each task")
     parser.add_argument("--resume", action="store_true", help="Resume training from checkpoint")
 
     args = parser.parse_args()
 
+    if args.debug:
+        # send debugging logs and models to different directory
+        args.log_and_model_dir = "./debug_logs_and_models"
 
     if args.model_config is not None:
         for attr, value in configs.__dict__[f"{args.model_config}_config"].items():
