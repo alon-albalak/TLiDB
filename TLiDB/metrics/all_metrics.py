@@ -161,7 +161,7 @@ class token_F1(StringMetric):
             f1s = []
             for p, t in zip(y_pred, y_true):
                 f1s.append(_get_token_f1_macro(p.split(), t.split()))
-            return torch.mean(torch.tensor(f1s))
+            return torch.mean(torch.tensor(f1s, dtype=torch.float))
             
         elif self.average == "micro":
             tp, fp, fn = 0, 0, 0
@@ -173,7 +173,7 @@ class token_F1(StringMetric):
             precision = tp / (tp + fp)
             recall = tp / (tp + fn)
             f1 = 2 * precision * recall / (precision + recall)
-            return torch.tensor(f1)
+            return torch.tensor(f1, dtype=torch.float)
         else:
             raise ValueError(f"Unknown average: {self.average}")
 
