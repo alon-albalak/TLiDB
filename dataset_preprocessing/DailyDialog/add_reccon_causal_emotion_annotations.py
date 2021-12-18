@@ -96,7 +96,7 @@ def add_RECCON_entailment_annotations(RECCON_entailment_data, RECCON_entailment_
     if "causal_emotion_entailment" not in original_DD_data['metadata']['tasks']:
         original_DD_data['metadata']['tasks'].append('causal_emotion_entailment')
         original_DD_data['metadata']['task_metadata']['causal_emotion_entailment'] = {
-            'labels': ["not entailed","entailed"], 'metrics':['f1', 'accuracy'],
+            'labels': ["not entailed","entailed"], 'metrics':['f1'],
             "metric_kwargs":{"f1":[{"average":"micro"},{"average":"macro"}]}}
 
     label_mapping = {'0':'not entailed', '1':'entailed'}

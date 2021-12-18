@@ -140,7 +140,7 @@ def add_CIDER_dialogue_nli_annotations(original_DD_data, DD_CIDER_data, CIDER_DN
         original_DD_data['metadata']['tasks'].append("dialogue_nli")
         original_DD_data['metadata']['task_metadata']['dialogue_nli'] = {
             'labels':['contradiction','entailment'],'metrics':['f1'],
-            "metric_kwargs":{"f1":[{"average":"micro"},{"average":"weighted"},{"average":"macro"}]},
+            "metric_kwargs":{"f1":[{"average":"micro"},{"average":"macro"}]},
         }
 
     found_CIDER = 0
