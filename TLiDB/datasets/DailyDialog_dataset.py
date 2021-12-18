@@ -182,6 +182,7 @@ class DailyDialog_dataset(TLiDB_Dataset):
             if datum['dialogue_id'] in split_ids:
                 if task in datum['dialogue_metadata']:
                     dialogue = [[turn['speakers'][0], turn['utterance']] for turn in datum['dialogue']]
+                    dialogue = self._convert_dialogue_to_string(dialogue)
                     for sample in datum[task]:
                         self._input_array.append({
                             "context": dialogue,
@@ -223,7 +224,7 @@ class DailyDialog_dataset(TLiDB_Dataset):
             if self._task_metadata['collate_type'] == 'span_extraction':
                 X.append(self._join_strings(item[0]['question'],item[0]['context']))
             elif self._task_metadata['collate_type'] == 'nli':
-                X.append(self._join_strings(item[0]['hypothesis'],item[0]['premise']))
+                X.append(self._join_strings(item[0]['premise'], item[0]['hypothesis']))
             elif self._task_metadata['collate_type'] == 'classification':
                 X.append(item[0])
             elif self._task_metadata['collate_type'] == 'multiple_choice':
@@ -235,8 +236,7 @@ class DailyDialog_dataset(TLiDB_Dataset):
                     mcq_inputs.append(self._join_strings(context,"[SEP]", question, "[SEP]", option))
                 X.append(mcq_inputs)
             elif self._task_metadata['collate_type'] == "relation_extraction":
-                context = self._convert_dialogue_to_string(item[0]['context'])
-                X.append(self._join_strings(item[0]['head'],"[SEP]",item[0]['tail'],"[SEP]",context))
+                X.append(self._join_strings(item[0]['head'],"[SEP]",item[0]['tail'],"[SEP]",item[0]['context']))
             else:
                 raise NotImplementedError(f"Collate type {self._task_metadata['collate_type']} not implemented")
             y.append(item[1])
@@ -264,8 +264,7 @@ class DailyDialog_dataset(TLiDB_Dataset):
                                             st.question_token,item[0]['question'],\
                                             options_str,self._task_metadata['prompt']))
             elif self._task_metadata['collate_type'] == "relation_extraction":
-                context = self._convert_dialogue_to_string(item[0]['context'])
-                X.append(self._join_strings(st.context_token,context,st.endcontext_token,
+                X.append(self._join_strings(st.context_token,item[0]['context'],st.endcontext_token,
                                             f"The relation between '{item[0]['head']}' and '{item[0]['tail']}' is"))
             else:
                 raise NotImplementedError(f"Collate type {self._task_metadata['collate_type']} not implemented")       
@@ -297,8 +296,7 @@ class DailyDialog_dataset(TLiDB_Dataset):
                                             st.question_token,item[0]['question'],\
                                             options_str,self._task_metadata['prompt']))
             elif self._task_metadata['collate_type'] == "relation_extraction":
-                context = self._convert_dialogue_to_string(item[0]['context'])
-                X.append(self._join_strings(st.context_token,context, st.endcontext_token,
+                X.append(self._join_strings(st.context_token,item[0]['context'], st.endcontext_token,
                                             f"The relation between '{item[0]['head']}' and '{item[0]['tail']}' is"))
             else:
                 raise NotImplementedError(f"Collate type {self._task_metadata['collate_type']} not implemented")       
