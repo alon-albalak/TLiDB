@@ -12,7 +12,6 @@ class GPT2(TLiDB_model):
     def __init__(self, config):
         super().__init__(config)
         self.tokenizer, self.model = initialize_model(config)
-        self.model.resize_token_embeddings(len(self.tokenizer))
         self.layers = {"model":self.model}
     
     def load_state_dict(self, state_dict):
@@ -64,7 +63,9 @@ def initialize_model(config):
         return tokenizer, model
     else:
         from transformers import GPT2LMHeadModel, GPT2TokenizerFast
-        tokenizer = GPT2TokenizerFast.from_pretrained(config.model, pad_token='<|pad|>')
+        tokenizer = GPT2TokenizerFast.from_pretrained(config.model, pad_token='<|pad|>',
+                                                      additional_special_tokens=config.special_tokens)
         model = GPT2LMHeadModel.from_pretrained(config.model)
         model.config.pad_token_id = tokenizer.pad_token_id
+        model.resize_token_embeddings(len(tokenizer))
         return tokenizer, model

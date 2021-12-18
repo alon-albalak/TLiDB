@@ -1,4 +1,3 @@
-from transformers import BertModel, BertTokenizerFast
 import torch
 from .TLiDB_model import TLiDB_model
 from examples.utils import concat_t_d
@@ -17,8 +16,7 @@ MULTIPLE_CHOICE_TASKS = ["dialogue_reasoning_multiple_choice_span_selection",
 class Bert(TLiDB_model):
     def __init__(self, config, datasets):
         super().__init__(config)
-        self.tokenizer = get_bert_tokenizer(config.model)
-        self.model = get_bert_model(config.model)
+        self.tokenizer, self.model = initialize_model(config)
         self.dropout = torch.nn.Dropout(self.model.config.hidden_dropout_prob)
         self.layers = {"model":self.model}
         # for each task/domain, we add a new classification layer to the model
@@ -141,19 +139,16 @@ class Bert(TLiDB_model):
         logits = self.classifiers[t_d]['classifier'](outputs)
         return logits
 
-def get_bert_tokenizer(model):
-    if model in ["bert-base-uncased"]:
-        tokenizer = BertTokenizerFast.from_pretrained(model)
+def initialize_model(config):
+    if config.model in ["bert-base-uncased"]:
+        from transformers import BertModel, BertTokenizerFast
+        tokenizer = BertTokenizerFast.from_pretrained(config.model)
+        tokenizer.add_tokens(config.special_tokens)
+        model = BertModel.from_pretrained(config.model)
+        model.resize_token_embeddings(len(tokenizer))
+        return tokenizer, model
     else:
-        raise ValueError(f"Unsupported tokenizer model: {model}")
-    return tokenizer
-
-def get_bert_model(model):
-    if model in ["bert-base-uncased"]:
-        model = BertModel.from_pretrained(model)
-    else:
-        raise ValueError(f"Unsupported BERT model: {model}")
-    return model
+        raise ValueError(f"Unsupported BERT model: {config.model}")
 
 def get_token_offsets(offsets_mapping, text, text_start_idx):
     """

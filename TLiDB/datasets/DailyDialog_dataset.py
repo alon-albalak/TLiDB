@@ -1,5 +1,6 @@
+from os import stat
 from .TLiDB_dataset import TLiDB_Dataset, load_split_ids
-from TLiDB.metrics.all_metrics import Accuracy, F1
+import TLiDB.utils.special_tokens as st
 import random
 
 class DailyDialog_dataset(TLiDB_Dataset):
@@ -81,7 +82,7 @@ class DailyDialog_dataset(TLiDB_Dataset):
             "collate_type":"relation_extraction"
         },
         "adversarial_response_selection":{
-            "prompt":"","type":"multiple_choice","loader":"adversarial_response_selection",
+            "prompt":"The correct option is","type":"multiple_choice","loader":"adversarial_response_selection",
             "collate_type":"multiple_choice", "num_choices":3
         }
     }
@@ -249,19 +250,23 @@ class DailyDialog_dataset(TLiDB_Dataset):
         X, y, metadata = [], [], {}
         for item in batch:
             if self._task_metadata['collate_type'] == 'span_extraction':
-                X.append(self._join_strings("context:",item[0]['context'],item[0]['question']))
+                X.append(self._join_strings(st.context_token,item[0]['context'],st.endcontext_token,
+                                            st.question_token, item[0]['question'], st.answer_token))
             elif self._task_metadata['collate_type'] == 'nli':
-                X.append(self._join_strings(item[0]['premise'],self._task_metadata['prompt'],item[0]['hypothesis']))
+                X.append(self._join_strings(st.context_token,item[0]['premise'],st.endcontext_token,
+                                            self._task_metadata['prompt'],item[0]['hypothesis']))
             elif self._task_metadata['collate_type'] == 'classification':
                 dialogue = item[0]
-                X.append(self._join_strings("context:",dialogue,self._task_metadata['prompt']))
+                X.append(self._join_strings(st.context_token,dialogue,st.endcontext_token,self._task_metadata['prompt']))
             elif self._task_metadata['collate_type'] == 'multiple_choice':
                 options_str = " ".join(f"option {i}: {option}" for i, option in enumerate(item[0]['options']))
-                X.append(self._join_strings("context:",item[0]['context'],"question:",item[0]['question'],\
-                    options_str,self._task_metadata['prompt']))
+                X.append(self._join_strings(st.context_token,item[0]['context'],st.endcontext_token,
+                                            st.question_token,item[0]['question'],\
+                                            options_str,self._task_metadata['prompt']))
             elif self._task_metadata['collate_type'] == "relation_extraction":
                 context = self._convert_dialogue_to_string(item[0]['context'])
-                X.append(self._join_strings("context:",context,f"The relation between '{item[0]['head']}' and '{item[0]['tail']}' is:"))
+                X.append(self._join_strings(st.context_token,context,st.endcontext_token,
+                                            f"The relation between '{item[0]['head']}' and '{item[0]['tail']}' is"))
             else:
                 raise NotImplementedError(f"Collate type {self._task_metadata['collate_type']} not implemented")       
             y.append(item[1])
@@ -278,19 +283,23 @@ class DailyDialog_dataset(TLiDB_Dataset):
         X, y, metadata = [], [], {}
         for item in batch:
             if self._task_metadata['collate_type'] == 'span_extraction':
-                X.append(self._join_strings("context:",item[0]['context'],item[0]['question']))
+                X.append(self._join_strings(st.context_token,item[0]['context'],st.endcontext_token,
+                                            st.question_token, item[0]['question'], st.answer_token))
             elif self._task_metadata['collate_type'] == 'nli':
-                X.append(self._join_strings(item[0]['premise'],self._task_metadata['prompt'],item[0]['hypothesis']))
+                X.append(self._join_strings(st.context_token,item[0]['premise'],st.endcontext_token,
+                                            self._task_metadata['prompt'],item[0]['hypothesis']))
             elif self._task_metadata['collate_type'] == 'classification':
                 dialogue = item[0]
-                X.append(self._join_strings("context:",dialogue,self._task_metadata['prompt']))
+                X.append(self._join_strings(st.context_token,dialogue,st.endcontext_token,self._task_metadata['prompt']))
             elif self._task_metadata['collate_type'] == 'multiple_choice':
                 options_str = " ".join(f"option {i}: {option}" for i, option in enumerate(item[0]['options']))
-                X.append(self._join_strings("context:",item[0]['context'],"question:",item[0]['question'],\
-                    options_str,self._task_metadata['prompt']))
+                X.append(self._join_strings(st.context_token,item[0]['context'],st.endcontext_token,
+                                            st.question_token,item[0]['question'],\
+                                            options_str,self._task_metadata['prompt']))
             elif self._task_metadata['collate_type'] == "relation_extraction":
                 context = self._convert_dialogue_to_string(item[0]['context'])
-                X.append(self._join_strings("context:",context,f"The relation between '{item[0]['head']}' and '{item[0]['tail']}' is:"))
+                X.append(self._join_strings(st.context_token,context, st.endcontext_token,
+                                            f"The relation between '{item[0]['head']}' and '{item[0]['tail']}' is"))
             else:
                 raise NotImplementedError(f"Collate type {self._task_metadata['collate_type']} not implemented")       
             y.append(item[1])

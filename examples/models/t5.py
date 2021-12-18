@@ -6,8 +6,7 @@ import torch
 class T5(TLiDB_model):
     def __init__(self, config):
         super().__init__(config)
-        self.tokenizer = T5Tokenizer.from_pretrained(config.model)
-        self.model = T5ForConditionalGeneration.from_pretrained(config.model)
+        self.tokenizer, self.model = initialize_model(config)
         self.layers = {"model":self.model}
         self.init_weights()
 
@@ -45,15 +44,16 @@ class T5(TLiDB_model):
         label_ids[label_ids == self.tokenizer.pad_token_id] = -100
         return label_ids
 
-    # Not used
-    # def greedy_decode_logits(self, logits):
-    #     assert logits.dim() > 1
-    #     pred_tokens = logits.argmax(-1)
-    #     return pred_tokens
-
     def generate(self, input_ids, **kwargs):
         pred_tokens = self.model.generate(input_ids=input_ids, **kwargs)
         return pred_tokens
 
     def batch_decode(self, tokens):
         return self.tokenizer.batch_decode(tokens, skip_special_tokens=True)
+
+def initialize_model(config):
+    tokenizer = T5Tokenizer.from_pretrained(config.model)
+    tokenizer.add_tokens(config.special_tokens)
+    model = T5ForConditionalGeneration.from_pretrained(config.model)
+    model.resize_token_embeddings(len(tokenizer))
+    return tokenizer, model

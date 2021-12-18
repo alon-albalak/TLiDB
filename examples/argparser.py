@@ -27,6 +27,7 @@ def parse_args():
 
     # model args
     parser.add_argument("--model", type=str)
+    parser.add_argument("--special_tokens", default=None)
     
     # training args
     parser.add_argument("--do_train", action="store_true")
