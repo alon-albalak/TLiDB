@@ -18,6 +18,7 @@ def parse_args():
 
     # configs for experimentation ease
     parser.add_argument("--model_config",type=str, default=None)
+    parser.add_argument("--num_workers", type=int, default=4)
 
     # general args
     parser.add_argument("--cpu_only", action="store_true")
@@ -94,6 +95,10 @@ def parse_args():
         setattr(args, "device", "cuda" if torch.cuda.is_available() else "cpu")
     else:
         setattr(args, "device", "cpu")
+
+    if args.num_workers > 1:
+        import os
+        os.environ['TOKENIZERS_PARALLELISM'] = "true"
 
     assert(not(args.model in incompatible_with_fp16 and args.fp16)), f"Cannot use fp16 with model {args.model}"
 

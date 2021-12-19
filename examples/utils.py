@@ -26,7 +26,7 @@ def load_datasets_split(split, tasks, datasets, config):
             continue
 
         split_datasets["datasets"].append(cur_dataset)
-        split_datasets["loaders"].append(get_data_loader(cur_dataset, config.gpu_batch_size, config, collate_fn=cur_dataset.collate))
+        split_datasets["loaders"].append(get_data_loader(cur_dataset, config.gpu_batch_size, config, collate_fn=cur_dataset.collate, num_workers=config.num_workers))
         split_datasets["metrics"].append(get_metric_computer(cur_dataset.metrics, **cur_dataset.metric_kwargs))
     return split_datasets
 

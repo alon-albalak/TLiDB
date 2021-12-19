@@ -16,6 +16,8 @@ def get_train_loader(dataset, batch_size, config, **loader_kwargs):
         # Encoder-only models split multiple choice into num_choices samples
         #   so we need to downscale the batch_size accordingly
         batch_size = batch_size // dataset.task_metadata['num_choices']
+    if loader_kwargs['num_workers'] > 1:
+        loader_kwargs['pin_memory'] = True
     return DataLoader(dataset, batch_size=batch_size, shuffle=True, **loader_kwargs)
 
 def get_eval_loader(dataset, batch_size, config, **loader_kwargs):
@@ -32,6 +34,8 @@ def get_eval_loader(dataset, batch_size, config, **loader_kwargs):
         # Encoder-only models split multiple choice into num_choices samples
         #   so we need to downscale the batch_size accordingly
         batch_size = batch_size // dataset.task_metadata['num_choices']
+    if loader_kwargs['num_workers'] > 1:
+        loader_kwargs['pin_memory'] = True
     return DataLoader(dataset, batch_size=batch_size, shuffle=False, **loader_kwargs)
 
 def get_loader(split):
