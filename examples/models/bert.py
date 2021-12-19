@@ -144,9 +144,7 @@ def initialize_model(config):
     if config.model in ["bert-base-uncased"]:
         from transformers import BertModel, BertTokenizerFast
         tokenizer = BertTokenizerFast.from_pretrained(config.model)
-        tokenizer.add_tokens(config.special_tokens)
         model = BertModel.from_pretrained(config.model)
-        model.resize_token_embeddings(len(tokenizer))
         return tokenizer, model
     else:
         raise ValueError(f"Unsupported BERT model: {config.model}")

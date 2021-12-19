@@ -55,7 +55,6 @@ class T5(TLiDB_model):
 
 def initialize_model(config):
     tokenizer = T5Tokenizer.from_pretrained(config.model)
-    tokenizer.add_tokens(config.special_tokens)
     model = T5ForConditionalGeneration.from_pretrained(config.model)
     model.resize_token_embeddings(len(tokenizer))
     return tokenizer, model

@@ -65,8 +65,7 @@ def initialize_model(config):
         return tokenizer, model
     else:
         from transformers import GPT2LMHeadModel, GPT2TokenizerFast
-        tokenizer = GPT2TokenizerFast.from_pretrained(config.model, pad_token='<|pad|>',
-                                                      additional_special_tokens=config.special_tokens)
+        tokenizer = GPT2TokenizerFast.from_pretrained(config.model, pad_token='<|pad|>')
         model = GPT2LMHeadModel.from_pretrained(config.model)
         model.config.pad_token_id = tokenizer.pad_token_id
         model.resize_token_embeddings(len(tokenizer))
