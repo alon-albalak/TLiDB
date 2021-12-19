@@ -32,7 +32,8 @@ class GPT2(TLiDB_model):
 
     def transform_LM_inputs(self, inputs, outputs):
         """Only tokenizes inputs"""
-        tokenized_inputs = self.tokenizer([" ".join([i,o])+self.tokenizer.eos_token for i,o in zip(inputs,outputs)], padding="longest",truncation=True, return_tensors="pt")
+        tokenized_inputs = self.tokenizer([" ".join([i,o])+self.tokenizer.eos_token for i,o in zip(inputs,outputs)],
+                                        padding="longest",pad_to_multiple_of=8,truncation=True, return_tensors="pt")
         labels = tokenized_inputs.input_ids.detach().clone()
         # replace pad tokens by -100
         labels[labels == self.tokenizer.pad_token_id] = -100
@@ -40,7 +41,8 @@ class GPT2(TLiDB_model):
 
     def transform_generation_inputs(self, inputs):
         self.tokenizer.padding_side = "left"
-        tokenized_inputs = self.tokenizer(inputs, padding="longest", truncation=True, return_tensors="pt")
+        tokenized_inputs = self.tokenizer(inputs, padding="longest", pad_to_multiple_of=8,
+                                        truncation=True, return_tensors="pt")
         self.tokenizer.padding_side = "right"
         return tokenized_inputs
 

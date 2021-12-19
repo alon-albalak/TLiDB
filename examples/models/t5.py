@@ -33,12 +33,14 @@ class T5(TLiDB_model):
 
     def transform_inputs(self, inputs):
         """Only tokenizes inputs"""
-        tokenized_inputs = self.tokenizer(inputs, padding="longest",truncation=True, return_tensors="pt")
+        tokenized_inputs = self.tokenizer(inputs, padding="longest", pad_to_multiple_of=8,
+                                        truncation=True, return_tensors="pt")
         return tokenized_inputs
 
     def transform_outputs(self, outputs):
         """tokenizes outputs"""
-        tokenized_outputs = self.tokenizer(outputs, padding="longest", truncation=True, return_tensors="pt")
+        tokenized_outputs = self.tokenizer(outputs, padding="longest", pad_to_multiple_of=8,
+                                        truncation=True, return_tensors="pt")
         # replace pad tokens by -100
         label_ids = tokenized_outputs.input_ids
         label_ids[label_ids == self.tokenizer.pad_token_id] = -100
