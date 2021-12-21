@@ -3,7 +3,7 @@ from .algorithm import Algorithm
 import torch
 
 
-class Seq2SeqAlgorithm(Algorithm):
+class EncoderDecoderAlgorithm(Algorithm):
     def __init__(self, config, datasets):
         super().__init__(config, datasets)
         self.generation_config = config.generation_config
