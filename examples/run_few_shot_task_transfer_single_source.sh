@@ -7,7 +7,7 @@ GPU_BATCH_SIZE=$4
 FEW_SHOT_PERCENT=$5
 
 if [ $MODEL == 'bert' ]; then
-    NUM_EPOCHS=20
+    NUM_EPOCHS=10
 else
     NUM_EPOCHS=20
 fi
