@@ -52,13 +52,13 @@ tasks=(
     'adversarial_response_selection'
     )
 
-SEEDS = (
+SEEDS=(
     42
     100
     333
     2000
     1234
-)
+    )
 
 for seed in ${SEEDS[@]}; do
     train_eval_source $seed
