@@ -36,10 +36,14 @@ def load_dataset(name, dataset_folder, url):
 
     return ds
 
-def load_split_ids(name, dataset_folder, split):
+def load_split_ids(name, dataset_folder, split, few_shot_percent=None):
     if f"TLiDB_{name}" not in os.listdir(dataset_folder):
         raise ValueError("Dataset not found")
-    with open(f"{dataset_folder}/TLiDB_{name}/TTiDB_{split}_ids.txt") as f:
+    if few_shot_percent and split!="test":
+        ids_file = f"{dataset_folder}/TLiDB_{name}/TTiDB_{few_shot_percent}_percent_few_shot_{split}_ids.txt"
+    else:
+        ids_file = f"{dataset_folder}/TLiDB_{name}/TTiDB_{split}_ids.txt"
+    with open(ids_file) as f:
         ids = f.read().splitlines()
     return ids
 
@@ -69,8 +73,8 @@ class TLiDB_Dataset(Dataset):
             self._collate = self._collate_encoder
         elif model_type == "Decoder":
             self._collate = self._collate_decoder
-        elif model_type == "Seq2Seq":
-            self._collate = self._collate_seq2seq
+        elif model_type == "EncoderDecoder":
+            self._collate = self._collate_encoderdecoder
         else:
             raise ValueError(f"{model_type} is not a valid algorithm type")
 
@@ -171,7 +175,7 @@ class TLiDB_Dataset(Dataset):
     def _collate_decoder(self, batch):
         return NotImplementedError
 
-    def _collate_seq2seq(self, batch):
+    def _collate_encoderdecoder(self, batch):
         return NotImplementedError
 
     def __len__(self):

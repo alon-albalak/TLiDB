@@ -55,7 +55,7 @@ def parse_args():
 
     # TTiDB args
     parser.add_argument("--cotraining", action="store_true")
-    parser.add_argument("--few_shot", action="store_true")
+    parser.add_argument("--few_shot_percent", type=float, default=None)
     
     # algorithm args
     parser.add_argument("--optimizer", type=str, default="Adam")
@@ -85,7 +85,7 @@ def parse_args():
         setattr(args, "generation_config", configs.GPT2_generation_config)
     elif "t5" in args.model:
         setattr(args, "output_type", "token")
-        setattr(args, "model_type", "Seq2Seq")
+        setattr(args, "model_type", "EncoderDecoder")
         setattr(args, "generation_config", configs.t5_generation_config)
     else:
         raise ValueError(f"Model {args.model} not supported")

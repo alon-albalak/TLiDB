@@ -85,7 +85,7 @@ class DailyDialog_dataset(TLiDB_Dataset):
             "collate_type":"multiple_choice", "num_choices":3
         }
     }
-    def __init__(self, task, dataset_folder, model_type, split):
+    def __init__(self, task, dataset_folder, model_type, split, few_shot_percent=None):
         assert task in self._tasks, f"{task} is not a valid task for {self._dataset_name}"
         super().__init__(self._dataset_name, task, model_type, dataset_folder=dataset_folder)
         self._task_metadata = self._task_metadatas[task]
@@ -93,7 +93,7 @@ class DailyDialog_dataset(TLiDB_Dataset):
         self._y_array = []
         self._metadata_fields = []
         self._metadata_array = []
-        split_ids = load_split_ids(self._dataset_name, dataset_folder, split)
+        split_ids = load_split_ids(self._dataset_name, dataset_folder, split, few_shot_percent)
         self._load_data(task, split_ids)
         self._num_classes = len(self.task_labels)
         self._y_size = len(self._y_array)
@@ -277,7 +277,7 @@ class DailyDialog_dataset(TLiDB_Dataset):
             metadata['labels'] = labels
         return X, y, metadata
 
-    def _collate_seq2seq(self, batch):
+    def _collate_encoderdecoder(self, batch):
         X, y, metadata = [], [], {}
         for item in batch:
             if self._task_metadata['collate_type'] == 'span_extraction':

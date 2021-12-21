@@ -32,7 +32,7 @@ def main(config):
         config.eval_tasks = config.target_tasks
 
     # create save path based only on train data
-    config.save_path_dir = get_savepath_dir(config.train_datasets, config.train_tasks, config.seed, config.log_and_model_dir, config.model, config.cotraining)
+    config.save_path_dir = get_savepath_dir(config.train_datasets, config.train_tasks, config.seed, config.log_and_model_dir, config.model, config.few_shot_percent, config.cotraining)
 
     # Initialize logs
     if os.path.exists(config.save_path_dir) and \
@@ -121,7 +121,7 @@ def main(config):
         best_val_metric = None
 
         # update save path with fine-tuning details
-        config.save_path_dir = append_to_save_path_dir(config.save_path_dir, config.finetune_datasets, config.finetune_tasks, config.seed)
+        config.save_path_dir = append_to_save_path_dir(config.save_path_dir, config.finetune_datasets, config.finetune_tasks, config.few_shot_percent, config.seed)
         
         # note the fine-tuning in the pretrained model log
         logger.write(f"FINETUNING at {config.save_path_dir}\n")
@@ -155,7 +155,7 @@ def main(config):
             config.save_path_dir = config.saved_model_dir
         elif (config.finetune_datasets and config.finetune_tasks) and (config.train_datasets and config.train_tasks):
             # Given all the datasets and tasks, we can infer the path to the fine-tuned model
-            config.save_path_dir = append_to_save_path_dir(config.save_path_dir, config.finetune_datasets, config.finetune_tasks, config.seed)
+            config.save_path_dir = append_to_save_path_dir(config.save_path_dir, config.finetune_datasets, config.finetune_tasks, config.few_shot_percent, config.seed)
         else:
             raise ValueError("To run evaluation, use:\n--saved_model_dir to specify the model to evaluate OR\
                 \n--finetune_datasets and --finetune_tasks and --train_datasets and --train_tasks to infer the path to the model")

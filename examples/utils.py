@@ -17,7 +17,8 @@ def load_datasets_split(split, tasks, datasets, config):
     split_datasets = {"datasets":[], "loaders":[], "metrics":[]}
     get_data_loader = get_loader(split)
     for t, d in zip(tasks, datasets):
-        cur_dataset = get_dataset(dataset=d,task=t,model_type=config.model_type,split=split)
+        cur_dataset = get_dataset(dataset=d,task=t,model_type=config.model_type,
+                            split=split,few_shot_percent=config.few_shot_percent)
         if config.frac < 1.0:
             cur_dataset.random_subsample(config.frac)
         # TODO: remove this when done debugging
@@ -86,10 +87,12 @@ def set_seed(seed):
         np.random.seed(seed)
         torch.manual_seed(seed)
 
-def get_savepath_dir(datasets, tasks, seed, log_dir, model, cotraining=False):
+def get_savepath_dir(datasets, tasks, seed, log_dir, model, few_shot_percent, cotraining=False):
     prefix = "PRETRAINED_"
     if cotraining:
         prefix = "COTRAINED_"
+    if few_shot_percent:
+        prefix += f"{few_shot_percent}_FEWSHOT_"
     for dataset,task in zip(datasets, tasks):
         prefix += f"{dataset}.{task}_"
     if seed > -1:
@@ -100,8 +103,10 @@ def get_savepath_dir(datasets, tasks, seed, log_dir, model, cotraining=False):
     prefix = os.path.join(log_dir, prefix[:-1], model)
     return prefix
 
-def append_to_save_path_dir(save_path_dir, datasets, tasks, seed):
+def append_to_save_path_dir(save_path_dir, datasets, tasks, few_shot_percent, seed):
     postfix = "FINETUNED_"
+    if few_shot_percent:
+        postfix += f"{few_shot_percent}_FEWSHOT_"
     for dataset,task in zip(datasets, tasks):
         postfix += f"{dataset}.{task}_"
     if seed > -1:
