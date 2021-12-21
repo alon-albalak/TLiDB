@@ -4,6 +4,7 @@ GPU=$1
 SOURCE_TASK=$2
 MODEL=$3
 GPU_BATCH_SIZE=$4
+FEW_SHOT_PERCENT=$5
 
 if [ $MODEL == 'bert' ]; then
     NUM_EPOCHS=20
@@ -20,7 +21,8 @@ train_eval_source(){
         --do_train \
         --source_tasks $SOURCE_TASK --source_datasets DailyDialog \
         --num_epochs=$NUM_EPOCHS \
-        --do_eval --eval_best --target_tasks $SOURCE_TASK --target_datasets DailyDialog
+        --do_eval --eval_best --target_tasks $SOURCE_TASK --target_datasets DailyDialog \
+        --few_shot_percent=$FEW_SHOT_PERCENT
 }
 
 finetune_eval_target(){
@@ -35,7 +37,8 @@ finetune_eval_target(){
         --do_finetune \
         --target_tasks $TARGET_TASK --target_datasets DailyDialog \
         --num_epochs=$NUM_EPOCHS \
-        --do_eval --eval_best
+        --do_eval --eval_best \
+        --few_shot_percent=$FEW_SHOT_PERCENT
 }
 
 
