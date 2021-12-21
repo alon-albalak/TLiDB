@@ -90,7 +90,7 @@ class clinc150_dataset(TLiDB_Dataset):
             metadata['labels'] = labels
         return X,y, metadata
 
-    def _collate_seq2seq(self, batch):
+    def _collate_encoderdecoder(self, batch):
         X,y, metadata = [], [], {}
         for item in batch:
             X.append(item[0])
