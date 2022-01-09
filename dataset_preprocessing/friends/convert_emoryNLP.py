@@ -3,7 +3,8 @@
 import os
 import json
 import glob
-import re
+from tqdm import tqdm
+from utils import untokenize, remove_notes_from_utt, OPENERS, CLOSERS
 
 SEASON_ID = 'season_id'
 EPISODES = 'episodes'
@@ -19,29 +20,19 @@ TRANSCRIPT_WITH_NOTE = 'transcript_with_note'
 TOKENS = 'tokens'
 TOKENS_WITH_NOTE = 'tokens_with_note'
 
+# reading comprehension
+RC_ENTITIES = 'rc_entities'
+PLOTS = 'plots'
+P_ENT = 'p_ent'
+U_ENT = 'u_ent'
+S_ENT = 's_ent'
+QUERY = 'query'
+ANSWER = 'answer'
+PLACEHOLDER = "[PLACEHOLDER]"
+
+
 emo_dict = {"0": 'Joyful', "1": 'Mad',"2": 'Neutral', "3": 'Peaceful',
             "4": 'Powerful', "5": 'Sad', "6": 'Scared'}
-
-def untokenize(words):
-    """
-    Untokenizing a text undoes the tokenizing operation, restoring
-    punctuation and spaces to the places that people expect them to be.
-    Ideally, `untokenize(tokenize(text))` should be identical to `text`,
-    except for line breaks.
-    """
-    text = ' '.join(words)
-    step1 = text.replace("。",".").replace("’","'").replace("`` ", '"').replace(" ''", '"').replace('. . .', '...').replace(" ` ", " '").replace(" ,",",")
-    step2 = step1.replace("( ","(").replace(" ( ", " (").replace(" )", ")").replace(" ) ", ") ").replace(" -- ", " - ").replace("—","-").replace("–","-").replace('”','"').replace('“','"').replace("‘","'").replace("’","'")
-    step3 = re.sub(r' ([.,:;?!%]+)([ \'"`])', r"\1\2", step2)
-    step4 = re.sub(r' ([.,:;?!%]+)$', r"\1", step3)
-    step5 = re.sub(r'(?<=[.,])(?=[^\s])', r' ', step4)
-    step6 = step5.replace(" '", "'").replace(" n't", "n't").replace("n' t", "n't").replace("t' s","t's").replace("' ll", "'ll").replace("I' m", "I'm").replace(
-        "can not", "cannot").replace("I' d", "I'd").replace("' re", "'re").replace("t ' s", "t's").replace("e' s", "e's")
-    step7 = re.sub(r'\$\s(\d)', r'$\1', step6)
-    step8 = re.sub(r'(\d),\s?(\d\d\d)', r'\1,\2', step7)
-    step9 = re.sub(r'(\d.) (\d\%)', r'\1\2', step8)
-    step10 = step9.replace("? !", "?!").replace("! !", "!!").replace("! ?", "!?").replace("n'y","n't").replace('yarning','yawning').replace(" om V", " on V")
-    return step10.strip()
 
 def general_stats(json_dir):
     def stats(json_file):
@@ -90,22 +81,162 @@ def general_stats(json_dir):
         print('\t'.join(map(str, l)))
     print('All speakers: %s' % (len(g_speaker_list)))
 
-def add_character_identification(formatted_data):
-    def get_entities(entity_list):
-        return [entity for entity in entity_list if entity[-1] != "Non-Entity"]
+def is_sublist(l1, l2):
+    # check if l1 is a sublist of l2 after removing notes from l2
+    l2_no_note = remove_notes_from_utt(l2)
+    if l1 == l2_no_note:
+        return True
 
-    pass
+    return False
 
-def add_emotion_detection(formatted_data):
-    pass
+def shift_entity_indices_for_notes(entities, tokens_with_notes):
+    if not entities:
+        return
+    note_starts = [i for i, x in enumerate(tokens_with_notes) if any(opener in x for opener in OPENERS)]
+    note_ends = [i for i, x in enumerate(tokens_with_notes) if any(closer in x for closer in CLOSERS)]
+    if note_starts:
+        assert(len(note_starts) == len(note_ends))
+        assert(
+            all([note_starts[i] < note_ends[i] for i in range(len(note_starts))]) and \
+            all([note_starts[i+1] > note_ends[i] for i in range(0, len(note_starts)-1)])
+            )
 
-def add_reading_comprehension(formatted_data):
-    pass
+        for s, e in zip(note_starts, note_ends):
+            note_length = e - s + 1
+            for entity in entities:
+                if entity[0] >= s:
+                    entity[0] += note_length
+                    entity[1] += note_length
+
+def unify_tokens_entities_with_notes(tokens, tokens_with_notes, entities):
+
+    for i in range(len(tokens_with_notes)):
+
+        if i >= len(tokens):
+            tokens.append([])
+            entities.append([])
+        elif tokens_with_notes[i] != tokens[i]:
+
+            # if utterance has a note, shift entity indices
+            if is_sublist(tokens[i], tokens_with_notes[i]):
+                shift_entity_indices_for_notes(entities[i], tokens_with_notes[i])
+
+            # if utterance is only a note, add empty entries for tokens, entities
+            else:
+                tokens.insert(i, [])
+                entities.insert(i, [])
+
+    return tokens, entities
+
+def get_entities(entity_list, tokens, tokens_with_note):
+    if tokens_with_note and tokens != tokens_with_note:
+        tokens, entity_list = unify_tokens_entities_with_notes(tokens, tokens_with_note, entity_list)
+
+    utterance_list = tokens_with_note or tokens
+    entities = []
+    utt_len = 0
+    for e_list, u_list in zip(entity_list, utterance_list):
+        utt = untokenize(u_list)
+        if e_list:
+            # track entity references so we don't duplicate them, 
+            #    e.g. if we have 'I' multiple times in an utterance
+            seen_entities = {}
+
+            for e in e_list:
+                # get the original string for this entity
+                ent_reference = untokenize(u_list[e[0]:e[1]])
+
+                # if we've already seen this entity, find it starting from the previously seen index
+                if ent_reference in seen_entities:
+                    # start = utt.find(ent_reference, seen_entities[ent_reference])+utt_len
+                    in_utt_start = utt.find(ent_reference, seen_entities[ent_reference])
+                else:
+                    # start = utt.find(ent_reference)+utt_len
+                    in_utt_start = utt.find(ent_reference)
+
+                global_start = in_utt_start + utt_len
+                
+                # ensure that the entity in the original list, and the created string are the same
+                found_ent = ' '.join([untokenize(u) for u in utterance_list])[global_start:global_start+len(ent_reference)]
+                if found_ent != ent_reference:
+                    a=1
+                    full = ' '.join([untokenize(u) for u in utterance_list])
+                    partial = full[global_start:]
+                    found_ent = ' '.join([untokenize(u) for u in utterance_list])[global_start:global_start+len(ent_reference)]
+
+                entities.append({
+                    'entity': e[2],
+                    'start': global_start,
+                    'entity_reference': ent_reference,
+                })
+
+                seen_entities[ent_reference] = in_utt_start + len(ent_reference)
+
+        utt_len += len(utt) + 1
+
+    return entities
+
+def get_reading_comprehension_annotations(plots, dialogue_entities):
+    annotations = []
+    for i, passage in enumerate(plots):
+        passage_entities = {}
+        for ent, index_list in dialogue_entities.items():
+            for index in index_list[P_ENT]:
+                if i == index[0]:
+                    passage_entities[ent] = [index[1], index[2]]
+        
+        for ent in passage_entities:
+            ent_start = passage_entities[ent][0]
+            ent_end = passage_entities[ent][1]
+            masked_passage = []
+            masked = False
+            for j, token in enumerate(passage.split(" ")):
+                if j >= ent_start and j < ent_end:
+                    if not masked:
+                        masked_passage.append(PLACEHOLDER)
+                        masked = True
+                    continue
+                else:
+                    masked_passage.append(token)
+            
+            annotations.append({
+                "query": untokenize(masked_passage),
+                "answer": ent
+            })
+
+    return annotations
+
+def combine_notes(tokens_with_notes):
+    open = 0
+    open_utterances = []
+    for i in range(len(tokens_with_notes)):
+        for t in tokens_with_notes[i]:
+            if any(opener in t for opener in OPENERS):
+                open += 1
+            if any(closer in t for closer in CLOSERS):
+                open -= 1
+        if open > 0:
+            open_utterances.append(i)
+
+    # for each open note, add the next note
+    for i in open_utterances[::-1]:
+        try:
+            tokens_with_notes[i].extend(tokens_with_notes[i+1])
+            del tokens_with_notes[i+1]
+        except IndexError:
+            # some notes have an opener without a closer
+            if not any(closer in tokens_with_notes[i][-1] for closer in CLOSERS):
+                closed = False
+                for j, opener in enumerate(OPENERS):
+                    if opener in tokens_with_notes[i]:
+                        tokens_with_notes[i].append(CLOSERS[j])
+                        closed = True
+                        break
+                assert(closed), "Unable to resolve unbalanced parentheses"
 
 def convert_season_dialogues(season_raw, formatted_data):
     # For each dialogue, format the dialogue with speakers and a turn id
-
-    for episode in season_raw[EPISODES]:
+    for episode in tqdm(season_raw[EPISODES], desc = season_raw[SEASON_ID]):
         for scene in episode[SCENES]:
             scene_id = scene[SCENE_ID]
             formatted_datum = {
@@ -114,7 +245,30 @@ def convert_season_dialogues(season_raw, formatted_data):
                 "dialogue": [],
             }
             turn_id = 0
+
+            # Add formatted turn along with turn-level task annotations
             for utterance in scene[UTTERANCES]:
+
+                # fix specific utterances
+                if utterance['utterance_id'] == "s02_e14_c01_u004":
+                    utterance[TOKENS][2].append("]")
+                if utterance['utterance_id'] == "s04_e03_c07_u005":
+                    utterance[TOKENS_WITH_NOTE][0].append(")")
+                if utterance['utterance_id'] == "s04_e23_c02_u038":
+                    utterance[TOKENS_WITH_NOTE][0].append(")")
+                if utterance['utterance_id'] == "s05_e14_c09_u001":
+                    utterance[TOKENS_WITH_NOTE][1].append("]")
+                if utterance['utterance_id'] == "s06_e14_c06_u037":
+                    utterance[TOKENS_WITH_NOTE][1].append(")")
+                if utterance['utterance_id'] == "s06_e14_c08_u015":
+                    utterance[TOKENS_WITH_NOTE][1].append(")")
+                if utterance['utterance_id'] == "s07_e21_c05_u037":
+                    utterance[TOKENS_WITH_NOTE][1].append(")")
+
+                # combine notes that were broken into multiple lines
+                if utterance[TOKENS_WITH_NOTE]:
+                    combine_notes(utterance[TOKENS_WITH_NOTE])
+
                 speakers = utterance[SPEAKERS]
                 tokens = utterance[TOKENS_WITH_NOTE] if utterance[TOKENS_WITH_NOTE] else utterance[TOKENS]
                 utt = ' '.join([untokenize(u) for u in tokens])
@@ -124,13 +278,30 @@ def convert_season_dialogues(season_raw, formatted_data):
                     "speaker": speakers,
                     "utterance": utt,
                 }
+
+                # get emotion annotations
+                if utterance[TOKENS] and 'emotion' in utterance:
+                    formatted_turn['emotion_recognition'] = utterance['emotion'][0]
+
+                # get character identification annotations
+                if utterance[TOKENS] and 'character_entities' in utterance:
+                    formatted_turn['character_identification'] = get_entities(utterance['character_entities'], utterance[TOKENS], utterance[TOKENS_WITH_NOTE])
+
                 formatted_datum["dialogue"].append(formatted_turn)
                 turn_id += 1
-            formatted_data['data'].append(formatted_datum)
 
+            # add dialogue level task annotations
+            if PLOTS in scene and scene[PLOTS]:
+                formatted_datum['reading_comprehension'] = get_reading_comprehension_annotations(scene[PLOTS], scene[RC_ENTITIES])
+
+            formatted_data['data'].append(formatted_datum)
 
 emoryNLP_dir = "emoryNLP"
 general_stats(emoryNLP_dir)
+
+TLiDB_path="TLiDB_Friends"
+if not os.path.isdir(TLiDB_path):
+    os.mkdir(TLiDB_path)
 
 formatted_data = {
     "metadata": {
@@ -161,3 +332,6 @@ formatted_data = {
 for json_file in sorted(glob.glob(os.path.join(emoryNLP_dir, '*.json'))):
     season_raw = json.load(open(json_file))
     convert_season_dialogues(season_raw, formatted_data)
+
+with open(os.path.join(TLiDB_path, 'TLiDB_Friends.json'), 'w') as f:
+    json.dump(formatted_data, f, indent=4)

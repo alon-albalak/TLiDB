@@ -16,14 +16,14 @@ readonly emoryNLP_10_URL='https://raw.githubusercontent.com/emorynlp/character-m
 readonly emoryNLP_DIR="${THIS_DIR}/emoryNLP"
 
 # emoryNLP friends emotion recognition dataset
-readonly ER_TRAIN_URL='https://raw.githubusercontent.com/emorynlp/emotion-detection/master/json/emotion-detection-trn.json'
-readonly ER_DEV_URL='https://raw.githubusercontent.com/emorynlp/emotion-detection/master/json/emotion-detection-dev.json'
-readonly ER_TEST_URL='https://raw.githubusercontent.com/emorynlp/emotion-detection/master/json/emotion-detection-tst.json'
+# readonly ER_TRAIN_URL='https://raw.githubusercontent.com/emorynlp/emotion-detection/master/json/emotion-detection-trn.json'
+# readonly ER_DEV_URL='https://raw.githubusercontent.com/emorynlp/emotion-detection/master/json/emotion-detection-dev.json'
+# readonly ER_TEST_URL='https://raw.githubusercontent.com/emorynlp/emotion-detection/master/json/emotion-detection-tst.json'
 
-# emoryNLP friends reading comprehension dataset
-readonly RC_TRAIN_URL='https://raw.githubusercontent.com/emorynlp/reading-comprehension/master/json/reading-comprehension-trn.json'
-readonly RC_DEV_URL='https://raw.githubusercontent.com/emorynlp/reading-comprehension/master/json/reading-comprehension-dev.json'
-readonly RC_TEST_URL='https://raw.githubusercontent.com/emorynlp/reading-comprehension/master/json/reading-comprehension-tst.json'
+# # emoryNLP friends reading comprehension dataset
+# readonly RC_TRAIN_URL='https://raw.githubusercontent.com/emorynlp/reading-comprehension/master/json/reading-comprehension-trn.json'
+# readonly RC_DEV_URL='https://raw.githubusercontent.com/emorynlp/reading-comprehension/master/json/reading-comprehension-dev.json'
+# readonly RC_TEST_URL='https://raw.githubusercontent.com/emorynlp/reading-comprehension/master/json/reading-comprehension-tst.json'
 
 # emoryNLP friends question answering dataset
 readonly QA_TRAIN_URL='https://raw.githubusercontent.com/emorynlp/FriendsQA/master/dat/friendsqa_trn.json'
@@ -54,23 +54,19 @@ function main() {
    fetch_file "${emoryNLP_9_URL}" "${emoryNLP_DIR}/friends_season_09.json" "EmoryNLP Friends Season 9"
    fetch_file "${emoryNLP_10_URL}" "${emoryNLP_DIR}/friends_season_10.json" "EmoryNLP Friends Season 10"
 
+   # convert original emoryNLP files into TLiDB format w/ 
+   #      emotion recognition and reading comprehension datasets
+   python3 convert_emoryNLP.py
+
     # Do not delete this file, it takes a long time to download
     # fetch_file "${MELD_URL}" "${MELD_FILE}" 'MELD Data'
     # extract_tar "${MELD_FILE}" "${MELD_DIR}" 'MELD Data'
 
-    fetch_file "${ER_TRAIN_URL}" "emory_emotion_detection_train.json" 'EmoryNLP Friends Emotion Recognition Dataset'
-    fetch_file "${ER_DEV_URL}" "emory_emotion_detection_dev.json" 'EmoryNLP Friends Emotion Recognition Dataset'
-    fetch_file "${ER_TEST_URL}" "emory_emotion_detection_test.json" 'EmoryNLP Friends Emotion Recognition Dataset'
-
-    fetch_file "${RC_TRAIN_URL}" "emory_reading_comprehension_train.json" 'EmoryNLP Friends Reading Comprehension Dataset'
-    fetch_file "${RC_DEV_URL}" "emory_reading_comprehension_dev.json" 'EmoryNLP Friends Reading Comprehension Dataset'
-    fetch_file "${RC_TEST_URL}" "emory_reading_comprehension_test.json" 'EmoryNLP Friends Reading Comprehension Dataset'
-
-    fetch_file "${QA_TRAIN_URL}" "emory_question_answering_train.json" 'EmoryNLP Friends Question Answering Dataset'
-    fetch_file "${QA_DEV_URL}" "emory_question_answering_dev.json" 'EmoryNLP Friends Question Answering Dataset'
-    fetch_file "${QA_TEST_URL}" "emory_question_answering_test.json" 'EmoryNLP Friends Question Answering Dataset'
-
-    # python3 convert_friends_ER.py
+   # download emoryNLP Question Answering dataset
+   fetch_file "${QA_TRAIN_URL}" "emory_question_answering_train.json" 'EmoryNLP Friends Question Answering Dataset'
+   fetch_file "${QA_DEV_URL}" "emory_question_answering_dev.json" 'EmoryNLP Friends Question Answering Dataset'
+   fetch_file "${QA_TEST_URL}" "emory_question_answering_test.json" 'EmoryNLP Friends Question Answering Dataset'
+   python3 add_friends_QA_annotations.py
 
 }
 
