@@ -10,23 +10,24 @@ def untokenize(words):
     Ideally, `untokenize(tokenize(text))` should be identical to `text`,
     except for line breaks.
     """
+
+    # standardize long pauses to "..."
+    for i in range(len(words)):
+        match = re.sub(r'\.{2,}', r'...', words[i])
+        if match != words[i]:
+            words[i] = match
+
     text = ' '.join(words)
     step1 = text.replace("。",".").replace("’","'").replace("`` ", '"').replace(" ''", '"').replace(" ` ", " '").replace(" ,",",")
     step2 = step1.replace(" -- ", " - ").replace("—","-").replace("–","-").replace('”','"').replace('“','"').replace("‘","'").replace("’","'")
-    # step2 = step1.replace("( ","(").replace(" ( ", " (").replace(" )", ")").replace(" ) ", ") ").replace(" -- ", " - ").replace("—","-").replace("–","-").replace('”','"').replace('“','"').replace("‘","'").replace("’","'")
-    # step3 = re.sub(r' ([.,:;?!%]+)([ \'"`])', r"\1\2", step2)
-    # step4 = re.sub(r' ([.,:;?!%]+)$', r"\1", step3)
-    # step5 = re.sub(r'(?<=[.,])(?=[^\s])', r' ', step4)
-    step6 = step2.replace(" '", "'").replace(" n't", "n't").replace("n' t", "n't").replace("t' s","t's").replace("' ll", "'ll").replace("I' m", "I'm").replace(
+    step3 = step2.replace(" '", "'").replace(" n't", "n't").replace("n' t", "n't").replace("t' s","t's").replace("' ll", "'ll").replace("I' m", "I'm").replace(
         "can not", "cannot").replace("I' d", "I'd").replace("' re", "'re").replace("t ' s", "t's").replace("e' s", "e's")
-    # step7 = re.sub(r'\$\s(\d)', r'$\1', step6)
-    # step8 = re.sub(r'(\d),\s?(\d\d\d)', r'\1,\2', step7)
-    # step9 = re.sub(r'(\d.) (\d\%)', r'\1\2', step8)
-    step10 = step6.replace("? !", "?!").replace("! !", "!!").replace("! ?", "!?").replace("n'y","n't").replace('yarning','yawning').replace(" om V", " on V")
-    step11 = step10.replace('. . .', '...').replace("wan na", "wanna")
-    step12 = re.sub(r'(\S)(\.{3})', r'\1 \2', step11)
-    step13 = re.sub(r'(\.{3})(\S)', r'\1 \2', step12)
-    return step12.strip()
+    step4 = step3.replace("? !", "?!").replace("! !", "!!").replace("! ?", "!?").replace("n'y","n't").replace('yarning','yawning').replace(" om V", " on V")
+    step5 = step4.replace('. . .', '...').replace("wan na", "wanna")
+    step6 = re.sub(r'(?<=[a-zA-Z])\s+(?=[.,:;\?!])', r'', step5)
+    step7 = re.sub(r'(\S)(\.{3})', r'\1 \2', step6)
+    step8 = re.sub(r'(\.{3})(\S)', r'\1 \2', step7)
+    return step8.strip()
 
 def remove_notes_from_utt(utterance):
     new_utt = []
