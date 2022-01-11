@@ -6,6 +6,7 @@ import configs
 #   For example, learning rate, optimizer, etc.
 
 incompatible_with_fp16 = ["t5-base"]
+incompatible_with_generation = ["bert"]
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -100,5 +101,7 @@ def parse_args():
         os.environ['TOKENIZERS_PARALLELISM'] = "true"
 
     assert(not(args.model in incompatible_with_fp16 and args.fp16)), f"Cannot use fp16 with model {args.model}"
+    assert(not(args.model in incompatible_with_generation and\
+            any(['generation' in t for t in args.source_tasks+args.target_tasks]))), f"Cannot perform generation tasks with model {args.model}"
 
     return args
