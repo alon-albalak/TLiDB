@@ -334,4 +334,4 @@ for json_file in sorted(glob.glob(os.path.join(emoryNLP_dir, '*.json'))):
     convert_season_dialogues(season_raw, formatted_data)
 
 with open(os.path.join(TLiDB_path, 'TLiDB_Friends.json'), 'w') as f:
-    json.dump(formatted_data, f, indent=4)
+    json.dump(formatted_data, f, indent=2)

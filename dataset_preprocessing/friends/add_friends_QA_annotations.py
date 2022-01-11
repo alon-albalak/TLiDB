@@ -163,4 +163,4 @@ for p in data_partitions:
     friends_data = add_QA_annotations(friends_qa_data['data'], friends_data)
 
 with open(TLiDB_path, 'w') as f:
-    json.dump(friends_data, f, indent=4)
+    json.dump(friends_data, f, indent=2)

@@ -15,20 +15,13 @@ readonly emoryNLP_9_URL='https://raw.githubusercontent.com/emorynlp/character-mi
 readonly emoryNLP_10_URL='https://raw.githubusercontent.com/emorynlp/character-mining/master/json/friends_season_10.json'
 readonly emoryNLP_DIR="${THIS_DIR}/emoryNLP"
 
-# emoryNLP friends emotion recognition dataset
-# readonly ER_TRAIN_URL='https://raw.githubusercontent.com/emorynlp/emotion-detection/master/json/emotion-detection-trn.json'
-# readonly ER_DEV_URL='https://raw.githubusercontent.com/emorynlp/emotion-detection/master/json/emotion-detection-dev.json'
-# readonly ER_TEST_URL='https://raw.githubusercontent.com/emorynlp/emotion-detection/master/json/emotion-detection-tst.json'
-
-# # emoryNLP friends reading comprehension dataset
-# readonly RC_TRAIN_URL='https://raw.githubusercontent.com/emorynlp/reading-comprehension/master/json/reading-comprehension-trn.json'
-# readonly RC_DEV_URL='https://raw.githubusercontent.com/emorynlp/reading-comprehension/master/json/reading-comprehension-dev.json'
-# readonly RC_TEST_URL='https://raw.githubusercontent.com/emorynlp/reading-comprehension/master/json/reading-comprehension-tst.json'
-
 # emoryNLP friends question answering dataset
 readonly QA_TRAIN_URL='https://raw.githubusercontent.com/emorynlp/FriendsQA/master/dat/friendsqa_trn.json'
 readonly QA_DEV_URL='https://raw.githubusercontent.com/emorynlp/FriendsQA/master/dat/friendsqa_dev.json'
 readonly QA_TEST_URL='https://raw.githubusercontent.com/emorynlp/FriendsQA/master/dat/friendsqa_tst.json'
+
+# emoryNLP friends personality detection dataset
+readonly PD_URL='https://raw.githubusercontent.com/emorynlp/personality-detection/master/CSV/friends-personality.csv'
 
 # Emotion Recognition Dataset
 readonly MELD_URL='http://web.eecs.umich.edu/~mihalcea/downloads/MELD.Raw.tar.gz'
@@ -67,6 +60,10 @@ function main() {
    fetch_file "${QA_DEV_URL}" "emory_question_answering_dev.json" 'EmoryNLP Friends Question Answering Dataset'
    fetch_file "${QA_TEST_URL}" "emory_question_answering_test.json" 'EmoryNLP Friends Question Answering Dataset'
    python3 add_friends_QA_annotations.py
+
+   # download emoryNLP Personality Detection dataset
+   fetch_file "${PD_URL}" "emory_personality_detection.csv" 'EmoryNLP Friends Personality Detection Dataset'
+   python3 add_friends_personality_detection_annotations.py
 
 }
 
