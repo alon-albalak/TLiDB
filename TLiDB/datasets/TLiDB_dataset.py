@@ -30,7 +30,7 @@ def load_dataset(name, dataset_folder, url):
     if f"TLiDB_{name}" not in os.listdir(dataset_folder):
         assert(url is not None), "Must provide a url to download from"
         download_and_unzip(url, dataset_folder)
-        print(f"Extracted files to {dataset_folder}/{name}")
+        print(f"Extracted files to {dataset_folder}{name}")
 
     ds = load_dataset_local(name, dataset_folder)
 
@@ -61,22 +61,21 @@ class TLiDB_Dataset(Dataset):
             self.task_labels = task_metadata[task]['labels']
 
         if task == "response_generation":
-            #TODO:
-            # gather data such that _input_array contains all utterances up to the current one
-            # and _y_array contains the response
-            pass
+            self.metrics = ['token_f1']
+            self.metric_kwargs = {}
+            self._collate = self._collate_response_generation
         else:
             self.metrics = task_metadata[task]['metrics']
             self.metric_kwargs = task_metadata[task].get("metric_kwargs", dict())
 
-        if model_type == "Encoder":
-            self._collate = self._collate_encoder
-        elif model_type == "Decoder":
-            self._collate = self._collate_decoder
-        elif model_type == "EncoderDecoder":
-            self._collate = self._collate_encoderdecoder
-        else:
-            raise ValueError(f"{model_type} is not a valid algorithm type")
+            if model_type == "Encoder":
+                self._collate = self._collate_encoder
+            elif model_type == "Decoder":
+                self._collate = self._collate_decoder
+            elif model_type == "EncoderDecoder":
+                self._collate = self._collate_encoderdecoder
+            else:
+                raise ValueError(f"{model_type} is not a valid algorithm type")
 
     @property
     def dataset_name(self):
@@ -183,6 +182,36 @@ class TLiDB_Dataset(Dataset):
         Returns the length of the dataset
         """
         return len(self.y_array)
+
+    def _convert_dialogue_to_string(self, input):
+        dialogue = ""
+        for (speaker, utt) in input:
+            dialogue += f"{speaker}: {utt} "
+        return dialogue[:-1]
+
+    def _join_strings(self, *args):
+        return " ".join(args)
+
+    def _load_response_generation_task(self, task, split_ids):
+        for datum in self.dataset['data']:
+            if datum['dialogue_id'] in split_ids:
+                dialogue_str = ""
+                for turn in datum['dialogue']:
+                    dialogue_str += f"{turn['speakers'][0]}: "
+                    self._input_array.append(dialogue_str)
+                    self._y_array.append(turn['utterance'])
+                    dialogue_str += f"{turn['utterance']} "
+
+    def _collate_response_generation(self, batch):
+        X, y, metadata = [], [], {}
+        for item in batch:
+            X.append(item[0])
+            y.append(item[1])
+            for k, v in item[2].items():
+                if k not in metadata:
+                    metadata.append(k)
+                metadata[k].append(v)
+        return X, y, metadata
 
     def random_subsample(self, frac=1.0):
         """
