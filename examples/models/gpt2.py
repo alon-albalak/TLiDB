@@ -37,6 +37,7 @@ class GPT2(TLiDB_model):
         labels = tokenized_inputs.input_ids.detach().clone()
         # replace pad tokens by -100
         labels[labels == self.tokenizer.pad_token_id] = -100
+        #FIXME: check if token_type_ids are needed (divided by speakers)?
         return tokenized_inputs, labels
 
     def transform_generation_inputs(self, inputs):
@@ -51,6 +52,7 @@ class GPT2(TLiDB_model):
         input_size = X.input_ids.shape[-1]
         outputs = self.model.generate(input_ids=X.input_ids,attention_mask=X.attention_mask,
                                     max_length=input_size+20, **kwargs)
+        #FIXME: check the correctness of max_length and the source code to make sure the feed_prev method starts after the input size
         pred_tokens = outputs[:, input_size:]
         preds = self.tokenizer.batch_decode(pred_tokens, skip_special_tokens=True)
         preds = [pred.strip() for pred in preds]

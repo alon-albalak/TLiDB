@@ -241,3 +241,13 @@ class MetricGroup:
             results.update(metric.compute(y_pred, y_true))
             results_str += f'{metric.name}: {results[metric.agg_metric_field]:.4f}\n'
         return results, results_str
+
+
+####################################
+#TODO: Evaluation Metrics for Response Generation
+#TODO: BLEU-1, BLEU-2, BLEU-3, BLEU-4
+#TODO: BartScore/BertScore
+#TODO: Distinct-N
+#TODO: PPL
+#TODO: or https://github.com/Maluuba/nlg-eval
+####################################
