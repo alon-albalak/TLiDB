@@ -22,8 +22,6 @@ def parse_pd_dialogue(persona_data_dialogue):
     return dialogue
 
 def get_partial_dialogue(original_dialogue, pd_dialogue):
-    # run test to see if utterances are always consecutive
-    # run test to see if utterances are always the same as original
     turns = []
 
     found_pd = 0
