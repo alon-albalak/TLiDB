@@ -1,4 +1,3 @@
-from os import stat
 from .TLiDB_dataset import TLiDB_Dataset, load_split_ids
 import random
 
@@ -40,7 +39,8 @@ class DailyDialog_dataset(TLiDB_Dataset):
         'emotion_recognition', 'dialogue_act_classification', 'topic_classification',
         'causal_emotion_span_extraction', 'causal_emotion_entailment',
         'dialogue_nli', 'dialogue_reasoning_span_extraction', 'dialogue_reasoning_multiple_choice_span_selection',
-        'dialogue_reasoning_commonsense_relation_prediction', 'adversarial_response_selection'
+        'dialogue_reasoning_commonsense_relation_prediction', 'adversarial_response_selection',
+        'response_generation'
         ]
     _url = "https://drive.google.com/uc?export=download&id=1U9dUi16RbAprUiSBmEKnEpwk45USfnml"
     _task_metadatas = {
@@ -83,6 +83,9 @@ class DailyDialog_dataset(TLiDB_Dataset):
         "adversarial_response_selection":{
             "prompt":"The correct option is","type":"multiple_choice","loader":"adversarial_response_selection",
             "collate_type":"multiple_choice", "num_choices":3
+        },
+        "response_generation":{
+            "prompt":"", "type":"response_generation","loader":"response_generation",
         }
     }
     def __init__(self, task, dataset_folder, model_type, split, few_shot_percent=None):
@@ -100,7 +103,7 @@ class DailyDialog_dataset(TLiDB_Dataset):
         
 
     def _load_data(self, task, split_ids,data_setting="full_data"):
-        # get the data loader, based on whether the task is utterance level or dialogue level
+        # get the data loader, based on whether the task is utterance level/dialogue level/span extraction/etc.
         loader = getattr(self, f"_load_{self._task_metadata['loader']}_task")
         return loader(task,split_ids)
 
@@ -308,12 +311,3 @@ class DailyDialog_dataset(TLiDB_Dataset):
         if labels:
             metadata['labels'] = labels
         return X, y, metadata
-
-    def _convert_dialogue_to_string(self, input):
-        dialogue = ""
-        for (speaker, utt) in input:
-            dialogue += f"{speaker}: {utt} "
-        return dialogue[:-1]
-
-    def _join_strings(self, *args):
-        return " ".join(args)

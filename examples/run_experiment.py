@@ -9,8 +9,6 @@ import argparser
 
 def main(config):
 
-    # TODO: add full-data / few-shot flag, and target tasks always get few-shot data, but source tasks get full-data
-
     # if cotraining, then train on both source+target tasks, and dev is target only
     if config.cotraining:
         config.train_datasets = config.source_datasets+config.target_datasets

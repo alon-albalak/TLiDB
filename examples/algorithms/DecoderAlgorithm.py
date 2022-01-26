@@ -100,3 +100,10 @@ class DecoderAlgorithm(Algorithm):
         num_choices = metadata['task_metadata']['num_choices']
         metadata['labels'] = [str(i) for i in range(num_choices)]
         return y_pred, y_true
+
+    def _response_generation_preprocessing(self, X, y_true, metadata):
+        return X, y_true, metadata
+    
+    def _response_generation_postprocessing(self, outputs, y_true, metadata):
+        y_pred = outputs
+        return y_pred, y_true
