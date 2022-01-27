@@ -1,7 +1,6 @@
 import json
 import random
-import sys
-# random.seed(sys.argv[1])
+
 random.seed(13)
 path = "TLiDB_DailyDialog/TLiDB_DailyDialog.json"
 DD_tasks = [
@@ -91,9 +90,6 @@ def get_task_samples_per_split_by_dialogue_id(train_ids, dev_ids, test_ids, path
 def get_few_shot_samples(percent, id_file):
     subsampled_ids = sample_from_id_file(percent=percent, id_file=id_file)
     return subsampled_ids
-
-# subsample from full data to get few-shot dialogues
-# we need to resample multiple times in order to get splits with appropriate samples per task
 
 few_shot_save_path="TLiDB_DailyDialog/TTiDB_{}_percent_few_shot_{}_ids.txt"
 

@@ -183,26 +183,29 @@ def get_reading_comprehension_annotations(plots, dialogue_entities):
         for ent, index_list in dialogue_entities.items():
             for index in index_list[P_ENT]:
                 if i == index[0]:
-                    passage_entities[ent] = [index[1], index[2]]
+                    if ent not in passage_entities:
+                        passage_entities[ent] = []
+                    passage_entities[ent].append([index[1], index[2]])
         
         for ent in passage_entities:
-            ent_start = passage_entities[ent][0]
-            ent_end = passage_entities[ent][1]
-            masked_passage = []
-            masked = False
-            for j, token in enumerate(passage.split(" ")):
-                if j >= ent_start and j < ent_end:
-                    if not masked:
-                        masked_passage.append(PLACEHOLDER)
-                        masked = True
-                    continue
-                else:
-                    masked_passage.append(token)
-            
-            annotations.append({
-                "query": untokenize(masked_passage),
-                "answer": ent
-            })
+            for ent_position in passage_entities[ent]:
+                ent_start = ent_position[0]
+                ent_end = ent_position[1]
+                masked_passage = []
+                masked = False
+                for j, token in enumerate(passage.split(" ")):
+                    if j >= ent_start and j < ent_end:
+                        if not masked:
+                            masked_passage.append(PLACEHOLDER)
+                            masked = True
+                        continue
+                    else:
+                        masked_passage.append(token)
+                
+                annotations.append({
+                    "query": untokenize(masked_passage),
+                    "answer": ent
+                })
 
     return annotations
 
