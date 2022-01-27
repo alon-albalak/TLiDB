@@ -92,8 +92,6 @@ def map_entity_to_dialogue(entity, speaker_map):
     if 'Speaker' in entity:
         if entity in speaker_map:
             return speaker_map[entity]
-        else:
-            a=1
     return entity
 
 def get_friends_datum_from_dialogue_id(friends_data, dialogue_id):
@@ -127,8 +125,6 @@ def get_relevant_turns_with_speaker_map(friends_datum, dialogre_datum):
                         speaker_num = speaker_num.strip()
                         if speaker_num not in speaker_map:
                             speaker_map[speaker_num] = speaker
-                else:
-                    a=1
 
             dre_turn += 1
             found_dre += 1
@@ -145,8 +141,7 @@ def get_relevant_turns_with_speaker_map(friends_datum, dialogre_datum):
                         speaker_num = speaker_num.strip()
                         if speaker_num not in speaker_map:
                             speaker_map[speaker_num] = speaker
-                else:
-                    a=1
+
             dre_turn += 1
             found_dre += 1
 
@@ -187,12 +182,9 @@ def get_relevant_turns_with_speaker_map(friends_datum, dialogre_datum):
                             speaker_num = speaker_num.strip()
                             if speaker_num not in speaker_map:
                                 speaker_map[speaker_num] = speaker
-                    else:
-                        a=1                    
+                  
                 dre_turn += 1
                 found_dre += 1
-            else:
-                a=1
 
         while found_dre < len(dialogre_datum):
             if relevant_turns:
@@ -216,19 +208,20 @@ def get_relevant_turns_with_speaker_map(friends_datum, dialogre_datum):
     return relevant_turns, speaker_map
 
 def add_dialogre_annotations(dialogre_data, friends_data, partition):
-    if "dialogue_relation_extraction" not in friends_data['metadata']['tasks']:
-        friends_data['metadata']['tasks'].append("dialogue_relation_extraction")
-        friends_data['metadata']['task_metadata']['dialogue_relation_extraction'] = {
-            'labels': relation_map.values(),
+    if "relation_extraction" not in friends_data['metadata']['tasks']:
+        friends_data['metadata']['tasks'].append("relation_extraction")
+        friends_data['metadata']['task_metadata']['relation_extraction'] = {
+            'labels': list(relation_map.values()),
             'metrics': ['f1'],
             "metric_kwargs": {'f1': [{'average': 'macro'}, {'average': 'micro'}]}
         }
     triple_counts = {v: 0 for k, v in relation_map.items()}
+
+    # track dialogues which fail
+    #   some dialogues in dialogRE cross multiple scenes from emoryNLP data 
+    #   some dialogues simply don't exist in emoryNLP data
     failed = 0
     for i, datum in enumerate(tqdm(dialogre_data)):
-        # if i == 75:
-        #     a=1
-
         dialogre_id = f"{partition}_{i}"
 
         # some dialogre datums cover multiple dialogues, and some don't exist in the emoryNLP dataset
@@ -286,9 +279,9 @@ def add_dialogre_annotations(dialogre_data, friends_data, partition):
 
         # only add annotations when they have valid relations
         if dialogre_annotation['relation_triples']:
-            if 'dialogue_relation_extraction' not in d.keys():
-                d['dialogue_relation_extraction'] = []
-            d['dialogue_relation_extraction'].append(dialogre_annotation)
+            if 'relation_extraction' not in d.keys():
+                d['relation_extraction'] = []
+            d['relation_extraction'].append(dialogre_annotation)
 
     print(f"Failed to match {failed} dialogre datums")
     print(f"{triple_counts}")
@@ -305,3 +298,6 @@ for p in data_partitions:
     dialogre_data = json.load(open(f"dialogre_{p}_with_map.json", "r"))
     # add annotations to original data
     friends_data = add_dialogre_annotations(dialogre_data, friends_data, p)
+
+with open(TLiDB_path, "w") as f:
+    json.dump(friends_data, f, indent=2)
