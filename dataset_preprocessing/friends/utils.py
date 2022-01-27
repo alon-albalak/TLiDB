@@ -1,7 +1,7 @@
 import re
 
-OPENERS = ["(","[","{","<"]
-CLOSERS = [")","]","}",">"]
+OPENERS = ["(","[","{"]
+CLOSERS = [")","]","}"]
 
 def untokenize(words):
     """
@@ -23,7 +23,7 @@ def untokenize(words):
     step3 = step2.replace(" '", "'").replace(" n't", "n't").replace("n' t", "n't").replace("t' s","t's").replace("' ll", "'ll").replace("I' m", "I'm").replace(
         "can not", "cannot").replace("I' d", "I'd").replace("' re", "'re").replace("t ' s", "t's").replace("e' s", "e's")
     step4 = step3.replace("? !", "?!").replace("! !", "!!").replace("! ?", "!?").replace("n'y","n't").replace('yarning','yawning').replace(" om V", " on V")
-    step5 = step4.replace('. . .', '...').replace("wan na", "wanna")
+    step5 = step4.replace('. . .', '...').replace("wan na", "wanna").replace("gon na", "gonna")
     step6 = re.sub(r'(?<=[a-zA-Z])\s+(?=[.,:;\?!])', r'', step5)
     step7 = re.sub(r'(\S)(\.{3})', r'\1 \2', step6)
     step8 = re.sub(r'(\.{3})(\S)', r'\1 \2', step7)
@@ -67,3 +67,32 @@ def fuzzy_string_find(string, pattern, pattern_divisor=10, min_portion=2):
         return first_start, string[first_start:last_end]
     else:
         return -1, ''
+
+def remove_transcriber_notes(tokens):
+
+    if not any(b in line for line in tokens for b in ["{", "}"]):
+        return tokens
+
+    new_tokens = []
+
+    for line in tokens:
+        note_starts, note_ends = [], []
+        for i, token in enumerate(line):
+            if "{" in token:
+                note_starts.append(i)
+            elif "}" in token:
+                note_ends.append(i)
+
+        assert(len(note_starts) == len(note_ends))
+        assert(all([note_starts[i] <= note_ends[i] for i in range(len(note_starts))]))
+        excluded_indices = []
+        for s,e in zip(note_starts, note_ends):
+            excluded_indices.extend(range(s,e+1))
+        new_line = []
+        for i,x in enumerate(line):
+            if i not in excluded_indices:
+                new_line.append(x)
+        if new_line:
+            new_tokens.append(new_line)
+
+    return new_tokens

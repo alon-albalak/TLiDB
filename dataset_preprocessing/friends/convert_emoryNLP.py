@@ -4,7 +4,7 @@ import os
 import json
 import glob
 from tqdm import tqdm
-from utils import untokenize, remove_notes_from_utt, OPENERS, CLOSERS
+from utils import untokenize, remove_notes_from_utt, remove_transcriber_notes, OPENERS, CLOSERS
 
 SEASON_ID = 'season_id'
 EPISODES = 'episodes'
@@ -250,6 +250,8 @@ def convert_season_dialogues(season_raw, formatted_data):
             for utterance in scene[UTTERANCES]:
 
                 # fix specific utterances
+                if utterance['utterance_id'] == "s01_e14_c08_u004":
+                    utterance[TOKENS_WITH_NOTE][2][0] = ")"
                 if utterance['utterance_id'] == "s02_e14_c01_u004":
                     utterance[TOKENS][2].append("]")
                 if utterance['utterance_id'] == "s04_e03_c07_u005":
@@ -258,12 +260,54 @@ def convert_season_dialogues(season_raw, formatted_data):
                     utterance[TOKENS_WITH_NOTE][0].append(")")
                 if utterance['utterance_id'] == "s05_e14_c09_u001":
                     utterance[TOKENS_WITH_NOTE][1].append("]")
+                if utterance['utterance_id'] == "s05_e21_c09_u001":
+                    utterance[TOKENS_WITH_NOTE][6].append("}")
+                    utterance[TOKENS_WITH_NOTE][7] = ["]"]
+                if utterance['utterance_id'] == "s05_e24_c14_u001":
+                    utterance[TOKENS_WITH_NOTE] = [['[', 'Scene:', 'A', 'blackjack', 'table,', 'Joey', 'is', 'moving', 'in', 'to', 'try', 'and', 'get', 'his', 'hand', 'twin', ']']]
                 if utterance['utterance_id'] == "s06_e14_c06_u037":
                     utterance[TOKENS_WITH_NOTE][1].append(")")
                 if utterance['utterance_id'] == "s06_e14_c08_u015":
                     utterance[TOKENS_WITH_NOTE][1].append(")")
+                if utterance['utterance_id'] == "s06_e20_c09_u036":
+                    utterance[TOKENS_WITH_NOTE][1] = ['Monica', 'removes', 'Rachel', "'s", 'sock', 'and', 'starts', 'beating', 'her', 'with', 'it', '.']
+                if utterance['utterance_id'] == "s06_e23_c04_u003":
+                    utterance[TOKENS][7].append(")")
                 if utterance['utterance_id'] == "s07_e21_c05_u037":
                     utterance[TOKENS_WITH_NOTE][1].append(")")
+                if utterance['utterance_id'] == "s08_e03_c12_u012":
+                    utterance[TOKENS][1].append(")")
+                if utterance['utterance_id'] == "s08_e07_c13_u004":
+                    utterance[TOKENS][1].append(")")
+                if utterance['utterance_id'] == "s09_e09_c10_u005":
+                    utterance[TOKENS_WITH_NOTE][5] = [")"]
+                if utterance['utterance_id'] == "s10_e07_c12_u000":
+                    utterance[TOKENS_WITH_NOTE] = [['[', 'Scene:', 'The', 'New', 'York', 'City', "Children's", 'Fund', 'building.', 'Phoebe', 'and', 'Mike', 'are', 'entering.', ']']]
+                if utterance['utterance_id'] == "s10_e08_c08_u007":
+                    utterance[TOKENS_WITH_NOTE][2][-1] = ")"
+                if utterance['utterance_id'] == "s10_e09_c01_u021":
+                    utterance[TOKENS_WITH_NOTE][-1][0] = "("
+                if utterance['utterance_id'] == "s10_e13_c09_u016":
+                    utterance[TOKENS_WITH_NOTE][1].insert(0, "(")
+
+                # combine utterance that was split into 2 lines
+                if utterance['utterance_id'] == 's05_e02_c01_u020':
+                    utterance[TOKENS_WITH_NOTE] = [['Yeah,', 'can', 'I', 'get', 'a', '3', '-', 'piece,', 'some', 'cole', 'slaw,', 'some', 'beans,', 'and', 'a', 'Coke', '-', '(', 'Yelps', 'in', 'pain', 'as', 'Monica', 'grabs', 'him', 'underwater', ')', '-', 'Diet', 'Coke.']]
+                if utterance['utterance_id'] == 's05_e02_c01_u021':
+                    continue
+
+                # replace the format: "\d )" with "\d "
+                if utterance['utterance_id'] == 's05_e13_c11_u012':
+                    utterance[TOKENS_WITH_NOTE] = [['Okay.', 'I', 'have', 'just', 'a', 'few', 'questions', 'to', 'ask', 'so', "I'm", 'going', 'to', 'get', 'out', 'my', 'official', 'forms.', '(', 'She', 'picks', 'up', 'a', 'couple', 'of', 'crumpled', 'receipts.', ')', 'Okay,', 'so,', 'question', '1', 'You', 'and', 'uh,', 'you', 'were', 'married', 'to', "Francis'", 'daughter', 'Lilly,', 'is', 'that', 'correct?']]
+                if utterance['utterance_id'] == 's05_e13_c11_u014':
+                    utterance[TOKENS] = [['Okay,', 'umm,', 'question', '2', 'Umm,', 'did', 'that', 'marriage', 'end', 'A.', 'Happily,', 'B.', 'Medium,', 'or', 'C.', 'In', 'the', 'total', 'abandonment', 'of', 'her', 'and', 'her', 'two', 'children?']]
+
+                # whoever transcribed seasons 5-10 added their own thoughts directly in the transcript
+                # remove these
+                if utterance['utterance_id'] in ['s05_e17_c10_u021','s05_e21_c01_u017',
+                                                's05_e21_c02_u038', 's05_e22_c03_u006',
+                                                's05_e24_c09_u007', 's08_e09_c02_u026']:
+                    utterance[TOKENS_WITH_NOTE] = utterance[TOKENS]
 
                 # combine notes that were broken into multiple lines
                 if utterance[TOKENS_WITH_NOTE]:
@@ -271,6 +315,11 @@ def convert_season_dialogues(season_raw, formatted_data):
 
                 speakers = utterance[SPEAKERS]
                 tokens = utterance[TOKENS_WITH_NOTE] if utterance[TOKENS_WITH_NOTE] else utterance[TOKENS]
+
+                tokens = remove_transcriber_notes(tokens)
+                if not tokens:
+                    continue
+
                 utt = ' '.join([untokenize(u) for u in tokens])
 
                 formatted_turn = {

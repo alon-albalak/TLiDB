@@ -1,7 +1,7 @@
 import json
 from tqdm import tqdm
 from difflib import SequenceMatcher
-from utils import untokenize, remove_notes_from_utt, fuzzy_string_find, OPENERS, CLOSERS
+from utils import untokenize, remove_notes_from_utt, fuzzy_string_find, remove_transcriber_notes, OPENERS, CLOSERS
 
 def same_dialogue(d1, d2):
     if len(d1) != len(d2):
@@ -29,17 +29,23 @@ def get_friends_datum_from_qa_data(friends_data, qa_data):
         qa_data['paragraphs'][0]['qas'][5]['answers'][0]['answer_text'] = "and then a stewardess comes in"
     if qa_data['title'] == "s04_e23_c02":
         qa_data['paragraphs'][0]['utterances:'][37]['utterance'] = "( Chandler kneels down with his arms spread waiting for his hug . )"
+    
+    # One datum has weird notes from a transcriber, deal with this one separately
+    if qa_data['title'] == "s04_e24_c18":
+        removed_line = 35
+        for qa in qa_data['paragraphs'][0]['qas']:
+            for answer in qa['answers']:
+                if answer['utterance_id'] >= removed_line:
+                    answer['utterance_id'] -= 1
+        for d in friends_data['data']:
+            if d['dialogue_id'] == "s04_e24_c18":
+                return d
 
-    assert(len(qa_data['paragraphs']) == 1)
     for d in friends_data['data']:
         if d['dialogue_id'] == qa_data['title']:
             # ensure that the dialogue is the same
             if same_dialogue(d['dialogue'], qa_data['paragraphs'][0]['utterances:']):
                 return d
-
-def match_string_without_note(s1, s2):
-    start = ' '.join(remove_notes_from_utt(s1.split())).find(s2)
-    return start
 
 def get_answer_without_note_in_text(text, answer):
     split_text = text.split()
@@ -136,6 +142,11 @@ def add_QA_annotations(friends_qa_data, friends_data):
                     a_start, a_text = get_answer_string_in_text(d['dialogue'][answer['utterance_id']]['utterance'],
                                 answer['answer_text'])
                     assert(a_start != -1), "Could not find answer in text"
+
+                if a_start != -1:
+                    ta = d['dialogue'][answer['utterance_id']]['utterance'][a_start:a_start+len(a_text)]
+                    assert(ta == a_text), "Answer text does not match"
+                
                 a = {
                     "text": a_text,
                     "answer_start": a_start,

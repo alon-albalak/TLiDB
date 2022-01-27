@@ -24,9 +24,12 @@ readonly QA_TEST_URL='https://raw.githubusercontent.com/emorynlp/FriendsQA/maste
 readonly PD_URL='https://raw.githubusercontent.com/emorynlp/personality-detection/master/CSV/friends-personality.csv'
 
 # Emotion Recognition Dataset
-readonly MELD_URL='http://web.eecs.umich.edu/~mihalcea/downloads/MELD.Raw.tar.gz'
-readonly MELD_FILE="${THIS_DIR}/MELD.Raw.tar.gz"
-readonly MELD_DIR="${THIS_DIR}/MELD"
+readonly MELD_TRAIN_URL='https://raw.githubusercontent.com/declare-lab/MELD/master/data/MELD/train_sent_emo.csv'
+readonly MELD_DEV_URL='https://raw.githubusercontent.com/declare-lab/MELD/master/data/MELD/dev_sent_emo.csv'
+readonly MELD_TEST_URL='https://raw.githubusercontent.com/declare-lab/MELD/master/data/MELD/test_sent_emo.csv'
+
+# DialogRE Dataset
+readonly DIALOGRE_URL='https://drive.google.com/uc?export=download&id=1D8TfIM1MfYG32m-sNy3tH4JLy6GQLo4j'
 
 
 function main() {
@@ -36,35 +39,42 @@ function main() {
 
    # download emoryNLP character mining datasets
    mkdir "${emoryNLP_DIR}"
-   fetch_file "${emoryNLP_1_URL}" "${emoryNLP_DIR}/friends_season_01.json" "EmoryNLP Friends Season 1"
-   fetch_file "${emoryNLP_2_URL}" "${emoryNLP_DIR}/friends_season_02.json" "EmoryNLP Friends Season 2"
-   fetch_file "${emoryNLP_3_URL}" "${emoryNLP_DIR}/friends_season_03.json" "EmoryNLP Friends Season 3"
-   fetch_file "${emoryNLP_4_URL}" "${emoryNLP_DIR}/friends_season_04.json" "EmoryNLP Friends Season 4"
-   fetch_file "${emoryNLP_5_URL}" "${emoryNLP_DIR}/friends_season_05.json" "EmoryNLP Friends Season 5"
-   fetch_file "${emoryNLP_6_URL}" "${emoryNLP_DIR}/friends_season_06.json" "EmoryNLP Friends Season 6"
-   fetch_file "${emoryNLP_7_URL}" "${emoryNLP_DIR}/friends_season_07.json" "EmoryNLP Friends Season 7"
-   fetch_file "${emoryNLP_8_URL}" "${emoryNLP_DIR}/friends_season_08.json" "EmoryNLP Friends Season 8"
-   fetch_file "${emoryNLP_9_URL}" "${emoryNLP_DIR}/friends_season_09.json" "EmoryNLP Friends Season 9"
-   fetch_file "${emoryNLP_10_URL}" "${emoryNLP_DIR}/friends_season_10.json" "EmoryNLP Friends Season 10"
+   fetch_file "${emoryNLP_1_URL}" "${emoryNLP_DIR}/friends_season_01.json" "EmoryNLP Friends - Season 1"
+   fetch_file "${emoryNLP_2_URL}" "${emoryNLP_DIR}/friends_season_02.json" "EmoryNLP Friends - Season 2"
+   fetch_file "${emoryNLP_3_URL}" "${emoryNLP_DIR}/friends_season_03.json" "EmoryNLP Friends - Season 3"
+   fetch_file "${emoryNLP_4_URL}" "${emoryNLP_DIR}/friends_season_04.json" "EmoryNLP Friends - Season 4"
+   fetch_file "${emoryNLP_5_URL}" "${emoryNLP_DIR}/friends_season_05.json" "EmoryNLP Friends - Season 5"
+   fetch_file "${emoryNLP_6_URL}" "${emoryNLP_DIR}/friends_season_06.json" "EmoryNLP Friends - Season 6"
+   fetch_file "${emoryNLP_7_URL}" "${emoryNLP_DIR}/friends_season_07.json" "EmoryNLP Friends - Season 7"
+   fetch_file "${emoryNLP_8_URL}" "${emoryNLP_DIR}/friends_season_08.json" "EmoryNLP Friends - Season 8"
+   fetch_file "${emoryNLP_9_URL}" "${emoryNLP_DIR}/friends_season_09.json" "EmoryNLP Friends - Season 9"
+   fetch_file "${emoryNLP_10_URL}" "${emoryNLP_DIR}/friends_season_10.json" "EmoryNLP Friends - Season 10"
 
    # convert original emoryNLP files into TLiDB format w/ 
    #      emotion recognition and reading comprehension datasets
    python3 convert_emoryNLP.py
 
-    # Do not delete this file, it takes a long time to download
-    # fetch_file "${MELD_URL}" "${MELD_FILE}" 'MELD Data'
-    # extract_tar "${MELD_FILE}" "${MELD_DIR}" 'MELD Data'
-
    # download emoryNLP Question Answering dataset
-   fetch_file "${QA_TRAIN_URL}" "emory_question_answering_train.json" 'EmoryNLP Friends Question Answering Dataset'
-   fetch_file "${QA_DEV_URL}" "emory_question_answering_dev.json" 'EmoryNLP Friends Question Answering Dataset'
-   fetch_file "${QA_TEST_URL}" "emory_question_answering_test.json" 'EmoryNLP Friends Question Answering Dataset'
+   fetch_file "${QA_TRAIN_URL}" "emory_question_answering_train.json" 'EmoryNLP Friends Question Answering Dataset - Train'
+   fetch_file "${QA_DEV_URL}" "emory_question_answering_dev.json" 'EmoryNLP Friends Question Answering Dataset - Dev'
+   fetch_file "${QA_TEST_URL}" "emory_question_answering_test.json" 'EmoryNLP Friends Question Answering Dataset - Test'
    python3 add_friends_QA_annotations.py
 
    # download emoryNLP Personality Detection dataset
    fetch_file "${PD_URL}" "emory_personality_detection.csv" 'EmoryNLP Friends Personality Detection Dataset'
    python3 add_friends_personality_detection_annotations.py
 
+   # download DialogRE Dataset
+   fetch_file "${DIALOGRE_URL}" "dialogre.zip" 'DialogRE Dataset'
+   extract_zip 'dialogre.zip' 'DialogRE Dataset'
+   python3 add_dialogre_annotations.py
+
+   # download MELD Dataset
+   # fetch_file "${MELD_TRAIN_URL}" "meld_train.csv" 'MELD Dataset - Train'
+   # fetch_file "${MELD_DEV_URL}" "meld_dev.csv" 'MELD Dataset - Dev'
+   # fetch_file "${MELD_TEST_URL}" "meld_test.csv" 'MELD Dataset - Test'
+   # python3 add_meld_annotations.py
+   
 }
 
 function check_requirements() {
@@ -124,24 +134,12 @@ function fetch_file() {
    fi
 }
 
-function extract_tar() {
+function extract_zip() {
    local path=$1
-   local expectedDir=$2
-   local name=$3
-
-   if [[ -e "${expectedDir}" ]]; then
-      echo "Extracted ${name} zip found cached, skipping extract."
-      return
-   fi
-
-   mkdir -p "${expectedDir}"
+   local name=$2
 
    echo "Extracting the ${name} zip"
-   tar -xvf "${path}" -C "${expectedDir}"
-   #unzip -d "$(dirname ${expectedDir})" "${path}"
-   #unzip "${expectedDir}/test.zip"
-   #unzip "${expectedDir}/train.zip"
-   #unzip "${expectedDir}/validation.zip"
+   unzip "${path}"
 
    if [[ "$?" -ne 0 ]]; then
       echo "ERROR: Failed to extract ${name} zip"
