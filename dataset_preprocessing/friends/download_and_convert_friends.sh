@@ -68,12 +68,35 @@ function main() {
    fetch_file "${DIALOGRE_URL}" "dialogre.zip" 'DialogRE Dataset'
    extract_zip 'dialogre.zip' 'DialogRE Dataset'
    python3 add_dialogre_annotations.py
+   echo "Generating TTiDB splits"
+   python3 generate_full_data_TTiDB_ids.py
+   echo "Generating Few-Shot TTiDB splits"
+   python3 generate_few_shot_data_TTiDB_ids.py
 
    # download MELD Dataset
    # fetch_file "${MELD_TRAIN_URL}" "meld_train.csv" 'MELD Dataset - Train'
    # fetch_file "${MELD_DEV_URL}" "meld_dev.csv" 'MELD Dataset - Dev'
    # fetch_file "${MELD_TEST_URL}" "meld_test.csv" 'MELD Dataset - Test'
    # python3 add_meld_annotations.py
+
+   zip -r TLiDB_Friends.zip TLiDB_Friends
+   rm -r "${emoryNLP_DIR}"
+   
+   files=(
+      "emory_question_answering_train.json"
+      "emory_question_answering_dev.json"
+      "emory_question_answering_test.json"
+      "emory_personality_detection.csv"
+      "dialogre.zip"
+      "dialogre_train_with_map.json"
+      "dialogre_dev_with_map.json"
+      "dialogre_test_with_map.json"
+   )
+
+   for file in ${files[@]}
+   do
+      rm $file
+   done
    
 }
 
