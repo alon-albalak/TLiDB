@@ -34,6 +34,15 @@ PLACEHOLDER = "[PLACEHOLDER]"
 emo_dict = {"0": 'Joyful', "1": 'Mad',"2": 'Neutral', "3": 'Peaceful',
             "4": 'Powerful', "5": 'Sad', "6": 'Scared'}
 
+character_mapping = {
+    "Chandler Bing":"chandler",
+    "Joey Tribbiani":"joey",
+    "Monica Geller":"monica",
+    "Phoebe Buffay":"phoebe",
+    "Rachel Green":"rachel",
+    "Ross Geller":"ross"
+    }
+
 def general_stats(json_dir):
     def stats(json_file):
         num_scenes = 0
@@ -164,8 +173,10 @@ def get_entities(entity_list, tokens, tokens_with_note):
                     partial = full[global_start:]
                     found_ent = ' '.join([untokenize(u) for u in utterance_list])[global_start:global_start+len(ent_reference)]
 
+                normalized_entity = character_mapping[e[2]] if e[2] in character_mapping else "other"
                 entities.append({
                     'entity': e[2],
+                    'normalized_entity': normalized_entity,
                     'start': global_start,
                     'entity_reference': ent_reference,
                 })
@@ -178,6 +189,7 @@ def get_entities(entity_list, tokens, tokens_with_note):
 
 def get_reading_comprehension_annotations(plots, dialogue_entities):
     annotations = []
+    entity_set = set()
     for i, passage in enumerate(plots):
         passage_entities = {}
         for ent, index_list in dialogue_entities.items():
@@ -206,8 +218,9 @@ def get_reading_comprehension_annotations(plots, dialogue_entities):
                     "query": untokenize(masked_passage),
                     "answer": ent
                 })
+                entity_set.add(ent)
 
-    return annotations
+    return annotations, entity_set
 
 def combine_notes(tokens_with_notes):
     open = 0
@@ -327,24 +340,29 @@ def convert_season_dialogues(season_raw, formatted_data):
 
                 formatted_turn = {
                     "turn_id": turn_id,
-                    "speaker": speakers,
+                    "speakers": speakers,
                     "utterance": utt,
                 }
 
                 # get emotion annotations
                 if utterance[TOKENS] and 'emotion' in utterance:
                     formatted_turn['emotion_recognition'] = utterance['emotion'][0]
+                    if "emotion_recognition" not in formatted_datum['dialogue_metadata']:
+                        formatted_datum['dialogue_metadata']['emotion_recognition'] = None
 
                 # get character identification annotations
                 if utterance[TOKENS] and 'character_entities' in utterance:
                     formatted_turn['character_identification'] = get_entities(utterance['character_entities'], utterance[TOKENS], utterance[TOKENS_WITH_NOTE])
+                    if "character_identification" not in formatted_datum['dialogue_metadata']:
+                        formatted_datum['dialogue_metadata']['character_identification'] = None
 
                 formatted_datum["dialogue"].append(formatted_turn)
                 turn_id += 1
 
             # add dialogue level task annotations
             if PLOTS in scene and scene[PLOTS]:
-                formatted_datum['reading_comprehension'] = get_reading_comprehension_annotations(scene[PLOTS], scene[RC_ENTITIES])
+                formatted_datum['reading_comprehension'], scene_entities = get_reading_comprehension_annotations(scene[PLOTS], scene[RC_ENTITIES])
+                formatted_datum['dialogue_metadata']['reading_comprehension'] = {"scene_entities":list(scene_entities)}
 
             formatted_data['data'].append(formatted_datum)
 
@@ -372,7 +390,7 @@ formatted_data = {
                 "metrics": ["accuracy"],
             },
             "character_identification": {
-                "labels": [],
+                "labels": ["chandler","joey","monica","phoebe","rachel","ross","other"],
                 "metrics": ["f1"],
                 "metric_kwargs": {"f1": [{"average": "micro"}, {"average": "macro"}]}
             }
