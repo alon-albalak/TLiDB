@@ -26,14 +26,12 @@ def get_dataset(dataset, task, dataset_folder=DATASET_FOLDER, **dataset_kwargs):
         raise ValueError(f"{dataset} is not a supported dataset, must be one of: {TLiDB.supported_datasets}")
 
     if dataset == "DailyDialog":
-        from TLiDB.datasets.DailyDialog_dataset import DailyDialog_dataset
-        return DailyDialog_dataset(task, dataset_folder, **dataset_kwargs)
-
+        from TLiDB.datasets.DailyDialog_dataset import DailyDialog_dataset as dataset_class
+    elif dataset == "Friends":
+        from TLiDB.datasets.Friends_dataset import Friends_dataset as dataset_class
     elif dataset == "clinc150":
-        from TLiDB.datasets.clinc150_dataset import clinc150_dataset
-        return clinc150_dataset(task, dataset_folder, **dataset_kwargs)
-    
+        from TLiDB.datasets.clinc150_dataset import clinc150_dataset as dataset_class
     elif dataset == "friends_ER":
-        from TLiDB.datasets.friends_ER_dataset import friends_ER_dataset
-        return friends_ER_dataset(task, dataset_folder, **dataset_kwargs)
-
+        from TLiDB.datasets.friends_ER_dataset import friends_ER_dataset as dataset_class
+        
+    return dataset_class(task, dataset_folder, **dataset_kwargs)
