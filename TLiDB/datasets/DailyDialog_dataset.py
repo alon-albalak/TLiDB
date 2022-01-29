@@ -102,7 +102,7 @@ class DailyDialog_dataset(TLiDB_Dataset):
         self._y_size = len(self._y_array)
         
 
-    def _load_data(self, task, split_ids,data_setting="full_data"):
+    def _load_data(self, task, split_ids):
         # get the data loader, based on whether the task is utterance level/dialogue level/span extraction/etc.
         loader = getattr(self, f"_load_{self._task_metadata['loader']}_task")
         return loader(task,split_ids)
@@ -213,12 +213,6 @@ class DailyDialog_dataset(TLiDB_Dataset):
                                 "question":"Which option is the best response?"
                             })
                             self._y_array.append(str(options.index(pos_resp)))
-
-    def get_input(self, idx):
-        return self._input_array[idx]
-
-    def get_metadata(self, idx):
-        return {}
 
     def _collate_encoder(self, batch):
         X, y, metadata = [], [], {}

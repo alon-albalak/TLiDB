@@ -157,13 +157,13 @@ class TLiDB_Dataset(Dataset):
         return x, y, m
 
     def get_input(self, idx):
-        return NotImplementedError
+        return self._input_array[idx]
 
     def get_target(self, idx):
         return self.y_array[idx]
 
     def get_metadata(self, idx):
-        return NotImplementedError
+        return {}
 
     def _collate(self, batch):
         return NotImplementedError
@@ -186,7 +186,9 @@ class TLiDB_Dataset(Dataset):
     def _convert_dialogue_to_string(self, input):
         dialogue = ""
         for (speaker, utt) in input:
-            dialogue += f"{speaker}: {utt} "
+            if speaker:
+                dialogue += f"{speaker}: "
+            dialogue += f"{utt} "
         return dialogue[:-1]
 
     def _join_strings(self, *args):
