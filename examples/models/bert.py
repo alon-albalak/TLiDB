@@ -1,14 +1,17 @@
 import torch
 from .TLiDB_model import TLiDB_model
 from examples.utils import concat_t_d
+import random
 
 SEQUENCE_TASKS = [
     'emotion_recognition', 'intent_detection', 'intent_classification',
     'dialogue_act_classification', 'topic_classification', 'causal_emotion_entailment',
-    'dialogue_nli', "dialogue_reasoning_commonsense_relation_prediction"]
+    'dialogue_nli', "dialogue_reasoning_commonsense_relation_prediction",
+    'character_identification']
 TOKEN_TASKS = []
 SPAN_EXTRACTION_TASKS = [
-    "causal_emotion_span_extraction", "dialogue_reasoning_span_extraction"
+    "causal_emotion_span_extraction", "dialogue_reasoning_span_extraction",
+    "reading_comprehension", "question_answering"
 ]
 MULTIPLE_CHOICE_TASKS = ["dialogue_reasoning_multiple_choice_span_selection",
     "adversarial_response_selection"]
@@ -96,7 +99,16 @@ class Bert(TLiDB_model):
         start_indices, end_indices = [], []
 
         for offset_mapping,output in zip(inputs.offset_mapping,outputs):
-            start_idx,end_idx = get_token_offsets(offset_mapping, output['text'], output['answer_start'])
+            # if multiple correct spans, randomly sample
+            if isinstance(output, list):
+                answer_index = random.randint(0, len(output)-1)
+                text = output[answer_index]['text']
+                answer_start = output[answer_index]['answer_start']
+            else:
+                text = output['text']
+                answer_start = output['answer_start']
+
+            start_idx,end_idx = get_token_offsets(offset_mapping, text, answer_start)
             start_indices.append(start_idx)
             end_indices.append(end_idx)
         

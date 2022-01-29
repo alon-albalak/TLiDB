@@ -157,6 +157,7 @@ def add_QA_annotations(friends_qa_data, friends_data):
             qa_annotation['qas'].append(friends_qa)
         if 'question_answering' not in d:
             d['question_answering'] = []
+            d['dialogue_metadata']['question_answering'] = None
         d['question_answering'].append(qa_annotation)
     return friends_data
 

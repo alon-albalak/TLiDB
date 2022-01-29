@@ -82,7 +82,7 @@ class EncoderAlgorithm(Algorithm):
     def _span_extraction_postprocessing(self, X, outputs, y_true, transformed_y_true, metadata):
         del metadata['return_offsets_mapping']
         assert outputs.dim() == 3
-        
+
         # decode the predictions
         y_pred_tokens = []
         pred_positions = outputs.argmax(1).tolist()
@@ -90,13 +90,18 @@ class EncoderAlgorithm(Algorithm):
             y_pred_tokens.append(input_ids[start_pred:end_pred+1])
         y_pred = self.model.tokenizer.batch_decode(y_pred_tokens, skip_special_tokens=True)
         
-        # decode the ground truth
-        y_true_tokens = []
-        for x, s, e in zip(X.input_ids, transformed_y_true[0], transformed_y_true[1]):
-            y_true_tokens.append(x[s:e+1])
-        y_true = self.model.tokenizer.batch_decode(y_true_tokens, skip_special_tokens=True)
-        
-        return y_pred, y_true, metadata
+        # tokenize the ground truth
+        if isinstance(y_true[0], list):
+            tokenized_y_true = []
+            for answers in y_true:
+                tokenized_answers = self.model.tokenizer([a['text'] for a in answers])
+                tokenized_y_true.append(self.model.tokenizer.batch_decode(tokenized_answers.input_ids, skip_special_tokens=True))
+
+        else:
+            tokenized_answers = self.model.tokenizer([a['text'] for a in y_true])
+            tokenized_y_true = self.model.tokenizer.batch_decode(tokenized_answers.input_ids, skip_special_tokens=True)
+
+        return y_pred, tokenized_y_true, metadata
 
     def _calculate_span_extraction_loss(self, outputs, y_true, metadata, return_dict=False):
         start_logits, end_logits = outputs.split(1, dim=-1)

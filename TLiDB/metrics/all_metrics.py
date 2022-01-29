@@ -127,7 +127,7 @@ class token_F1(StringMetric):
     def _compute(self, y_pred, y_true):
         """
         Args:
-            - y_pred (List of str): Predicted labels
+            - y_pred (List of str OR List of List of str): Predicted labels
             - y_true (List of str): Ground truth labels
         """
         if self.prediction_fn is not None:
@@ -160,13 +160,34 @@ class token_F1(StringMetric):
         if self.average == "macro":
             f1s = []
             for p, t in zip(y_pred, y_true):
-                f1s.append(_get_token_f1_macro(p.split(), t.split()))
+
+                if isinstance(t, str):
+                    f1 = _get_token_f1_macro(p.split(), t.split())
+                elif isinstance(t, list):
+                    # if multiple ground truths, select the max
+                    f1 = self._metric_max_over_ground_truths(_get_token_f1_macro, p, t)
+
+                f1s.append(f1)
             return torch.mean(torch.tensor(f1s, dtype=torch.float))
             
         elif self.average == "micro":
             tp, fp, fn = 0, 0, 0
             for pred, true in zip(y_pred, y_true):
-                tp_, fp_, fn_ = _get_token_f1_micro(pred.split(), true.split())
+
+                if isinstance(true, str):
+                    tp_, fp_, fn_ = _get_token_f1_micro(pred.split(), true.split())
+                elif isinstance(true, list):
+                    # if multiple ground truths, select the option with highest f1
+                    best_tp, best_fp, best_fn, best_f1 = 0, 0, 0, 0
+                    for t in true:
+                        tp_, fp_, fn_ = _get_token_f1_micro(pred.split(), t.split())
+                        f1_ = (2 * tp_) / (2 * tp_ + fp_ + fn_)
+                        if f1_ > best_f1:
+                            best_tp, best_fp, best_fn = tp_, fp_, fn_
+                    tp_ = best_tp
+                    fp_ = best_fp
+                    fn_ = best_fn
+
                 tp += tp_
                 fp += fp_
                 fn += fn_

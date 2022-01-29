@@ -79,7 +79,7 @@ class StringMetric:
         Subclasses should implement this.
         Args:
             - y_pred (List of str): Predicted targets or model output
-            - y_true (List of str): True targets
+            - y_true (List of str OR List of List of str): True targets
         Output:
             - metric (0-dim tensor): metric
         """
@@ -114,7 +114,7 @@ class StringMetric:
         Computes metric. This is a wrapper around _compute.
         Args:
             - y_pred (List of str): Predicted targets or model output
-            - y_true (List of str): True targets
+            - y_true (List of str OR List of List of str): True targets
             - return_dict (bool): Whether to return the output as a dictionary or a tensor
         Output (return_dict=False):
             - metric (0-dim tensor): metric. If the inputs are empty, returns tensor(0.)
@@ -125,10 +125,20 @@ class StringMetric:
             agg_metric = torch.tensor(0., device=y_true.device)
         else:
             y_pred = [self._normalize_answer(text, string.punctuation, '') for text in y_pred]
-            y_true = [self._normalize_answer(text, string.punctuation, '') for text in y_true]
+
+            if isinstance(y_true[0], list):
+                y_true = [[self._normalize_answer(text, string.punctuation, '') for text in answers] for answers in y_true]
+            else:
+                y_true = [self._normalize_answer(text, string.punctuation, '') for text in y_true]
+
             if self._unanswerable_phrases:
                 y_pred = [text if not any([unanswerable_phrase in text for unanswerable_phrase in self.unanswerable_phrases]) else "" for text in y_pred]
-                y_true = [text if not any([unanswerable_phrase in text for unanswerable_phrase in self.unanswerable_phrases]) else "" for text in y_true]
+                
+                if isinstance(y_true[0], list):
+                    y_true = [[text if not any([unanswerable_phrase in text for unanswerable_phrase in self.unanswerable_phrases]) else "" for text in answers] for answers in y_true]
+                else:
+                    y_true = [text if not any([unanswerable_phrase in text for unanswerable_phrase in self.unanswerable_phrases]) else "" for text in y_true]
+                
                 if self._ignore_unanswerable:
                     pos_pred, pos_true = [], []
                     for pred, true in zip(y_pred, y_true):
@@ -169,6 +179,15 @@ class StringMetric:
         text = white_space_fix(text)
 
         return text
+
+    def _metric_max_over_ground_truths(self, metric_fn, prediction, ground_truths):
+        """
+        Computes the maximum of the metric over all ground truths.
+        Shamelessly copied from https://github.com/google-research/text-to-text-transfer-transformer/blob/cec7078ac27a2d98750279c158d25d9d1df16b3a/t5/evaluation/qa_utils.py#L61
+        """
+        return max(
+            metric_fn(prediction.split(), ground_truth.split()) for ground_truth in ground_truths
+        )
 
 class ElementwiseMetric(Metric):
     """
