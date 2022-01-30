@@ -33,8 +33,14 @@ class Friends_dataset(TLiDB_Dataset):
             "prompt":"","type":"span_extraction","loader":"span_extraction",
             "collate_type":"span_extraction"
         },
-        "personality_detection": {},
-        "relation_extraction": {},
+        "personality_detection": {
+            "prompt":"","type":"multioutput_classification","num_outputs":5,"num_labels":2,
+            "loader":"personality_detection","collate_type":"personality_detection"
+        },
+        "relation_extraction": {
+            "prompt":"","type":"multiclass_classification","loader":"relation_extraction",
+            "collate_type":"relation_extraction"
+        },
         "response_generation": {
             "prompt": "", "type":"response_generation","loader":"response_generation"
         }
@@ -156,7 +162,29 @@ class Friends_dataset(TLiDB_Dataset):
                             })
                             self._y_array.append(answers)
                             
-                        
+    def _load_personality_detection_task(self, task, split_ids):
+        for datum in self.dataset['data']:
+            if datum['dialogue_id'] in split_ids:
+                if task in datum['dialogue_metadata']:
+                    for sample in datum[task]:
+                        dialogue = [[" ".join(datum['dialogue'][i]['speakers']), datum['dialogue'][i]['utterance']] for i in sample['turns']]
+                        str_dialogue = self._convert_dialogue_to_string(dialogue)
+                        self._input_array.append({
+                            "context": str_dialogue,
+                            "focus_speaker": sample['focus_speaker']
+                        })
+                        self._y_array.append({
+                            "personality_characteristics":sample['personality_characteristics'],
+                            "labels": list(sample['personality_characteristics'].values())
+                        })
+
+
+    def _load_relation_extraction_task(self, task, split_ids):
+        for datum in self.dataset['data']:
+            if datum['dialogue_id'] in split_ids:
+                if task in datum['dialogue_metadata']:
+                    pass
+
 
     def _collate_encoder(self, batch):
         X, y, metadata = [], [], {}
@@ -171,6 +199,8 @@ class Friends_dataset(TLiDB_Dataset):
                 X.append(self._join_strings(prompt, "[SEP]", context))
             elif self._task_metadata['collate_type'] == "span_extraction":
                 X.append(self._join_strings(item[0]['question'],item[0]['context']))
+            elif self._task_metadata['collate_type'] == "personality_detection":
+                X.append(self._join_strings(item[0]['focus_speaker'],"[SEP]",item[0]['context']))
             y.append(item[1])
             for k,v in item[2].items():
                 if k not in metadata:

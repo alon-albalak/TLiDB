@@ -1,5 +1,6 @@
 from utils import move_to
 from losses import initialize_loss
+from examples.utils import concat_t_d
 from .algorithm import Algorithm
 
 # temporarily here
@@ -74,6 +75,25 @@ class EncoderAlgorithm(Algorithm):
         loss = metric.compute(outputs, y_true, return_dict=return_dict)
         return loss
 
+    def _multioutput_classification_preprocessing(self, X, y_true, metadata):
+        X = [self.replace_sep_token(x) for x in X]
+        return X, y_true, metadata
+
+    def _multioutput_classification_postprocessing(self, X, outputs, y_true, transformed_y_true, metadata):
+        # first, flatten outputs, then calculate predictions, then reshape
+        outputs = outputs.reshape([-1, metadata['task_metadata']['num_labels']])
+        y_pred = multiclass_logits_to_pred(outputs)
+        y_pred = y_pred.reshape(transformed_y_true.shape)
+        return y_pred, transformed_y_true, metadata
+
+    def _calculate_multioutput_classification_loss(self, outputs, y_true, metadata, return_dict=False):
+        # flatten the outputs and targets
+        metric = initialize_loss("cross_entropy")
+        outputs = outputs.reshape([-1, metadata['task_metadata']['num_labels']])
+        y_true = y_true.flatten()
+        loss = metric.compute(outputs, y_true, return_dict=return_dict)
+        return loss
+
     def _span_extraction_preprocessing(self, X, y_true, metadata):
         # make the tokenizer return a token offset mapping
         metadata['return_offsets_mapping'] = True
@@ -139,6 +159,12 @@ class EncoderAlgorithm(Algorithm):
         metric = initialize_loss("cross_entropy")
         loss = metric.compute(outputs, y_true, return_dict=return_dict)
         return loss
+
+    def _calculate_multiclass_classification_loss(self, outputs, y_true, metadata, return_dict=False):
+        metric = initialize_loss("BCE_with_logits")
+        loss = metric.compute(outputs, y_true, return_dict=return_dict)
+        return loss
+
 
     def replace_sep_token(self, string):
         return string.replace("[SEP]",self.model.tokenizer.sep_token)

@@ -15,6 +15,7 @@ SPAN_EXTRACTION_TASKS = [
 ]
 MULTIPLE_CHOICE_TASKS = ["dialogue_reasoning_multiple_choice_span_selection",
     "adversarial_response_selection"]
+MULTIOUTPUT_SEQUENCE_TASK = ["personality_detection"]
 
 class Bert(TLiDB_model):
     def __init__(self, config, datasets):
@@ -44,6 +45,8 @@ class Bert(TLiDB_model):
     def initialize_bert_classifier(self, dataset, config):
         if dataset.task in SEQUENCE_TASKS:
             return torch.nn.Linear(self.model.config.hidden_size, dataset.num_classes)
+        elif dataset.task in MULTIOUTPUT_SEQUENCE_TASK:
+            return torch.nn.Linear(self.model.config.hidden_size, dataset.num_classes*dataset.task_metadata['num_outputs'])
         elif dataset.task in TOKEN_TASKS:
             return torch.nn.Linear(self.model.config.hidden_size, dataset.num_classes)
         elif dataset.task in SPAN_EXTRACTION_TASKS:
@@ -54,7 +57,7 @@ class Bert(TLiDB_model):
             raise ValueError(f"Unsupported task: {dataset.task}")
 
     def initialize_forward(self, task):
-        if task in SEQUENCE_TASKS:
+        if task in SEQUENCE_TASKS+MULTIOUTPUT_SEQUENCE_TASK:
             return self.sequence_classification
         elif task in TOKEN_TASKS:
             return self.token_classification
@@ -93,6 +96,11 @@ class Bert(TLiDB_model):
 
     def transform_classification_outputs(self,inputs, outputs, t_d, metadata):
         outputs = [self.classifiers[t_d]['labels'].index(y) for y in outputs]
+        return torch.tensor(outputs, dtype=torch.long)
+
+    def transform_multioutput_classification_outputs(self, inputs, outputs, t_d, metadata):
+        outputs = [[self.classifiers[t_d]['labels'].index(y) for y in output['labels']] for output in outputs]
+        # outputs = [self.classifiers[t_d]['labels'].index(y) for y in outputs]
         return torch.tensor(outputs, dtype=torch.long)
 
     def transform_span_extraction_outputs(self, inputs, outputs, t_d, metadata):

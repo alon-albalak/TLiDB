@@ -84,7 +84,7 @@ def get_friends_datum_from_pd_data(friends_data, scene_id, pd_dialogue):
 def add_personality_detection_annotations(friends_data, personality_detection_data, headers):
     if "personality_detection" not in friends_data['metadata']['tasks']:
         friends_data['metadata']['tasks'].append("personality_detection")
-        friends_data['metadata']['task_metadata']['personality_detection'] = {"metrics": ["accuracy"]}
+        friends_data['metadata']['task_metadata']['personality_detection'] = {"labels": ['0','1'], "metrics": ["accuracy"]}
 
     SCENE_ID = headers.index('scene_id')
     TEXT = headers.index('text')
@@ -141,6 +141,7 @@ def add_personality_detection_annotations(friends_data, personality_detection_da
 
         if 'personality_detection' not in d:
             d['personality_detection'] = []
+            d['dialogue_metadata']['personality_detection'] = None
         d['personality_detection'].append(pd_annotation)
     return friends_data
 
