@@ -212,11 +212,8 @@ def add_dialogre_annotations(dialogre_data, friends_data, partition):
         friends_data['metadata']['tasks'].append("relation_extraction")
         friends_data['metadata']['task_metadata']['relation_extraction'] = {
             'labels': list(relation_map.values()),
-            'metrics': ['f1'],
-            "metric_kwargs": {'f1': [
-                {'average': 'macro', 'labels':[i for i in range(36) if i != 29]},
-                {'average': 'micro', 'labels':[i for i in range(36) if i != 29]}
-                ]}
+            'metrics': ['label_ranking_average_precision'],
+            "metric_kwargs": {"label_ranking_average_precision": [{'labels':[i for i in range(36) if i != 29]}]}
         }
     triple_counts = {v: 0 for k, v in relation_map.items()}
 

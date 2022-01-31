@@ -3,33 +3,6 @@ from .TLiDB_model import TLiDB_model
 from examples.utils import concat_t_d
 import random
 
-# SEQUENCE_TASKS = [
-#     'emotion_recognition', 'intent_detection',
-#     'dialogue_act_classification', 'topic_classification', 'causal_emotion_entailment',
-#     'dialogue_nli', "dialogue_reasoning_commonsense_relation_prediction",
-#     'character_identification']
-# TOKEN_TASKS = []
-# SPAN_EXTRACTION_TASKS = [
-#     "causal_emotion_span_extraction", "dialogue_reasoning_span_extraction",
-#     "reading_comprehension", "question_answering"
-# ]
-# MULTIPLE_CHOICE_TASKS = ["dialogue_reasoning_multiple_choice_span_selection",
-#     "adversarial_response_selection"]
-# MULTIOUTPUT_SEQUENCE_TASKS = ["personality_detection"]
-# MULTILABEL_SEQUENCE_TASKS = [""]
-
-
-# classification
-# span_extraction
-# multiple_choice
-# multioutput_classification
-# multilabel_classification
-
-# seq: classification
-#span extraction: 
-# multi choice: 
-# mutloutput: 
-# multilabel: 
 class Bert(TLiDB_model):
     def __init__(self, config, datasets):
         super().__init__(config)
@@ -44,9 +17,7 @@ class Bert(TLiDB_model):
                 t_d = concat_t_d(d.task,d.dataset_name)
                 if t_d not in self.classifiers.keys():
                     task_type = d.task_metadata['type']
-
                     layer = self.initialize_bert_classifier(task_type, d)
-
                     setattr(self, f"{t_d}_classifier", layer)
                     forward = self.initialize_forward(task_type)
                     self.classifiers[t_d] = {

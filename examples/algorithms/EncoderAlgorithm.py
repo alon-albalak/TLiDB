@@ -102,7 +102,7 @@ class EncoderAlgorithm(Algorithm):
     def _multilabel_classification_postprocessing(self, X, outputs, y_true, transformed_y_true, metadata):
         # transform logits with sigmoid, then use a simple threshold of 0.5 for deciding output classes
         y_pred = sigmoid(outputs)
-        y_pred = (y_pred > 0.5).float()
+        # y_pred = (y_pred > 0.5).float()
         return y_pred, transformed_y_true, metadata
 
     def _calculate_multilabel_classification_loss(self, outputs, y_true, metadata, return_dict=False):
