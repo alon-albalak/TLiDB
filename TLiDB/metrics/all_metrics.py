@@ -1,6 +1,7 @@
 from itertools import chain
 from collections import Counter
 from .metrics import Metric, StringMetric, ElementwiseMetric
+import numpy as np
 import sklearn.metrics
 import torch
 
@@ -145,12 +146,68 @@ class LRAP(Metric):
             filtered_y_pred, filtered_y_true = [], []
             for pred, true in zip(y_pred, y_true):
                 if any([true[l] != 0 for l in self.labels]):
-                    filtered_y_pred.append(pred.numpy())
-                    filtered_y_true.append(true.numpy())
+                    if isinstance(pred, torch.Tensor):
+                        pred = pred.numpy()
+                    if isinstance(true, torch.Tensor):
+                        true = true.numpy()
+                    filtered_y_pred.append(pred)
+                    filtered_y_true.append(true)
+            y_pred = np.array(filtered_y_pred)
+            y_true = np.array(filtered_y_true)
+        
+        score = sklearn.metrics.label_ranking_average_precision_score(y_true, y_pred)
+        return torch.tensor(score)
+
+class MRR(Metric):
+    def __init__(self, prediction_fn=None, name=None, labels=None):
+        """
+        Calculate the mean reciprocal rank
+        Args:
+            - prediction_fn: Function to convert y_pred into the same format as y_true (for example, convert logits to max index)
+            - name (str): Name of the metric
+            - labels: the set of labels to include (if None, will include all labels)
+        """
+        self.prediction_fn = prediction_fn
+        self.labels = labels
+        if name is None:
+            name = "MRR"
+        super().__init__(name=name)
+
+    def _compute(self, y_pred, y_true):
+        """
+        Args:
+            - y_pred: Predicted logits
+            - y_true: Ground truth
+        """
+        
+        if self.prediction_fn is not None:
+            y_pred = self.prediction_fn(y_pred)
+        
+        if self.labels:
+            # remove samples which do not have a desired label
+            filtered_y_pred, filtered_y_true = [], []
+            for pred, true in zip(y_pred, y_true):
+                if any([true[l] != 0 for l in self.labels]):
+                    if isinstance(pred, torch.Tensor):
+                        pred = pred.numpy()
+                    if isinstance(true, torch.Tensor):
+                        true = true.numpy()
+                    filtered_y_pred.append(pred)
+                    filtered_y_true.append(true)
             y_pred = filtered_y_pred
             y_true = filtered_y_true
         
-        score = sklearn.metrics.label_ranking_average_precision_score(y_true, y_pred)
+        reciprocal_ranks = []
+        sorted_pred_idxs = np.argsort(-np.array(y_pred), axis=1)
+        labels = [np.nonzero(l)[0] for l in y_true]
+
+        for pred_idx, label in zip(sorted_pred_idxs, labels):
+            for rank, idx in enumerate(pred_idx):
+                if idx in label:
+                    reciprocal_ranks.append(1.0 / (rank + 1))
+    
+        score = sum(reciprocal_ranks) / len(reciprocal_ranks)
+        
         return torch.tensor(score)
 
 class token_F1(StringMetric):
@@ -289,6 +346,7 @@ class MetricGroup:
         "recall":Recall,
         "accuracy":Accuracy,
         "label_ranking_average_precision": LRAP,
+        "mean_reciprocal_rank": MRR,
         "token_f1":token_F1,
         "exact_match":Exact_Match
     }
