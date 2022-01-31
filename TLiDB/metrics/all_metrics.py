@@ -203,7 +203,7 @@ class token_F1(StringMetric):
                     f1 = _get_token_f1_macro(p.split(), t.split())
                 elif isinstance(t, list):
                     # if multiple ground truths, select the max
-                    f1 = self._metric_max_over_ground_truths(_get_token_f1_macro, p, t)
+                    f1 = self._metric_max_over_ground_truths(_get_token_f1_macro, p.split(), [t_.split() for t_ in t])
 
                 f1s.append(f1)
             return torch.mean(torch.tensor(f1s, dtype=torch.float))
@@ -260,7 +260,16 @@ class Exact_Match(StringMetric):
         if self.prediction_fn is not None:
             y_pred = self.prediction_fn(y_pred)
 
-        matches = [float(pred == true) for pred, true in zip(y_pred, y_true)]
+        def _get_exact_match(pred, true):
+            return float(pred==true)
+
+        multiple_ground_truths = isinstance(y_true[0],list)
+
+        if multiple_ground_truths:
+            matches = [self._metric_max_over_ground_truths(_get_exact_match, p, t) for p, t in zip(y_pred, y_true)]
+        else:
+            matches = [float(pred == true) for pred, true in zip(y_pred, y_true)]
+
         return torch.mean(torch.tensor(matches))
 
 class MetricGroup:

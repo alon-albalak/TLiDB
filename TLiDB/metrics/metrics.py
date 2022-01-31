@@ -186,7 +186,7 @@ class StringMetric:
         Shamelessly copied from https://github.com/google-research/text-to-text-transfer-transformer/blob/cec7078ac27a2d98750279c158d25d9d1df16b3a/t5/evaluation/qa_utils.py#L61
         """
         return max(
-            metric_fn(prediction.split(), ground_truth.split()) for ground_truth in ground_truths
+            metric_fn(prediction, ground_truth) for ground_truth in ground_truths
         )
 
 class ElementwiseMetric(Metric):
