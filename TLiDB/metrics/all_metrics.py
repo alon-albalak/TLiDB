@@ -10,6 +10,16 @@ import nltk
 import bert_score
 # import nlgeval
 
+class binary_threshold():
+    def __init__(self, threshold=0.5):
+        self.threshold = threshold
+    def __call__(self, y_pred):
+        if isinstance(y_pred, torch.Tensor):
+            return (y_pred > self.threshold).float()
+        elif isinstance(y_pred, np.ndarray):
+            return (y_pred > self.threshold).astype(np.float32)
+        else:
+            return (y_pred > self.threshold)
 
 class Accuracy(ElementwiseMetric):
     def __init__(self, prediction_fn=None, name=None):
@@ -116,6 +126,37 @@ class Recall(Metric):
         score = sklearn.metrics.recall_score(y_true, y_pred, average=self.average, labels=self.labels)
         return torch.tensor(score)
 
+class MultiLabelF1(Metric):
+    def __init__(self, prediction_fn=binary_threshold, name=None, average='macro', labels=None, threshold=0.5):
+        """
+        Calculate F1 score for multi-label classification
+        Args:
+            - prediction_fn: Function to convert y_pred into the same format as y_true (for example, convert logits to max index)
+            - name (str): Name of the metric
+            - average (str): one of ['binary', 'micro', 'macro', 'weighted', 'samples']
+            - labels: The set of labels to include when average != 'binary'  (if None, will use all labels)
+        """
+        self.prediction_fn = prediction_fn(threshold)
+        self.average = average
+        self.labels = labels
+        if name is None:
+            name = 'F1'
+        if average is not None:
+            name += f'-{self.average}'
+        super().__init__(name=name)
+
+    def _compute(self, y_pred,y_true):
+        """
+        Args:
+            - y_pred: Predicted labels
+            - y_true: Ground truth labels
+        See https://scikit-learn.org/stable/modules/generated/sklearn.metrics.f1_score.html for further documentation
+        """
+        if self.prediction_fn is not None:
+            y_pred = self.prediction_fn(y_pred)
+        score = sklearn.metrics.f1_score(y_true, y_pred, average=self.average, labels=self.labels)
+        return torch.tensor(score)
+
 class LRAP(Metric):
     def __init__(self, prediction_fn=None, name=None, labels=None):
         """
@@ -161,7 +202,9 @@ class LRAP(Metric):
 class MRR(Metric):
     def __init__(self, prediction_fn=None, name=None, labels=None):
         """
-        Calculate the mean reciprocal rank
+        Calculate a variant of the mean reciprocal rank which considers all labels
+            If there is only 1 ground truth label, this is equivalent to standard MRR
+            For multi-label samples, this still allows for multiple
         Args:
             - prediction_fn: Function to convert y_pred into the same format as y_true (for example, convert logits to max index)
             - name (str): Name of the metric
@@ -202,10 +245,12 @@ class MRR(Metric):
         labels = [np.nonzero(l)[0] for l in y_true]
 
         for pred_idx, label in zip(sorted_pred_idxs, labels):
+            found_labels = 0
             for rank, idx in enumerate(pred_idx):
                 if idx in label:
-                    reciprocal_ranks.append(1.0 / (rank + 1))
-    
+                    reciprocal_ranks.append(1.0 / (rank - found_labels + 1))
+                    found_labels += 1
+
         score = sum(reciprocal_ranks) / len(reciprocal_ranks)
         
         return torch.tensor(score)
@@ -345,6 +390,7 @@ class MetricGroup:
         "precision":Precision,
         "recall":Recall,
         "accuracy":Accuracy,
+        "multilabel_f1":MultiLabelF1,
         "label_ranking_average_precision": LRAP,
         "mean_reciprocal_rank": MRR,
         "token_f1":token_F1,
