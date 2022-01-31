@@ -21,5 +21,7 @@ def initialize_loss(loss_function):
         return ElementwiseLoss(loss_fn = nn.CrossEntropyLoss(reduction="none"))
     elif loss_function == "LM_cross_entropy":
         return ElementwiseLoss(loss_fn = LM_CrossEntropyLoss(ignore_index=-100))
+    elif loss_function == "BCE_with_logits":
+        return ElementwiseLoss(loss_fn = nn.BCEWithLogitsLoss(reduction="none"))
     else:
         raise ValueError(f"Unknown loss function: {loss_function}")

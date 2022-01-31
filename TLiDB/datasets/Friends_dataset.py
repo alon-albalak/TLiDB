@@ -38,8 +38,8 @@ class Friends_dataset(TLiDB_Dataset):
             "loader":"personality_detection","collate_type":"personality_detection"
         },
         "relation_extraction": {
-            "prompt":"","type":"multiclass_classification","loader":"relation_extraction",
-            "collate_type":"relation_extraction"
+            "prompt":"","type":"multilabel_classification","loader":"relation_extraction",
+            "collate_type":"relation_extraction" 
         },
         "response_generation": {
             "prompt": "", "type":"response_generation","loader":"response_generation"
@@ -136,8 +136,6 @@ class Friends_dataset(TLiDB_Dataset):
                         for qa in qas['qas']:
                             answers = []
                             for answer in qa['answers']:
-                                if answer['answer_utterance_id'] == 0:
-                                    a=1
                                 prior_turns = self._convert_dialogue_to_string(dialogue[:answer['answer_utterance_id']])
                                 
                                 # add 1 for space between prior turns and current turn
@@ -183,7 +181,16 @@ class Friends_dataset(TLiDB_Dataset):
         for datum in self.dataset['data']:
             if datum['dialogue_id'] in split_ids:
                 if task in datum['dialogue_metadata']:
-                    pass
+                    for sample in datum[task]:
+                        dialogue = [[" ".join(datum['dialogue'][i]['speakers']), datum['dialogue'][i]['utterance']] for i in sample['turns']]
+                        str_dialogue = self._convert_dialogue_to_string(dialogue)
+                        for triple in sample['relation_triples']:
+                            self._input_array.append({
+                                "context": str_dialogue,
+                                "head":triple['head'],
+                                "tail":triple['tail']
+                            })
+                            self._y_array.append(triple['relations'])
 
 
     def _collate_encoder(self, batch):
@@ -201,6 +208,10 @@ class Friends_dataset(TLiDB_Dataset):
                 X.append(self._join_strings(item[0]['question'],item[0]['context']))
             elif self._task_metadata['collate_type'] == "personality_detection":
                 X.append(self._join_strings(item[0]['focus_speaker'],"[SEP]",item[0]['context']))
+            elif self._task_metadata['collate_type'] == "relation_extraction":
+                X.append(self._join_strings(item[0]['head'],"[SEP]",item[0]['tail'],"[SEP]",item[0]['context']))
+            else:
+                raise NotImplementedError(f"Collate type {self._task_metadata['collate_type']} not implemented")
             y.append(item[1])
             for k,v in item[2].items():
                 if k not in metadata:
