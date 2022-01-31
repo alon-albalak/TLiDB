@@ -114,6 +114,44 @@ class Recall(Metric):
         score = sklearn.metrics.recall_score(y_true, y_pred, average=self.average, labels=self.labels)
         return torch.tensor(score)
 
+class LRAP(Metric):
+    def __init__(self, prediction_fn=None, name=None, labels=None):
+        """
+        Calculate a ranking-based average precision
+        Args:
+            - prediction_fn: Function to convert y_pred into the same format as y_true (for example, convert logits to max index)
+            - name (str): Name of the metric
+            - labels: the set of labels to include (if None, will include all labels)
+        """
+        self.prediction_fn = prediction_fn
+        self.labels = labels
+        if name is None:
+            name = "LRAP"
+        super().__init__(name=name)
+
+    def _compute(self, y_pred, y_true):
+        """
+        Args:
+            - y_pred: Predicted logits
+            - y_true: Ground truth
+        See https://scikit-learn.org/stable/modules/generated/sklearn.metrics.label_ranking_average_precision_score.html for further documentation
+        """
+        if self.prediction_fn is not None:
+            y_pred = self.prediction_fn(y_pred)
+        
+        if self.labels:
+            # remove samples which do not have a desired label
+            filtered_y_pred, filtered_y_true = [], []
+            for pred, true in zip(y_pred, y_true):
+                if any([true[l] != 0 for l in self.labels]):
+                    filtered_y_pred.append(pred.numpy())
+                    filtered_y_true.append(true.numpy())
+            y_pred = filtered_y_pred
+            y_true = filtered_y_true
+        
+        score = sklearn.metrics.label_ranking_average_precision_score(y_true, y_pred)
+        return torch.tensor(score)
+
 class token_F1(StringMetric):
     def __init__(self, prediction_fn=None, name=None, average="macro", unanswerable_phrases=[]):
         """
@@ -240,6 +278,7 @@ class MetricGroup:
         "precision":Precision,
         "recall":Recall,
         "accuracy":Accuracy,
+        "label_ranking_average_precision": LRAP,
         "token_f1":token_F1,
         "exact_match":Exact_Match
     }

@@ -168,9 +168,7 @@ def get_entities(entity_list, tokens, tokens_with_note):
                 # ensure that the entity in the original list, and the created string are the same
                 found_ent = ' '.join([untokenize(u) for u in utterance_list])[global_start:global_start+len(ent_reference)]
                 if found_ent != ent_reference:
-                    a=1
                     full = ' '.join([untokenize(u) for u in utterance_list])
-                    partial = full[global_start:]
                     found_ent = ' '.join([untokenize(u) for u in utterance_list])[global_start:global_start+len(ent_reference)]
 
                 normalized_entity = character_mapping[e[2]] if e[2] in character_mapping else "other"
@@ -386,8 +384,9 @@ formatted_data = {
                 "labels": list(emo_dict.values()), "metrics": ["f1"],
                 "metric_kwargs": {"f1": [{"average": "micro"}, {"average": "macro"}]}
             },
-            "reading_comprehension": { # formulated as span extraction? for training, but evaluated as accuracy
-                "metrics": ["accuracy"],
+            "reading_comprehension": { # formulated as span extraction, but evaluated as accuracy by
+                                        #   evaluating only on exact match
+                "metrics": ["exact_match"],
             },
             "character_identification": {
                 "labels": ["chandler","joey","monica","phoebe","rachel","ross","other"],

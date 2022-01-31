@@ -52,7 +52,7 @@ def remove_notes_and_note_utterances(friends_datum):
     for turn in friends_datum:
         new_utterance = ' '.join(remove_notes_from_utt(turn['utterance'].split()))
         if new_utterance:
-            new_dialogue.append({"turn_id": turn['turn_id'], "speaker": turn['speaker'], "utterance": new_utterance})
+            new_dialogue.append({"turn_id": turn['turn_id'], "speakers": turn['speakers'], "utterance": new_utterance})
     return new_dialogue
 
 def get_dialogue_similarity(dialogre_datum, friends_datum):
@@ -85,7 +85,7 @@ def parse_dialogre_dialogue(dialogre_dialogue):
         speaker = speaker.strip()
         utterance = utterance.strip()
         utterance = untokenize(utterance.split())
-        dialogue.append({"speaker": speaker, "utterance": utterance})
+        dialogue.append({"speakers": speaker, "utterance": utterance})
     return dialogue
 
 def map_entity_to_dialogue(entity, speaker_map):
@@ -116,12 +116,12 @@ def get_relevant_turns_with_speaker_map(friends_datum, dialogre_datum):
             relevant_turns.append(friends_datum[original_turn]['turn_id'])
 
             # map speakers
-            if len(friends_datum[original_turn]['speaker']) == 1:
-                speaker_map[dialogre_datum[dre_turn]['speaker']] = friends_datum[original_turn]['speaker'][0]
+            if len(friends_datum[original_turn]['speakers']) == 1:
+                speaker_map[dialogre_datum[dre_turn]['speakers']] = friends_datum[original_turn]['speakers'][0]
             else:
-                speakers = dialogre_datum[dre_turn]['speaker'].split(",")
-                if len(speakers) == len(friends_datum[original_turn]['speaker']):
-                    for speaker_num, speaker in zip(speakers, friends_datum[original_turn]['speaker']):
+                speakers = dialogre_datum[dre_turn]['speakers'].split(",")
+                if len(speakers) == len(friends_datum[original_turn]['speakers']):
+                    for speaker_num, speaker in zip(speakers, friends_datum[original_turn]['speakers']):
                         speaker_num = speaker_num.strip()
                         if speaker_num not in speaker_map:
                             speaker_map[speaker_num] = speaker
@@ -132,12 +132,12 @@ def get_relevant_turns_with_speaker_map(friends_datum, dialogre_datum):
         elif min(len(dd),len(od)) > 10 and similarity > 0.8:
             relevant_turns.append(friends_datum[original_turn]['turn_id'])
 
-            if len(friends_datum[original_turn]['speaker']) == 1:
-                speaker_map[dialogre_datum[dre_turn]['speaker']] = friends_datum[original_turn]['speaker'][0]
+            if len(friends_datum[original_turn]['speakers']) == 1:
+                speaker_map[dialogre_datum[dre_turn]['speakers']] = friends_datum[original_turn]['speakers'][0]
             else:
-                speakers = dialogre_datum[dre_turn]['speaker'].split(",")
-                if len(speakers) == len(friends_datum[original_turn]['speaker']):
-                    for speaker_num, speaker in zip(speakers, friends_datum[original_turn]['speaker']):
+                speakers = dialogre_datum[dre_turn]['speakers'].split(",")
+                if len(speakers) == len(friends_datum[original_turn]['speakers']):
+                    for speaker_num, speaker in zip(speakers, friends_datum[original_turn]['speakers']):
                         speaker_num = speaker_num.strip()
                         if speaker_num not in speaker_map:
                             speaker_map[speaker_num] = speaker
@@ -173,12 +173,12 @@ def get_relevant_turns_with_speaker_map(friends_datum, dialogre_datum):
             similarity = s.ratio()
             if similarity > 0.5:
                 relevant_turns.append(last_friends_turn['turn_id'])
-                if len(last_friends_turn['speaker']) == 1:
-                    speaker_map[dialogre_datum[dre_turn]['speaker']] = last_friends_turn['speaker'][0]
+                if len(last_friends_turn['speakers']) == 1:
+                    speaker_map[dialogre_datum[dre_turn]['speakers']] = last_friends_turn['speakers'][0]
                 else:
-                    speakers = dialogre_datum[dre_turn]['speaker'].split(",")
-                    if len(speakers) == len(friends_datum[original_turn]['speaker']):
-                        for speaker_num, speaker in zip(speakers, friends_datum[original_turn]['speaker']):
+                    speakers = dialogre_datum[dre_turn]['speakers'].split(",")
+                    if len(speakers) == len(friends_datum[original_turn]['speakers']):
+                        for speaker_num, speaker in zip(speakers, friends_datum[original_turn]['speakers']):
                             speaker_num = speaker_num.strip()
                             if speaker_num not in speaker_map:
                                 speaker_map[speaker_num] = speaker
@@ -191,7 +191,7 @@ def get_relevant_turns_with_speaker_map(friends_datum, dialogre_datum):
                 missing_turn = relevant_turns[-1] + 1
             else:
                 missing_turn = 0
-            second_half_turns, second_half_speakers = get_relevant_turns_with_speaker_map(friends_datum[missing_turn+1:], dialogre_datum[found_dre+1:])
+            second_half_turns, second_half_speakers = get_relevant_turns_with_speaker_map(friends_datum[missing_turn:], dialogre_datum[found_dre+1:])
 
             speaker_map.update(second_half_speakers)
 
@@ -212,8 +212,8 @@ def add_dialogre_annotations(dialogre_data, friends_data, partition):
         friends_data['metadata']['tasks'].append("relation_extraction")
         friends_data['metadata']['task_metadata']['relation_extraction'] = {
             'labels': list(relation_map.values()),
-            'metrics': ['f1'],
-            "metric_kwargs": {'f1': [{'average': 'macro'}, {'average': 'micro'}]}
+            'metrics': ['label_ranking_average_precision'],
+            "metric_kwargs": {"label_ranking_average_precision": [{'labels':[i for i in range(36) if i != 29]}]}
         }
     triple_counts = {v: 0 for k, v in relation_map.items()}
 
@@ -281,6 +281,7 @@ def add_dialogre_annotations(dialogre_data, friends_data, partition):
         if dialogre_annotation['relation_triples']:
             if 'relation_extraction' not in d.keys():
                 d['relation_extraction'] = []
+                d['dialogue_metadata']['relation_extraction'] = None
             d['relation_extraction'].append(dialogre_annotation)
 
     print(f"Failed to match {failed} dialogre datums")

@@ -2,6 +2,7 @@ from utils import move_to
 from losses import initialize_loss
 from examples.utils import concat_t_d
 from .algorithm import Algorithm
+from torch import sigmoid
 
 # temporarily here
 # TODO this function needs a better home
@@ -94,6 +95,21 @@ class EncoderAlgorithm(Algorithm):
         loss = metric.compute(outputs, y_true, return_dict=return_dict)
         return loss
 
+    def _multilabel_classification_preprocessing(self, X, y_true, metadata):
+        X = [self.replace_sep_token(x) for x in X]
+        return X, y_true, metadata
+
+    def _multilabel_classification_postprocessing(self, X, outputs, y_true, transformed_y_true, metadata):
+        # transform logits with sigmoid, then use a simple threshold of 0.5 for deciding output classes
+        y_pred = sigmoid(outputs)
+        # y_pred = (y_pred > 0.5).float()
+        return y_pred, transformed_y_true, metadata
+
+    def _calculate_multilabel_classification_loss(self, outputs, y_true, metadata, return_dict=False):
+        metric = initialize_loss("BCE_with_logits")
+        loss = metric.compute(outputs, y_true, return_dict=return_dict)
+        return loss
+
     def _span_extraction_preprocessing(self, X, y_true, metadata):
         # make the tokenizer return a token offset mapping
         metadata['return_offsets_mapping'] = True
@@ -159,12 +175,6 @@ class EncoderAlgorithm(Algorithm):
         metric = initialize_loss("cross_entropy")
         loss = metric.compute(outputs, y_true, return_dict=return_dict)
         return loss
-
-    def _calculate_multiclass_classification_loss(self, outputs, y_true, metadata, return_dict=False):
-        metric = initialize_loss("BCE_with_logits")
-        loss = metric.compute(outputs, y_true, return_dict=return_dict)
-        return loss
-
 
     def replace_sep_token(self, string):
         return string.replace("[SEP]",self.model.tokenizer.sep_token)

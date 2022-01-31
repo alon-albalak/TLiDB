@@ -3,20 +3,6 @@ from .TLiDB_model import TLiDB_model
 from examples.utils import concat_t_d
 import random
 
-SEQUENCE_TASKS = [
-    'emotion_recognition', 'intent_detection', 'intent_classification',
-    'dialogue_act_classification', 'topic_classification', 'causal_emotion_entailment',
-    'dialogue_nli', "dialogue_reasoning_commonsense_relation_prediction",
-    'character_identification']
-TOKEN_TASKS = []
-SPAN_EXTRACTION_TASKS = [
-    "causal_emotion_span_extraction", "dialogue_reasoning_span_extraction",
-    "reading_comprehension", "question_answering"
-]
-MULTIPLE_CHOICE_TASKS = ["dialogue_reasoning_multiple_choice_span_selection",
-    "adversarial_response_selection"]
-MULTIOUTPUT_SEQUENCE_TASK = ["personality_detection"]
-
 class Bert(TLiDB_model):
     def __init__(self, config, datasets):
         super().__init__(config)
@@ -30,10 +16,10 @@ class Bert(TLiDB_model):
                 # make this more flexible, call a layer initializer which knows what task to create the layer for
                 t_d = concat_t_d(d.task,d.dataset_name)
                 if t_d not in self.classifiers.keys():
-                    layer = self.initialize_bert_classifier(d, config)
-
+                    task_type = d.task_metadata['type']
+                    layer = self.initialize_bert_classifier(task_type, d)
                     setattr(self, f"{t_d}_classifier", layer)
-                    forward = self.initialize_forward(d.task)
+                    forward = self.initialize_forward(task_type)
                     self.classifiers[t_d] = {
                         "classifier": getattr(self, f"{t_d}_classifier"),
                         "labels":d.task_labels,
@@ -42,31 +28,36 @@ class Bert(TLiDB_model):
 
         self.init_weights()
 
-    def initialize_bert_classifier(self, dataset, config):
-        if dataset.task in SEQUENCE_TASKS:
+    def initialize_bert_classifier(self, task_type, dataset):
+        if task_type in ["classification","multilabel_classification"]:
+        # dataset.task in SEQUENCE_TASKS:
             return torch.nn.Linear(self.model.config.hidden_size, dataset.num_classes)
-        elif dataset.task in MULTIOUTPUT_SEQUENCE_TASK:
+        elif task_type == "multioutput_classification":
+        # elif dataset.task in MULTIOUTPUT_SEQUENCE_TASKS:
             return torch.nn.Linear(self.model.config.hidden_size, dataset.num_classes*dataset.task_metadata['num_outputs'])
-        elif dataset.task in TOKEN_TASKS:
+        elif task_type == "token_classification":
+        # elif dataset.task in TOKEN_TASKS:
             return torch.nn.Linear(self.model.config.hidden_size, dataset.num_classes)
-        elif dataset.task in SPAN_EXTRACTION_TASKS:
+        elif task_type == "span_extraction":
+        # elif dataset.task in SPAN_EXTRACTION_TASKS:
             return torch.nn.Linear(self.model.config.hidden_size, 2)
-        elif dataset.task in MULTIPLE_CHOICE_TASKS:
+        elif task_type == "multiple_choice":
+        # elif dataset.task in MULTIPLE_CHOICE_TASKS:
             return torch.nn.Linear(self.model.config.hidden_size, 1)
         else:
             raise ValueError(f"Unsupported task: {dataset.task}")
 
-    def initialize_forward(self, task):
-        if task in SEQUENCE_TASKS+MULTIOUTPUT_SEQUENCE_TASK:
+    def initialize_forward(self, task_type):
+        if task_type in ['classification', 'multioutput_classification','multilabel_classification']:
             return self.sequence_classification
-        elif task in TOKEN_TASKS:
+        elif task_type == 'token_classification':
             return self.token_classification
-        elif task in SPAN_EXTRACTION_TASKS:
+        elif task_type == 'span_extraction':
             return self.span_extraction
-        elif task in MULTIPLE_CHOICE_TASKS:
+        elif task_type == 'multiple_choice':
             return self.multiple_choice
         else:
-            raise ValueError(f"Unsupported task: {task}")
+            raise ValueError(f"Unsupported task: {task_type}")
 
     def load_state_dict(self, state_dict):
         for layer_name, layer in state_dict.items():
@@ -102,6 +93,15 @@ class Bert(TLiDB_model):
         outputs = [[self.classifiers[t_d]['labels'].index(y) for y in output['labels']] for output in outputs]
         # outputs = [self.classifiers[t_d]['labels'].index(y) for y in outputs]
         return torch.tensor(outputs, dtype=torch.long)
+
+    def transform_multilabel_classification_outputs(self, inputs, outputs, t_d, metadata):
+        converted_outputs = []
+        for output in outputs:
+            converted_output = [0 for _ in range(len(self.classifiers[t_d]['labels']))]
+            for o in output:
+                converted_output[self.classifiers[t_d]['labels'].index(o)] = 1
+            converted_outputs.append(converted_output)
+        return torch.tensor(converted_outputs, dtype=torch.float)
 
     def transform_span_extraction_outputs(self, inputs, outputs, t_d, metadata):
         start_indices, end_indices = [], []
