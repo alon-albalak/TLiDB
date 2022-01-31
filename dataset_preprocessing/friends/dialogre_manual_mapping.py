@@ -175,6 +175,10 @@ manual_mapping = {
                 "speaker_map": {
                     "Speaker 1": joey, "Speaker 2": phoebe
                 }},
+    "train_847": {"dialogue_id": "s09_e05_c04", "turns": [0,21],
+                "speaker_map":{
+                    "Speaker 1": ross, "Speaker 2": rachel
+                }},
     "train_841": {"dialogue_id": "s06_e08_c08", "turns": [0,9],
                 "speaker_map": {
                     "Speaker 1": monica, "Speaker 2": chandler
@@ -207,7 +211,7 @@ manual_mapping = {
                 "speaker_map": {
                     "Speaker 1": ross, "Speaker 2": rachel
                 }},
-    "train_908": {"dialogue_id": "s03_e09_c01", "turns": [0,7],
+     "train_908": {"dialogue_id": "s03_e09_c01", "turns": [0,7],
                 "speaker_map": {
                     "Speaker 1": "The Guys", "Speaker 2": phoebe, "Speaker 3": monica, "Speaker 4": rachel
                 }},
@@ -333,6 +337,10 @@ manual_mapping = {
     "test_215": {"dialogue_id": "s01_e23_c10", "turns": [0,6],
                 "speaker_map": {
                     "Speaker 3": "Carol Willick", "Speaker 4": rachel, "Speaker 5": "Dr. Franzblau" 
+                }},
+    "test_252": {"dialogue_id": "s03_e01_c07", "turns": [10,20],
+                "speaker_map": {
+                    "Speaker 1": chandler, "Speaker 2": joey
                 }},
     "test_280": {"dialogue_id": "s04_e24_c19", "turns": [9,16],
                 "speaker_map": {
