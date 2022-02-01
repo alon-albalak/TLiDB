@@ -23,7 +23,7 @@ def add_meld_annotations(meld_data, friends_data, partition):
         friends_data['metadata']['task_metadata']['MELD_emotion_recognition'] = {
             "labels": ["anger","disgust","fear","joy","neutral","sadness","surprise"],
             "metrics": ["f1"],
-            "metric_kwargs": {"f1": [{"average": "macro"}, {"average": "micro"}]}
+            "metric_kwargs": {"f1": [{"average": "micro"}, {"average": "weighted"}]}
         }
 
     label_distribution = {label: 0 for label in friends_data['metadata']['task_metadata']['MELD_emotion_recognition']['labels']}

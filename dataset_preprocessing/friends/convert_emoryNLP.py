@@ -382,7 +382,7 @@ formatted_data = {
         "task_metadata": {
             "emotion_recognition": {
                 "labels": list(emo_dict.values()), "metrics": ["f1"],
-                "metric_kwargs": {"f1": [{"average": "micro"}, {"average": "macro"}]}
+                "metric_kwargs": {"f1": [{"average": "micro"}, {"average": "weighted"}]}
             },
             "reading_comprehension": { # formulated as span extraction, but evaluated as accuracy by
                                         #   evaluating only on exact match
