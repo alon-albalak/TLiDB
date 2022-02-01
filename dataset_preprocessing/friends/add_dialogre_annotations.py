@@ -1,8 +1,5 @@
-from http.cookiejar import CookieJar
-import os
 import json
 from tqdm import tqdm
-import heapq
 from difflib import SequenceMatcher
 from utils import untokenize, remove_notes_from_utt
 from dialogre_manual_mapping import manual_mapping, unmappable

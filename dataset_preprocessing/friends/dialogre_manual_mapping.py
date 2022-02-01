@@ -1,6 +1,3 @@
-from distutils.util import change_root
-
-
 ross = "Ross Geller"
 monica = "Monica Geller"
 chandler = "Chandler Bing"
