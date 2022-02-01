@@ -1,4 +1,3 @@
-from multiprocessing import context
 from .TLiDB_dataset import TLiDB_Dataset, load_split_ids
 import random
 
@@ -13,14 +12,14 @@ class Friends_dataset(TLiDB_Dataset):
     _tasks = [
         'emotion_recognition', 'reading_comprehension', 'character_identification',
         'question_answering', 'personality_detection', 'relation_extraction',
-        'response_generation'
+        'MELD_emotion_recognition', 'response_generation'
     ]
     _url = "https://drive.google.com/uc?export=download&id=1QK_XX-d38fKeJlcTcoMT9ku3VZn6bv6H"
     _task_metadatas = {
         "emotion_recognition": {
                 "prompt":"emotion:","type":"classification","loader":"utterance_level_classification",
                 "collate_type":"classification"
-                },
+        },
         "reading_comprehension": {
             "prompt": "Fill in [PLACEHOLDER]:","type":"span_extraction",
             "loader": "character_span_extraction", "collate_type":"character_span_extraction"
@@ -40,6 +39,10 @@ class Friends_dataset(TLiDB_Dataset):
         "relation_extraction": {
             "prompt":"","type":"multilabel_classification","loader":"relation_extraction",
             "collate_type":"relation_extraction" 
+        },
+        "MELD_emotion_recognition": {
+            "prompt":"emotion", "type":"classification", "loader":"utterance_level_classification",
+            "collate_type":"classification"
         },
         "response_generation": {
             "prompt": "", "type":"response_generation","loader":"response_generation"
