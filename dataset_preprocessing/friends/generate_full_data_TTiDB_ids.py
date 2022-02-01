@@ -9,7 +9,8 @@ Friends_tasks = [
     "character_identification",
     "question_answering",
     "personality_detection",
-    "relation_extraction"
+    "relation_extraction",
+    "MELD_emotion_recognition"
 ]
 
 
@@ -25,6 +26,7 @@ def get_num_task_samples_Friends(path=path):
         num_tasks_per_dialogue = 0
         em_found = False
         ci_found = False
+        meld_found = False
         for turn in dialogue['dialogue']:
             if "emotion_recognition" in turn:
                 tasks["emotion_recognition"] += 1
@@ -32,9 +34,14 @@ def get_num_task_samples_Friends(path=path):
             if "character_identification" in turn:
                 tasks["character_identification"] += 1
                 ci_found = True
+            if "MELD_emotion_recognition" in turn:
+                tasks['MELD_emotion_recognition'] += 1
+                meld_found = True
         if em_found:
             num_tasks_per_dialogue += 1
         if ci_found:
+            num_tasks_per_dialogue += 1
+        if meld_found:
             num_tasks_per_dialogue += 1
         if "reading_comprehension" in dialogue:
             tasks["reading_comprehension"] += len(dialogue['reading_comprehension'])
@@ -91,6 +98,8 @@ def get_task_samples_per_split_by_dialogue_id(train_ids, dev_ids, test_ids, path
                 tasks_by_split[split]["emotion_recognition"] += 1
             if "character_identification" in turn:
                 tasks_by_split[split]['character_identification'] += 1
+            if "MELD_emotion_recognition" in turn:
+                tasks_by_split[split]['MELD_emotion_recognition'] += 1
         if "reading_comprehension" in dialogue:
             tasks_by_split[split]['reading_comprehension'] += len(dialogue['reading_comprehension'])
         if "question_answering" in dialogue:

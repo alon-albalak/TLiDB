@@ -22,7 +22,8 @@ Friends_tasks = [
     "character_identification",
     "question_answering",
     "personality_detection",
-    "relation_extraction"
+    "relation_extraction",
+    "MELD_emotion_recognition"
 ]
 
 def sample_from_id_file(percent, id_file=None):
@@ -59,6 +60,8 @@ def get_task_samples_per_split_by_dialogue_id(train_ids, dev_ids, path=path):
                 tasks_by_split[split]["emotion_recognition"] += 1
             if "character_identification" in turn:
                 tasks_by_split[split]['character_identification'] += 1
+            if "MELD_emotion_recognition" in turn:
+                tasks_by_split[split]['MELD_emotion_recognition'] += 1
         if "reading_comprehension" in dialogue:
             tasks_by_split[split]['reading_comprehension'] += len(dialogue['reading_comprehension'])
         if "question_answering" in dialogue:
