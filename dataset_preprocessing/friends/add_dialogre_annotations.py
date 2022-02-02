@@ -5,44 +5,49 @@ from utils import untokenize, remove_notes_from_utt
 from dialogre_manual_mapping import manual_mapping, unmappable
 
 relation_map = {
-    1: "per:positive_impression",
-    2: "per:negative_impression",
-    3: "per:acquaintance",
-    4: "per:alumni",
-    5: "per:boss",
-    6: "per:subordinate",
-    7: "per:client",
-    8: "per:dates",
-    9: "per:friends",
-    10: "per:girl/boyfriend",
-    11: "per:neighbor",
-    12: "per:roommate",
-    13: "per:children",
-    14: "per:other_family",
-    15: "per:parents",
-    16: "per:siblings",
-    17: "per:spouse",
-    18: "per:place_of_residence",
-    19: "per:place_of_birth",  # does not exist in training set
-    20: "per:visited_place",
-    21: "per:origin",
-    22: "per:employee_or_member_of",
-    23: "per:schools_attended",
-    24: "per:works",
-    25: "per:age",
-    26: "per:date_of_birth",
-    27: "per:major",
-    28: "per:place_of_work",
-    29: "per:title",
-    30: "per:alternate_names",
-    31: "per:pet",
-    32: "gpe:residents_of_place",
-    34: "gpe:visitors_of_place",
+    0: "per:positive_impression",
+    1: "per:negative_impression",
+    2: "per:acquaintance",
+    3: "per:alumni",
+    4: "per:boss",
+    5: "per:subordinate",
+    6: "per:client",
+    7: "per:dates",
+    8: "per:friends",
+    9: "per:girl/boyfriend",
+    10: "per:neighbor",
+    11: "per:roommate",
+    12: "per:children",
+    13: "per:other_family",
+    14: "per:parents",
+    15: "per:siblings",
+    16: "per:spouse",
+    17: "per:place_of_residence",
+    18: "per:place_of_birth",  # does not exist in training set
+    19: "per:visited_place",
+    20: "per:origin",
+    21: "per:employee_or_member_of",
+    22: "per:schools_attended",
+    23: "per:works",
+    24: "per:age",
+    25: "per:date_of_birth",
+    26: "per:major",
+    27: "per:place_of_work",
+    28: "per:title",
+    29: "per:alternate_names",
+    30: "per:pet",
+    31: "gpe:residents_of_place",
+    32: "gpe:visitors_of_place",
     33: "gpe:births_in_place",  # does not exist in training set
-    35: "org:employees_or_members",
-    36: "org:students",
-    37: "unanswerable",
+    34: "org:employees_or_members",
+    35: "org:students",
+    36: "unanswerable",
 }
+
+# per:place_of_birth only has 1 sample, in the original dev set
+# per:alternate_names can't be used because we use a non-anonymized version of the data
+# gpe:births_in_place only has 1 sample, in the original dev set
+EXCLUDED_RELATIONS = [18,29,32]
 
 def remove_notes_and_note_utterances(friends_datum):
     new_dialogue = []
@@ -211,8 +216,8 @@ def add_dialogre_annotations(dialogre_data, friends_data, partition):
             'labels': list(relation_map.values()),
             'metrics': ['multilabel_f1','mean_reciprocal_rank'],
             "metric_kwargs": {
-                "multilabel_f1": [{'labels':[i for i in range(36) if i != 29]}], # dont include "unanswerable" or "per:alternate_names"
-                "mean_reciprocal_rank": [{'labels':[i for i in range(36) if i != 29]}]} # dont include "unanswerable" or "per:alternate_names"
+                "multilabel_f1": [{'labels':[i for i in range(35) if i not in EXCLUDED_RELATIONS]}], # dont include "unanswerable" or "per:alternate_names"
+                "mean_reciprocal_rank": [{'labels':[i for i in range(35) if i not in EXCLUDED_RELATIONS]}]} # dont include "unanswerable" or "per:alternate_names"
         }
     triple_counts = {v: 0 for k, v in relation_map.items()}
 
@@ -264,12 +269,11 @@ def add_dialogre_annotations(dialogre_data, friends_data, partition):
             head = map_entity_to_dialogue(entity_pair['x'], speaker_map)
             tail = map_entity_to_dialogue(entity_pair['y'], speaker_map)
             for r in entity_pair['r']:
-                relations.append(r)
-                triple_counts[r] += 1
+                if r not in [relation_map[ex] for ex in EXCLUDED_RELATIONS]:
+                    relations.append(r)
+                    triple_counts[r] += 1
             
-            # alternate names is not a valid relation for our data format
-            if relations != ['per:alternate_names']:
-
+            if relations:
                 dialogre_annotation['relation_triples'].append({
                     'head': head,
                     'tail': tail,
