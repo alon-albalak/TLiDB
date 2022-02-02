@@ -32,7 +32,7 @@ def get_num_task_samples_Friends(path=path):
                 tasks["emotion_recognition"] += 1
                 em_found = True
             if "character_identification" in turn:
-                tasks["character_identification"] += 1
+                tasks["character_identification"] += len(turn['character_identification'])
                 ci_found = True
             if "MELD_emotion_recognition" in turn:
                 tasks['MELD_emotion_recognition'] += 1
@@ -97,7 +97,7 @@ def get_task_samples_per_split_by_dialogue_id(train_ids, dev_ids, test_ids, path
             if "emotion_recognition" in turn:
                 tasks_by_split[split]["emotion_recognition"] += 1
             if "character_identification" in turn:
-                tasks_by_split[split]['character_identification'] += 1
+                tasks_by_split[split]['character_identification'] += len(turn['character_identification'])
             if "MELD_emotion_recognition" in turn:
                 tasks_by_split[split]['MELD_emotion_recognition'] += 1
         if "reading_comprehension" in dialogue:

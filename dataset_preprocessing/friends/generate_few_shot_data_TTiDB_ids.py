@@ -59,7 +59,7 @@ def get_task_samples_per_split_by_dialogue_id(train_ids, dev_ids, path=path):
             if "emotion_recognition" in turn:
                 tasks_by_split[split]["emotion_recognition"] += 1
             if "character_identification" in turn:
-                tasks_by_split[split]['character_identification'] += 1
+                tasks_by_split[split]['character_identification'] += len(turn['character_identification'])
             if "MELD_emotion_recognition" in turn:
                 tasks_by_split[split]['MELD_emotion_recognition'] += 1
         if "reading_comprehension" in dialogue:
