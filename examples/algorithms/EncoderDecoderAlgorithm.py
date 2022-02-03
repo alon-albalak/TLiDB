@@ -75,7 +75,7 @@ class EncoderDecoderAlgorithm(Algorithm):
         return X, y_true, metadata
 
     def _classification_postprocessing(self, outputs, y_true, metadata):
-        y_pred = self.model.batch_decode(outputs)
+        outputs = self.model.batch_decode(outputs)
         y_true = torch.tensor([metadata['labels'].index(y) if y in metadata['labels'] else -1 for y in y_true])
         assert(all(y_true != -1)),str(y_true)
         y_pred = torch.tensor([metadata['labels'].index(y) if y in metadata['labels'] else -1 for y in outputs])
@@ -85,7 +85,7 @@ class EncoderDecoderAlgorithm(Algorithm):
         return X, y_true, metadata
 
     def _multioutput_classification_postprocessing(self, outputs, y_true, metadata):
-        y_pred = self.model.batch_decode(outputs)
+        outputs = self.model.batch_decode(outputs)
         y_true = torch.tensor([metadata['labels'].index(y) if y in metadata['labels'] else -1 for y in y_true])
         assert(all(y_true != -1)),str(y_true)
         y_pred = torch.tensor([metadata['labels'].index(y) if y in metadata['labels'] else -1 for y in outputs])
