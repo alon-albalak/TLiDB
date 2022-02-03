@@ -1,7 +1,5 @@
-# import torch
 from algorithms import initialize_algorithm
 from train import train,evaluate
-import sys
 import os
 from utils import Logger, load_datasets_split, load_algorithm, log_config, \
         set_seed, log_dataset_info, get_savepath_dir, append_to_save_path_dir

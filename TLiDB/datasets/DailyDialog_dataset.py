@@ -46,46 +46,47 @@ class DailyDialog_dataset(TLiDB_Dataset):
     _task_metadatas = {
         "emotion_recognition": {
                 "prompt":"emotion:","type":"classification","loader":"utterance_level_classification",
-                "collate_type":"classification"
+                "collate_type":"classification", "max_decode_tokens":5
                 },
         "dialogue_act_classification": {
             "prompt":"dialogue act:","type":"classification","loader":"utterance_level_classification",
-            "collate_type":"classification"
+            "collate_type":"classification", "max_decode_tokens":5
             },
         "topic_classification":{
             "prompt":"topic:","type":"classification","loader":"dialogue_level_classification",
-            "collate_type":"classification"
+            "collate_type":"classification", "max_decode_tokens":5
             },
         "causal_emotion_span_extraction":{# data already contains the prompt
             "prompt":"","type":"span_extraction","loader":"span_extraction",
-            "collate_type":"span_extraction"
+            "collate_type":"span_extraction", "max_decode_tokens":32
             },
         "causal_emotion_entailment":{
             "prompt":"causal emotion entailment:","type":"classification","loader":"causal_emotion_entailment",
-            "collate_type":"nli"
+            "collate_type":"nli", "max_decode_tokens":5
             },
         "dialogue_nli":{
             "prompt":"entailment:","type":"classification","loader":"dialogue_nli",
-            "collate_type":"nli"
+            "collate_type":"nli", "max_decode_tokens":5
         },
         "dialogue_reasoning_span_extraction":{
             "prompt":"", "type":"span_extraction","loader":"span_extraction",
-            "collate_type":"span_extraction"
+            "collate_type":"span_extraction", "max_decode_tokens":32
         },
         "dialogue_reasoning_multiple_choice_span_selection":{
             "prompt":"The correct option is", "type":"multiple_choice","loader":"multiple_choice",
-            "collate_type":"multiple_choice", "num_choices":4
+            "collate_type":"multiple_choice", "num_choices":4, "max_decode_tokens":20
         },
         "dialogue_reasoning_commonsense_relation_prediction":{
             "prompt":"", "type":"classification","loader":"relation_extraction",
-            "collate_type":"relation_extraction"
+            "collate_type":"relation_extraction", "max_decode_tokens":5
         },
         "adversarial_response_selection":{
             "prompt":"The correct option is","type":"multiple_choice","loader":"adversarial_response_selection",
-            "collate_type":"multiple_choice", "num_choices":3
+            "collate_type":"multiple_choice", "num_choices":3, "max_decode_tokens":1
         },
         "response_generation":{
             "prompt":"", "type":"response_generation","loader":"response_generation",
+            "max_decode_tokens":64
         }
     }
     def __init__(self, task, dataset_folder, model_type, split, max_dialogue_length, few_shot_percent=None):
