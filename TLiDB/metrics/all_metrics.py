@@ -127,7 +127,7 @@ class Recall(Metric):
         return torch.tensor(score)
 
 class MultiLabelF1(Metric):
-    def __init__(self, prediction_fn=binary_threshold, name=None, average='macro', labels=None, threshold=0.5):
+    def __init__(self, prediction_fn=None, name=None, average='macro', labels=None):
         """
         Calculate F1 score for multi-label classification
         Args:
@@ -136,7 +136,7 @@ class MultiLabelF1(Metric):
             - average (str): one of ['binary', 'micro', 'macro', 'weighted', 'samples']
             - labels: The set of labels to include when average != 'binary'  (if None, will use all labels)
         """
-        self.prediction_fn = prediction_fn(threshold)
+        self.prediction_fn = prediction_fn
         self.average = average
         self.labels = labels
         if name is None:

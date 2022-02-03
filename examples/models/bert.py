@@ -90,8 +90,7 @@ class Bert(TLiDB_model):
         return torch.tensor(outputs, dtype=torch.long)
 
     def transform_multioutput_classification_outputs(self, inputs, outputs, t_d, metadata):
-        outputs = [[self.classifiers[t_d]['labels'].index(y) for y in output['labels']] for output in outputs]
-        # outputs = [self.classifiers[t_d]['labels'].index(y) for y in outputs]
+        outputs = [[self.classifiers[t_d]['labels'].index(y) for y in output.values()] for output in outputs]
         return torch.tensor(outputs, dtype=torch.long)
 
     def transform_multilabel_classification_outputs(self, inputs, outputs, t_d, metadata):

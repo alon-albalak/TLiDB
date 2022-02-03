@@ -1,11 +1,8 @@
 from utils import move_to
 from losses import initialize_loss
-from examples.utils import concat_t_d
 from .algorithm import Algorithm
 from torch import sigmoid
 
-# temporarily here
-# TODO this function needs a better home
 def multiclass_logits_to_pred(logits):
     """
     Takes multi-class logits of size (batch_size, ..., n_classes) and returns predictions
@@ -102,7 +99,7 @@ class EncoderAlgorithm(Algorithm):
     def _multilabel_classification_postprocessing(self, X, outputs, y_true, transformed_y_true, metadata):
         # transform logits with sigmoid, then use a simple threshold of 0.5 for deciding output classes
         y_pred = sigmoid(outputs)
-        # y_pred = (y_pred > 0.5).float()
+        y_pred = (y_pred > 0.5).float()
         return y_pred, transformed_y_true, metadata
 
     def _calculate_multilabel_classification_loss(self, outputs, y_true, metadata, return_dict=False):
