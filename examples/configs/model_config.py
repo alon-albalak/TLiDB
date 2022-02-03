@@ -4,6 +4,7 @@ t5_config = {
     "learning_rate": 3e-5,
     "fp16": False,
     "effective_batch_size":60,
+    "max_dialogue_length": 512
 }
 gpt2_config = {
     "model": "gpt2",
@@ -11,6 +12,7 @@ gpt2_config = {
     "learning_rate": 3e-5,
     "fp16": True,
     "effective_batch_size":60,
+    "max_dialogue_length": 512
 }
 bert_config = {
     "model": "bert-base-uncased",
@@ -18,4 +20,5 @@ bert_config = {
     "learning_rate": 3e-5,
     "fp16": True,
     "effective_batch_size":60,
+    "max_dialogue_length": 0
 }

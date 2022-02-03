@@ -51,12 +51,14 @@ class TLiDB_Dataset(Dataset):
     """
     Abstract dataset class for all TLiDB datasets
     """
-    def __init__(self, dataset_name, task, model_type, dataset_folder):
+    def __init__(self, dataset_name, task, model_type, max_dialogue_length, dataset_folder):
         super().__init__()
         self.dataset = load_dataset(dataset_name, dataset_folder, self.url)
         self._task = task
         task_metadata = self.dataset['metadata']['task_metadata']
         self.task_labels = []
+        self._max_dialogue_length = max_dialogue_length
+        self._model_type = model_type
         if task in task_metadata and 'labels' in task_metadata[task]:
             self.task_labels = task_metadata[task]['labels']
 
@@ -96,6 +98,14 @@ class TLiDB_Dataset(Dataset):
     @property
     def url(self):
         return self._url
+
+    @property
+    def max_dialogue_length(self):
+        return self._max_dialogue_length
+
+    @property
+    def model_type(self):
+        return self._model_type
 
     @property
     def collate(self):
@@ -182,6 +192,18 @@ class TLiDB_Dataset(Dataset):
         Returns the length of the dataset
         """
         return len(self.y_array)
+
+    def _truncate_dialogue(self, input):
+        """
+        Truncates the dialogue to the max dialogue length
+        """
+        if self.max_dialogue_length:
+            dialogue = self._convert_dialogue_to_string(input)
+            while len(dialogue.split()) > self.max_dialogue_length:
+                input = input[1:]
+                dialogue = self._convert_dialogue_to_string(input)
+
+        return input
 
     def _convert_dialogue_to_string(self, input):
         dialogue = ""

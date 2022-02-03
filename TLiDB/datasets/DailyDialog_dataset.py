@@ -88,9 +88,9 @@ class DailyDialog_dataset(TLiDB_Dataset):
             "prompt":"", "type":"response_generation","loader":"response_generation",
         }
     }
-    def __init__(self, task, dataset_folder, model_type, split, few_shot_percent=None):
+    def __init__(self, task, dataset_folder, model_type, split, max_dialogue_length, few_shot_percent=None):
         assert task in self._tasks, f"{task} is not a valid task for {self._dataset_name}"
-        super().__init__(self._dataset_name, task, model_type, dataset_folder=dataset_folder)
+        super().__init__(self._dataset_name, task, model_type, max_dialogue_length, dataset_folder=dataset_folder)
         self._task_metadata = self._task_metadatas[task]
         self._input_array = []
         self._y_array = []

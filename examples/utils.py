@@ -18,13 +18,10 @@ def load_datasets_split(split, tasks, datasets, config):
     get_data_loader = get_loader(split)
     for t, d in zip(tasks, datasets):
         cur_dataset = get_dataset(dataset=d,task=t,model_type=config.model_type,
+                            max_dialogue_length=config.max_dialogue_length,
                             split=split,few_shot_percent=config.few_shot_percent)
         if config.frac < 1.0:
             cur_dataset.random_subsample(config.frac)
-        # TODO: remove this when done debugging
-        #   for debugging purposes, some datasets have no data under certain splits
-        if len(cur_dataset) == 0:
-            continue
 
         split_datasets["datasets"].append(cur_dataset)
         split_datasets["loaders"].append(get_data_loader(cur_dataset, config.gpu_batch_size, config, collate_fn=cur_dataset.collate, num_workers=config.num_workers))
