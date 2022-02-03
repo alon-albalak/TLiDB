@@ -1,7 +1,6 @@
 from transformers import T5ForConditionalGeneration, T5Tokenizer
-from torch.nn import CrossEntropyLoss
 from .TLiDB_model import TLiDB_model
-import torch
+import random
 
 class T5(TLiDB_model):
     def __init__(self, config):
@@ -40,6 +39,9 @@ class T5(TLiDB_model):
 
     def transform_outputs(self, outputs):
         """tokenizes outputs"""
+        # if multiple correct outputs, select 1 at random
+        if isinstance(outputs, list):
+            outputs = [random.choice(output) for output in outputs]
         tokenized_outputs = self.tokenizer(outputs, padding="longest", pad_to_multiple_of=8,
                                         truncation=True, return_tensors="pt")
         # replace pad tokens by -100
