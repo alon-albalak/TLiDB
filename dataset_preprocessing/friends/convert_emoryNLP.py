@@ -31,8 +31,8 @@ ANSWER = 'answer'
 PLACEHOLDER = "[PLACEHOLDER]"
 
 
-emo_dict = {"0": 'Joyful', "1": 'Mad',"2": 'Neutral', "3": 'Peaceful',
-            "4": 'Powerful', "5": 'Sad', "6": 'Scared'}
+emo_dict = {"0": 'joyful', "1": 'mad',"2": 'neutral', "3": 'peaceful',
+            "4": 'powerful', "5": 'sad', "6": 'scared'}
 
 character_mapping = {
     "Chandler Bing":"chandler",
@@ -344,7 +344,7 @@ def convert_season_dialogues(season_raw, formatted_data):
 
                 # get emotion annotations
                 if utterance[TOKENS] and 'emotion' in utterance:
-                    formatted_turn['emotion_recognition'] = utterance['emotion'][0]
+                    formatted_turn['emotion_recognition'] = utterance['emotion'][0].lower()
                     if "emotion_recognition" not in formatted_datum['dialogue_metadata']:
                         formatted_datum['dialogue_metadata']['emotion_recognition'] = None
 
