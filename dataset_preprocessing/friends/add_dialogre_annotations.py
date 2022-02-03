@@ -214,11 +214,10 @@ def add_dialogre_annotations(dialogre_data, friends_data, partition):
         friends_data['metadata']['tasks'].append("relation_extraction")
         friends_data['metadata']['task_metadata']['relation_extraction'] = {
             'labels': list(relation_map.values()),
-            'metrics': ['multilabel_f1','mean_reciprocal_rank'],
+            'metrics': ['multilabel_f1'],
             "metric_kwargs": {
-                "multilabel_f1": [{'labels':[i for i in range(35) if i not in EXCLUDED_RELATIONS]}], # dont include "unanswerable" or "per:alternate_names"
-                "mean_reciprocal_rank": [{'labels':[i for i in range(35) if i not in EXCLUDED_RELATIONS]}]} # dont include "unanswerable" or "per:alternate_names"
-        }
+                "multilabel_f1": [{'labels':[i for i in range(35) if i not in EXCLUDED_RELATIONS]}] # dont include "unanswerable" or "per:alternate_names"
+        }}
     triple_counts = {v: 0 for k, v in relation_map.items()}
 
     # track dialogues which fail
