@@ -44,17 +44,11 @@ class DecoderAlgorithm(Algorithm):
         # generate predictions and convert to labels if necessary
         if self.requires_metric_calculation():
             # generate predictions
-            outputs = self.model.generate(X_generate, **self.generation_config)
+            outputs = self.model.generate(X_generate, metadata['task_metadata']['max_decode_tokens'], **self.generation_config)
 
             # task-specific postprocessing
             y_pred, y_true = getattr(self, f"_{metadata['task_metadata']['type']}_postprocessing")(outputs, y_true, metadata)
 
-            if 'labels' in metadata:
-                # temporarily keep these separate until we know all labels are correctly aligned
-                maybe_y_true = torch.tensor([metadata['labels'].index(y) if y in metadata['labels'] else -1 for y in y_true])
-                assert(all(maybe_y_true != -1)),str(y_true)
-                y_true = maybe_y_true
-                y_pred = torch.tensor([metadata['labels'].index(y) if y in metadata['labels'] else -1 for y in y_pred])
         else:
             y_pred = []
             y_true = []
@@ -81,11 +75,56 @@ class DecoderAlgorithm(Algorithm):
         return X, y_true, metadata
 
     def _classification_postprocessing(self, outputs, y_true, metadata):
-        y_pred = outputs
+        y_true = torch.tensor([metadata['labels'].index(y) if y in metadata['labels'] else -1 for y in y_true])
+        assert(all(y_true != -1)),str(y_true)
+        y_pred = torch.tensor([metadata['labels'].index(y) if y in metadata['labels'] else -1 for y in outputs])
         return y_pred, y_true
 
+    def _multioutput_classification_preprocessing(self, X, y_true, metadata):
+        return X, y_true, metadata
+
+    def _multioutput_classification_postprocessing(self, outputs, y_true, metadata):
+        y_true = torch.tensor([metadata['labels'].index(y) if y in metadata['labels'] else -1 for y in y_true])
+        assert(all(y_true != -1)),str(y_true)
+        y_pred = torch.tensor([metadata['labels'].index(y) if y in metadata['labels'] else -1 for y in outputs])
+        return y_pred, y_true
+    
+    def _multilabel_classification_preprocessing(self, X, y_true, metadata):
+        # format y_true into a string of labels
+        y_true = [" and ".join([metadata['task_metadata']['class_to_natural_language_map'][c] for c in sample]) for sample in y_true]
+        return X, y_true, metadata
+
+    def _multilabel_classification_postprocessing(self, outputs, y_true, metadata):
+        # convert model outputs to mutlilabel format
+        y_pred = []
+        for output in outputs:
+            pred = [0 for _ in range(len(metadata['labels']))]
+            # search for class names in output
+            for i, natural_language_class in enumerate(metadata['task_metadata']['class_to_natural_language_map'].values()):
+                if natural_language_class in output:
+                    prediction = list(metadata['task_metadata']['class_to_natural_language_map'].keys())[i]
+                    pred[i] = 1
+            if sum(pred) == 0:
+                pred[metadata['labels'].index(metadata['task_metadata']['default_prediction'])] = 1
+            y_pred.append(pred)
+
+        # convert labels to multilabel format
+        transformed_y_true = []
+        for y in y_true:
+            true = [0 for _ in range(len(metadata['labels']))]
+            natural_language_labels = y.split(" and ")
+            label_indices = [list(metadata['task_metadata']['class_to_natural_language_map'].values()).index(l) for l in natural_language_labels]
+            for i in label_indices:
+                true[i] = 1
+            transformed_y_true.append(true)
+
+        return y_pred, transformed_y_true
+
     def _span_extraction_preprocessing(self, X, y_true, metadata):
-        y_true = [y['text'] for y in y_true]
+        if isinstance(y_true[0], list):
+            y_true = [[y_['text'] for y_ in y] for y in y_true]
+        else:
+            y_true = [y['text'] for y in y_true]
         return X, y_true, metadata
 
     def _span_extraction_postprocessing(self, outputs, y_true, metadata):
