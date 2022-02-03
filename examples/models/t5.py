@@ -40,7 +40,7 @@ class T5(TLiDB_model):
     def transform_outputs(self, outputs):
         """tokenizes outputs"""
         # if multiple correct outputs, select 1 at random
-        if isinstance(outputs, list):
+        if isinstance(outputs[0], list):
             outputs = [random.choice(output) for output in outputs]
         tokenized_outputs = self.tokenizer(outputs, padding="longest", pad_to_multiple_of=8,
                                         truncation=True, return_tensors="pt")
