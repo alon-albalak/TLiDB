@@ -1,6 +1,5 @@
-from torch.nn import CrossEntropyLoss
+import random
 from .TLiDB_model import TLiDB_model
-import torch
 
 # TODO: Follow patterns for
 #   Transfertransfo: https://github.com/huggingface/transfer-learning-conv-ai/blob/master/train.py
@@ -31,7 +30,9 @@ class GPT2(TLiDB_model):
 
 
     def transform_LM_inputs(self, inputs, outputs):
-        """Only tokenizes inputs"""
+        # if multiple correct outputs, select 1 at random
+        if isinstance(outputs[0], list):
+            outputs = [random.choice(output) for output in outputs]
         tokenized_inputs = self.tokenizer([" ".join([i,o])+self.tokenizer.eos_token for i,o in zip(inputs,outputs)],
                                         padding="longest",pad_to_multiple_of=8,truncation=True, return_tensors="pt")
         labels = tokenized_inputs.input_ids.detach().clone()
@@ -48,11 +49,10 @@ class GPT2(TLiDB_model):
         return tokenized_inputs
 
 
-    def generate(self, X, **kwargs):
+    def generate(self, X, max_decode_tokens, **kwargs):
         input_size = X.input_ids.shape[-1]
         outputs = self.model.generate(input_ids=X.input_ids,attention_mask=X.attention_mask,
-                                    max_length=input_size+20, **kwargs)
-        #FIXME: check the correctness of max_length and the source code to make sure the feed_prev method starts after the input size
+                                    max_length=input_size+max_decode_tokens, **kwargs)
         pred_tokens = outputs[:, input_size:]
         preds = self.tokenizer.batch_decode(pred_tokens, skip_special_tokens=True)
         preds = [pred.strip() for pred in preds]
