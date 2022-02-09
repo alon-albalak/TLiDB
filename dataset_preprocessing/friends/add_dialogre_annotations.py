@@ -47,7 +47,7 @@ relation_map = {
 # per:place_of_birth only has 1 sample, in the original dev set
 # per:alternate_names can't be used because we use a non-anonymized version of the data
 # gpe:births_in_place only has 1 sample, in the original dev set
-EXCLUDED_RELATIONS = [18,29,32]
+EXCLUDED_RELATIONS = [18,29,33]
 
 def remove_notes_and_note_utterances(friends_datum):
     new_dialogue = []
@@ -216,7 +216,7 @@ def add_dialogre_annotations(dialogre_data, friends_data, partition):
             'labels': list(relation_map.values()),
             'metrics': ['multilabel_f1'],
             "metric_kwargs": {
-                "multilabel_f1": [{'labels':[i for i in range(35) if i not in EXCLUDED_RELATIONS]}] # dont include "unanswerable" or "per:alternate_names"
+                "multilabel_f1": [{'labels':[i for i in range(35) if i not in EXCLUDED_RELATIONS]}] # dont include "per:place_of_birth","gpe:births_in_place","unanswerable" or "per:alternate_names"
         }}
     triple_counts = {v: 0 for k, v in relation_map.items()}
 
