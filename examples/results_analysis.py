@@ -1,8 +1,10 @@
+from email.mime import base
 import os
 import csv
 import sys
 
 BASE_SOURCE_PATH="{}_{}.{}_seed.{}/{}"
+BASE_COTRAINED_PATH="{}_{}_seed.{}/{}"
 TASKS={"DailyDialog":[
     # DailyDialog original tasks
     "emotion_recognition", "dialogue_act_classification", "topic_classification",
@@ -74,20 +76,68 @@ def get_single_seed_results(training_prefix, model, dataset, seed, fewshot_perce
     """
     tasks = TASKS[dataset]
 
-    results = {target_task: {source_task:{} for source_task in tasks} for target_task in tasks}
+    results = {train_type: {target_task: {source_task:{} for source_task in tasks} \
+                                for target_task in tasks} \
+                    for train_type in ["pretrained_fine-tuned"]}
 
     # for each task, get the metrics for train/test on source task
     # then get the metrics for train on source, and test on target task
     for source_task in tasks:
         source_prefix = training_prefix if not fewshot_percent else training_prefix + f"_{fewshot_percent}_FEWSHOT"
         source_path = BASE_SOURCE_PATH.format(source_prefix, dataset, source_task, seed, model)
-        results[source_task][source_task] = get_single_result(source_path)
+        results['pretrained_fine-tuned'][source_task][source_task] = get_single_result(source_path)
         for target_task in tasks:
             if target_task != source_task:
                 target_prefix = "FINETUNED" if not fewshot_percent else f"FINETUNED_{fewshot_percent}_FEWSHOT"
                 base_target_path=f"{target_prefix}_{dataset}.{target_task}_seed.{seed}"
                 target_path = os.path.join(source_path,base_target_path)
-                results[target_task][source_task] = get_single_result(target_path)
+                results['pretrained_fine-tuned'][target_task][source_task] = get_single_result(target_path)
+
+    return results
+
+def get_single_seed_results_cotrained(training_prefix, model, dataset, seed, fewshot_percent=None):
+    """
+    Get results for all tasks for a single seed
+
+    Args:
+        training_prefix (str): prefix of the training directory, eg. "PRETRAINED_0.1_FEWSHOT" or "COTRAINED"
+        model (str): model name
+        dataset (str): dataset name
+        seed (int): seed number
+        fewshot_percent (float): percentage of fewshot data if using fewshot
+        tasks (list): list of tasks
+    """
+    tasks = TASKS[dataset]
+
+    results = {train_type: {target_task: {source_task:{} for source_task in tasks} \
+                                for target_task in tasks} \
+                    for train_type in ["cotrained", "fine-tuned"]}
+
+    # for each task, get the metrics for train/test on source task
+    # then get the metrics for train on source, and test on target task
+    for source_task in tasks:
+        source_prefix = training_prefix if not fewshot_percent else training_prefix + f"_{fewshot_percent}_FEWSHOT"
+        source_path = BASE_SOURCE_PATH.format(source_prefix, dataset, source_task, seed, model)
+        source_path = source_path.replace("COTRAINED", "PRETRAINED")
+        base_result = get_single_result(source_path)
+        results['cotrained'][source_task][source_task] = base_result
+        results['fine-tuned'][source_task][source_task] = base_result
+        # results['cotrained'][source_task][source_task] = {}
+        # results['fine-tuned'][source_task][source_task] = {}
+
+        for target_task in tasks:
+            if target_task != source_task:
+                datasets = f"{dataset}.{source_task}_{dataset}.{target_task}"
+                # gather results from cotraining alone
+                cotrain_target_prefix = training_prefix if not fewshot_percent else training_prefix + f"_{fewshot_percent}_FEWSHOT"
+                cotrain_target_path = BASE_COTRAINED_PATH.format(cotrain_target_prefix, datasets, seed, model)
+                results['cotrained'][target_task][source_task] = get_single_result(cotrain_target_path)
+
+                # gather results from fine-tuning after cotraining
+                target_prefix = "FINETUNED" if not fewshot_percent else f"FINETUNED_{fewshot_percent}_FEWSHOT"
+                base_target_path=f"{target_prefix}_{dataset}.{target_task}_seed.{seed}"
+                finetune_target_path = os.path.join(cotrain_target_path,base_target_path)
+                results['fine-tuned'][target_task][source_task] = get_single_result(finetune_target_path)
 
     return results
 
@@ -159,14 +209,22 @@ if __name__ == "__main__":
     seed = sys.argv[4]
     fewshot_percent = None if len(sys.argv) < 6 else float(sys.argv[5])
 
-    results = get_single_seed_results(training_prefix, model, dataset, seed, fewshot_percent)
-    print_results(results)
+    if "COTRAINED" in training_prefix:
+        results = get_single_seed_results_cotrained(training_prefix, model, dataset, seed, fewshot_percent)
+    else:
+        results = get_single_seed_results(training_prefix, model, dataset, seed, fewshot_percent)
 
-    columns, headers = convert_results_to_table(results)
-    base_save_path = f"{training_prefix}_{model}_seed.{seed}_"
-    save_results_as_csv(columns, headers, base_save_path+"results.csv")
-    columns = convert_columns_to_differences(columns)
-    save_results_as_csv(columns, headers, base_save_path+"results_differences.csv")
+    for result_type, result in results.items():
+        print(f"{result_type} results:")
+        print_results(result)
+
+        columns, headers = convert_results_to_table(result)
+        base_save_path = f"{training_prefix}_{dataset}_{model}_seed.{seed}_"
+        if fewshot_percent:
+            base_save_path += f"FEWSHOT.{fewshot_percent}_"
+        save_results_as_csv(columns, headers, base_save_path+f"{result_type}_results.csv")
+        columns = convert_columns_to_differences(columns)
+        save_results_as_csv(columns, headers, base_save_path+f"{result_type}_results_differences.csv")
 
 # Sample usages as Python module
 
