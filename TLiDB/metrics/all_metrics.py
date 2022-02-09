@@ -127,7 +127,7 @@ class Recall(Metric):
         return torch.tensor(score)
 
 class MultiLabelF1(Metric):
-    def __init__(self, prediction_fn=None, name=None, average='macro', labels=None):
+    def __init__(self, prediction_fn=None, name=None, average='micro', labels=None):
         """
         Calculate F1 score for multi-label classification
         Args:

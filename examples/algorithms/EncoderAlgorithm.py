@@ -1,7 +1,7 @@
 from utils import move_to
 from losses import initialize_loss
 from .algorithm import Algorithm
-from torch import sigmoid
+import torch
 
 def multiclass_logits_to_pred(logits):
     """
@@ -97,9 +97,30 @@ class EncoderAlgorithm(Algorithm):
         return X, y_true, metadata
 
     def _multilabel_classification_postprocessing(self, X, outputs, y_true, transformed_y_true, metadata):
-        # transform logits with sigmoid, then use a simple threshold of 0.5 for deciding output classes
-        y_pred = sigmoid(outputs)
-        y_pred = (y_pred > 0.5).float()
+        """
+        Transforms the logits output into a multi-label prediction
+
+        First, we take the logits and apply a softmax to get the probabilities
+        Then, we take the probabilities and apply a threshold to get the binary decision
+        For each sample, if no class is over the threshold, we predict the class with the highest probability
+
+        This method works well for multilabel problems with 1 or 2 correct labels at a time, likely will need to be tuned for larger quantities
+        """
+
+        y_pred = torch.softmax(outputs, dim=-1)
+        binarized_y_pred = (y_pred > 0.1).float()
+        top_indices = torch.argmax(y_pred, dim=-1)
+        preds = []
+        for y, binary_y, ind in zip(y_pred, binarized_y_pred, top_indices):
+          if torch.sum(binary_y) == 0:
+            pred = [0 for _ in range(len(y))]
+            pred[ind] = 1
+            pred = torch.tensor(pred, dtype=torch.float, device=y_pred.device)
+            preds.append(pred)
+          else:
+            preds.append(binary_y)
+        y_pred = torch.stack(preds)
+
         return y_pred, transformed_y_true, metadata
 
     def _calculate_multilabel_classification_loss(self, outputs, y_true, metadata, return_dict=False):
