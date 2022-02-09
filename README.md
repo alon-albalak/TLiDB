@@ -1,4 +1,4 @@
-# The Transfer Learning in Dialogue Benchmark
+# The Transfer Learning in Dialogue Benchmarking Toolkit
 
 ### Folder descriptions:
 
