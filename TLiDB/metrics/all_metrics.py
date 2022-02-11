@@ -381,6 +381,146 @@ class Exact_Match(StringMetric):
 
         return torch.mean(torch.tensor(matches))
 
+####################################
+### Evaluation Metrics for Response Generation ###
+# - [x] BLEU-1, BLEU-2, BLEU-3, BLEU-4
+# - [x] BertScore
+# - [x] Distinct-N
+# - [x] https://github.com/Maluuba/nlg-eval
+
+# Priority list:
+# 1. BLEUs, Distinct-N, Perplexity
+# 2. BERT Score, cosine similarity (+ others from NLG Eval)
+# 3. Meteor, ROUGE, CIDEr
+
+
+# If possible, get Meteor, ROUGE-L, CIDEr from sources other than nlg-eval
+
+####################################
+
+class BLEU(StringMetric):
+    def __init__(self, prediction_fn=None, name=None, max_ngram_order=1):
+        """
+        Calculate BLEU (specifically using SacreBLEU) unigram/bigram/trigram/4-grams scores
+        Args:
+            - prediction_fn: Function to convert y_pred into the same format as y_true (for example, convert logits to max index)
+            - name (str): Name of the metric
+        """
+        self.bleu = SacreBLEU(max_ngram_order=max_ngram_order)
+        self.prediction_fn = prediction_fn
+        if name is None:
+            name = 'BLEU'
+        super().__init__(name=name)
+
+    def _compute(self, y_pred, y_true):
+        """
+        Args:
+            - y_pred (List of str): Predicted labels
+            - y_true (List of str): Ground truth labels
+        """
+        if self.prediction_fn is not None:
+            y_pred = self.prediction_fn(y_pred)
+
+
+        # Method 1
+        bleu_scores = self.bleu.corpus_score(y_pred, [y_true])
+        print(bleu_scores)
+        score = bleu_scores.score
+
+        # Method 2
+        # bleu_scores = self.bleu.corpus_score(y_pred, [[y] for y in y_true])
+        # print(bleu_scores)
+        # score = bleu_scores.score
+
+        # Method 3
+        # tokenized_y_pred = [nltk.tokenize.word_tokenize(y) for y in y_pred]
+        # tokenized_y_true = [nltk.tokenize.word_tokenize(y) for y in y_true]
+        # score = nltk.translate.bleu_score.corpus_bleu(list_of_references=[[true] for true in tokenized_y_true], hypotheses=tokenized_y_pred)
+        
+        return torch.tensor(score, dtype=torch.float)
+
+
+class Bert_Score(StringMetric):
+    def __init__(self, prediction_fn=None, name=None):
+        """
+        Calculate BertScore
+        Args:
+            - prediction_fn: Function to convert y_pred into the same format as y_true (for example, convert logits to max index)
+            - name (str): Name of the metric
+        """
+        self.prediction_fn = prediction_fn
+        if name is None:
+            name = 'Bert_Score'
+        super().__init__(name=name)
+
+    def _compute(self, y_pred, y_true):
+        """
+        Args:
+            - y_pred (List of str): Predicted labels
+            - y_true (List of str): Ground truth labels
+        """
+        if self.prediction_fn is not None:
+            y_pred = self.prediction_fn(y_pred)
+
+        P, R, F1 = bert_score.score(y_pred, y_true, lang='en')#, model_type="microsoft/deberta-xlarge-mnli")
+        
+        return torch.mean(F1)
+
+class Distinct_Ngrams(StringMetric):
+    def __init__(self, prediction_fn=None, name=None, ngram_order=1):
+        """
+        Calculate distinct n-grams with a nltk word tokenizer
+        Args:
+            - prediction_fn: Function to convert y_pred into the same format as y_true (for example, convert logits to max index)
+            - name (str): Name of the metric
+        """
+        self.prediction_fn = prediction_fn
+        self.ngram_order = ngram_order
+        if name is None:
+            name = f'Distinct_{ngram_order}grams'
+        super().__init__(name=name)
+
+    def _compute(self, y_pred, y_true):
+        """
+        Args:
+            - y_pred (List of str): Predicted labels
+            - y_true (List of str): Ground truth labels
+        """
+        if self.prediction_fn is not None:
+            y_pred = self.prediction_fn(y_pred)
+
+        tokenized_y_pred = [nltk.tokenize.word_tokenize(y) for y in y_pred]
+
+        ngrams = list(chain(*[[gram for gram in nltk.ngrams(y, self.ngram_order)] for y in tokenized_y_pred]))
+        score = len(set(ngrams)) / len(ngrams)
+
+        return torch.tensor(score, dtype=torch.float)
+
+# class NLGEval(StringMetric):
+#     def __init__(self, prediction_fn=None, name=None):
+#         """
+#         Calculate general natural language generation metrics, including: BLEU, METEOR, ROUGE-L, CIDEr, CosineSimilarity, GreedyMatching
+#         Args:
+#             - prediction_fn: Function to convert y_pred into the same format as y_true (for example, convert logits to max index)
+#             - name (str): Name of the metric
+#         """
+#         self.prediction_fn = prediction_fn
+#         if name is None:
+#             name = 'NLGEval'
+#         super().__init__(name=name)
+
+#     def _compute(self, y_pred, y_true):
+#         """
+#         Args:
+#             - y_pred (List of str): Predicted labels
+#             - y_true (List of str): Ground truth labels
+#         """
+#         if self.prediction_fn is not None:
+#             y_pred = self.prediction_fn(y_pred)
+
+#         metrics_dict = nlgeval.compute_individual_metrics(y_true, y_pred)
+#         return metrics_dict
+
 class MetricGroup:
     """
     A simple class to group metrics together
@@ -394,7 +534,11 @@ class MetricGroup:
         "label_ranking_average_precision": LRAP,
         "mean_reciprocal_rank": MRR,
         "token_f1":token_F1,
-        "exact_match":Exact_Match
+        "exact_match":Exact_Match,
+        "bleu":BLEU,
+        'bert_score':Bert_Score,
+        'distinct_ngrams':Distinct_Ngrams,
+        # 'nlgeval':NLGEval
     }
     def __init__(self, metrics, **kwargs):
         self.metrics = []
@@ -421,146 +565,3 @@ class MetricGroup:
             results.update(metric.compute(y_pred, y_true))
             results_str += f'{metric.name}: {results[metric.agg_metric_field]:.4f}\n'
         return results, results_str
-
-
-####################################
-### Evaluation Metrics for Response Generation ###
-# - [x] BLEU-1, BLEU-2, BLEU-3, BLEU-4
-# - [x] BertScore
-# - [x] Distinct-N
-# - [x] https://github.com/Maluuba/nlg-eval
-
-# Priority list:
-# 1. BLEUs, Distinct-N, Perplexity
-# 2. BERT Score, cosine similarity (+ others from NLG Eval)
-# 3. Meteor, ROUGE, CIDEr
-
-
-# If possible, get Meteor, ROUGE-L, CIDEr from sources other than nlg-eval
-# Add perplexity (loss) as metric
-
-####################################
-
-class BLEUs(StringMetric):
-    def __init__(self, prediction_fn=None, name=None, unanswerable_phrases=[], ignore_unanswerable=False):
-        """
-        Calculate BLEU (specifically using SacreBLEU) unigram/bigram/trigram/4-grams scores
-        Args:
-            - prediction_fn: Function to convert y_pred into the same format as y_true (for example, convert logits to max index)
-            - name (str): Name of the metric
-        """
-        self.bleu = SacreBLEU()
-        self.prediction_fn = prediction_fn
-        if name is None:
-            name = 'BLEU'
-        if ignore_unanswerable:
-            name += '_pos_only'
-        super().__init__(name=name, unanswerable_phrases=unanswerable_phrases, ignore_unanswerable=ignore_unanswerable)
-
-    def _compute(self, y_pred, y_true):
-        """
-        Args:
-            - y_pred (List of str): Predicted labels
-            - y_true (List of str): Ground truth labels
-        """
-        if self.prediction_fn is not None:
-            y_pred = self.prediction_fn(y_pred)
-
-        bleu_scores = self.bleu.corpus_score(y_pred, [[y] for y in y_true])
-        return bleu_scores
-
-
-class BertScore(StringMetric):
-    def __init__(self, prediction_fn=None, name=None, unanswerable_phrases=[], ignore_unanswerable=False):
-        """
-        Calculate BertScore
-        Args:
-            - prediction_fn: Function to convert y_pred into the same format as y_true (for example, convert logits to max index)
-            - name (str): Name of the metric
-        """
-        self.prediction_fn = prediction_fn
-        if name is None:
-            name = 'BertScore'
-        if ignore_unanswerable:
-            name += '_pos_only'
-        super().__init__(name=name, unanswerable_phrases=unanswerable_phrases, ignore_unanswerable=ignore_unanswerable)
-
-    def _compute(self, y_pred, y_true):
-        """
-        Args:
-            - y_pred (List of str): Predicted labels
-            - y_true (List of str): Ground truth labels
-        """
-        if self.prediction_fn is not None:
-            y_pred = self.prediction_fn(y_pred)
-
-        P, R, F1 = bert_score.score(y_pred, y_true, lang='en', verbose=False)#, verbose=True, device='cuda')#FIXME: check if speficifying device here.
-        return torch.mean(F1)
-
-
-# class NLGEval(StringMetric):
-#     def __init__(self, prediction_fn=None, name=None, unanswerable_phrases=[], ignore_unanswerable=False):
-#         """
-#         Calculate general natural language generation metrics, including: BLEU, METEOR, ROUGE-L, CIDEr, CosineSimilarity, GreedyMatching
-#         Args:
-#             - prediction_fn: Function to convert y_pred into the same format as y_true (for example, convert logits to max index)
-#             - name (str): Name of the metric
-#         """
-#         self.prediction_fn = prediction_fn
-#         if name is None:
-#             name = 'NLGEval'
-#         if ignore_unanswerable:
-#             name += '_pos_only'
-#         super().__init__(name=name, unanswerable_phrases=unanswerable_phrases, ignore_unanswerable=ignore_unanswerable)
-
-#     def _compute(self, y_pred, y_true):
-#         """
-#         Args:
-#             - y_pred (List of str): Predicted labels
-#             - y_true (List of str): Ground truth labels
-#         """
-#         if self.prediction_fn is not None:
-#             y_pred = self.prediction_fn(y_pred)
-
-#         metrics_dict = nlgeval.compute_individual_metrics(y_true, y_pred)
-#         return metrics_dict
-
-
-class DistinctN(StringMetric):
-    def __init__(self, prediction_fn=None, name=None, unanswerable_phrases=[], ignore_unanswerable=False):
-        """
-        Calculate distinct n-grams with a nltk word tokenizer
-        Args:
-            - prediction_fn: Function to convert y_pred into the same format as y_true (for example, convert logits to max index)
-            - name (str): Name of the metric
-        """
-        self.prediction_fn = prediction_fn
-        if name is None:
-            name = 'DistinctN'
-        if ignore_unanswerable:
-            name += '_pos_only'
-        super().__init__(name=name, unanswerable_phrases=unanswerable_phrases, ignore_unanswerable=ignore_unanswerable)
-
-    def _compute(self, y_pred, y_true):
-        """
-        Args:
-            - y_pred (List of str): Predicted labels
-            - y_true (List of str): Ground truth labels
-        """
-        if self.prediction_fn is not None:
-            y_pred = self.prediction_fn(y_pred)
-
-        y_pred = [nltk.tokenize.word_tokenizer(y) for y in y_pred]
-
-        ngrams1 = list(chain(*[[gram for gram in nltk.ngrams(y, 1)] for y in y_pred]))
-        ngrams2 = list(chain(*[[gram for gram in nltk.ngrams(y, 2)] for y in y_pred]))
-        ngrams3 = list(chain(*[[gram for gram in nltk.ngrams(y, 3)] for y in y_pred]))
-
-        metrics_dict = {
-            'distinct-1': len(set(ngrams1)) / len(ngrams1),
-            'distinct-2': len(set(ngrams2)) / len(ngrams2),
-            'distinct-3': len(set(ngrams3)) / len(ngrams3),
-        }
-
-        return metrics_dict
-

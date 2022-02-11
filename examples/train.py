@@ -28,8 +28,6 @@ def run_epoch(algorithm, datasets, config, logger, train):
 
     epoch_y_true = {t_d: [] for t_d in task_datasets}
     epoch_y_pred = {t_d: [] for t_d in task_datasets}
-    # TODO: unclear whether epoch metadata is useful
-    # epoch_metadata = {t_d: [] for t_d in task_datasets}
 
     # Using enumerate(iterator) can sometimes leak memory in some environments (!)
     # so we manually increment the step
@@ -51,8 +49,6 @@ def run_epoch(algorithm, datasets, config, logger, train):
         y_pred = detach_and_clone(batch_results['y_pred'])
         
         epoch_y_pred[batch_t_d].append(y_pred)
-        # TODO: unclear whether epoch metadata is useful
-        # epoch_metadata[batch_t_d].append(detach_and_clone(batch_results['metadata']))
 
         total_loss[batch_t_d] += detach_and_clone(batch_results['objective']['loss_value'])
         desc = "Train losses" if train else "Validation losses"

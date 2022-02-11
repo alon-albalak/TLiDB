@@ -63,8 +63,11 @@ class TLiDB_Dataset(Dataset):
             self.task_labels = task_metadata[task]['labels']
 
         if task == "response_generation":
-            self.metrics = ['token_f1']
-            self.metric_kwargs = {}
+            self.metrics = ['bleu', 'bert_score', 'distinct_ngrams']#, 'nlgeval']
+            self.metric_kwargs = {
+                "bleu": [{"max_ngram_order":4}],
+                "distinct_ngrams": [{"ngram_order":1}, {"ngram_order":2}, {"ngram_order":3}]
+                }
             self._collate = self._collate_response_generation
         else:
             self.metrics = task_metadata[task]['metrics']
