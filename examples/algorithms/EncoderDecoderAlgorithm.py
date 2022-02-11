@@ -76,9 +76,10 @@ class EncoderDecoderAlgorithm(Algorithm):
 
     def _classification_postprocessing(self, outputs, y_true, metadata):
         outputs = self.model.batch_decode(outputs)
-        y_true = torch.tensor([metadata['labels'].index(y) if y in metadata['labels'] else -1 for y in y_true])
+        y_true = self.convert_strings_to_labels(metadata['labels'], y_true)
         assert(all(y_true != -1)),str(y_true)
-        y_pred = torch.tensor([metadata['labels'].index(y) if y in metadata['labels'] else -1 for y in outputs])
+        y_pred = self.convert_strings_to_labels(metadata['labels'], outputs)
+        
         return y_pred, y_true
 
     def _multioutput_classification_preprocessing(self, X, y_true, metadata):
@@ -86,9 +87,9 @@ class EncoderDecoderAlgorithm(Algorithm):
 
     def _multioutput_classification_postprocessing(self, outputs, y_true, metadata):
         outputs = self.model.batch_decode(outputs)
-        y_true = torch.tensor([metadata['labels'].index(y) if y in metadata['labels'] else -1 for y in y_true])
+        y_true = self.convert_strings_to_labels(metadata['labels'], y_true)
         assert(all(y_true != -1)),str(y_true)
-        y_pred = torch.tensor([metadata['labels'].index(y) if y in metadata['labels'] else -1 for y in outputs])
+        y_pred = self.convert_strings_to_labels(metadata['labels'], outputs)
         return y_pred, y_true
 
     def _multilabel_classification_preprocessing(self, X, y_true, metadata):
@@ -138,9 +139,12 @@ class EncoderDecoderAlgorithm(Algorithm):
         return X, y_true, metadata
 
     def _multiple_choice_postprocessing(self, outputs, y_true, metadata):
-        y_pred = self.model.batch_decode(outputs)
+        outputs = self.model.batch_decode(outputs)
         num_choices = metadata['task_metadata']['num_choices']
         metadata['labels'] = [str(i) for i in range(num_choices)]
+        y_true = self.convert_strings_to_labels(metadata['labels'], y_true)
+        assert(all(y_true != -1)),str(y_true)
+        y_pred = self.convert_strings_to_labels(metadata['labels'], outputs)
         return y_pred, y_true
 
     def _response_generation_preprocessing(self, X, y_true, metadata):

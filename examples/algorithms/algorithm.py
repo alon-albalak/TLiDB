@@ -128,3 +128,6 @@ class Algorithm(nn.Module):
         if to_out_device:
             out_dict = move_to(out_dict, self.out_device)
         return out_dict
+
+    def convert_strings_to_labels(self, labels, strings):
+        return torch.tensor([labels.index(s) if s in labels else -1 for s in strings])
