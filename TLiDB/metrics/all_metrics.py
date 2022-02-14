@@ -8,7 +8,7 @@ import torch
 from sacrebleu.metrics import BLEU as SacreBLEU
 import nltk
 import bert_score
-# import nlgeval
+# from nlgeval import NLGEval
 
 class binary_threshold():
     def __init__(self, threshold=0.5):
@@ -421,22 +421,9 @@ class BLEU(StringMetric):
         if self.prediction_fn is not None:
             y_pred = self.prediction_fn(y_pred)
 
-
-        # Method 1
         bleu_scores = self.bleu.corpus_score(y_pred, [y_true])
-        print(bleu_scores)
         score = bleu_scores.score
 
-        # Method 2
-        # bleu_scores = self.bleu.corpus_score(y_pred, [[y] for y in y_true])
-        # print(bleu_scores)
-        # score = bleu_scores.score
-
-        # Method 3
-        # tokenized_y_pred = [nltk.tokenize.word_tokenize(y) for y in y_pred]
-        # tokenized_y_true = [nltk.tokenize.word_tokenize(y) for y in y_true]
-        # score = nltk.translate.bleu_score.corpus_bleu(list_of_references=[[true] for true in tokenized_y_true], hypotheses=tokenized_y_pred)
-        
         return torch.tensor(score, dtype=torch.float)
 
 
@@ -496,7 +483,7 @@ class Distinct_Ngrams(StringMetric):
 
         return torch.tensor(score, dtype=torch.float)
 
-# class NLGEval(StringMetric):
+# class NLG_Eval(StringMetric):
 #     def __init__(self, prediction_fn=None, name=None):
 #         """
 #         Calculate general natural language generation metrics, including: BLEU, METEOR, ROUGE-L, CIDEr, CosineSimilarity, GreedyMatching
@@ -505,6 +492,7 @@ class Distinct_Ngrams(StringMetric):
 #             - name (str): Name of the metric
 #         """
 #         self.prediction_fn = prediction_fn
+#         self.nlg_eval = NLGEval()
 #         if name is None:
 #             name = 'NLGEval'
 #         super().__init__(name=name)
@@ -518,8 +506,10 @@ class Distinct_Ngrams(StringMetric):
 #         if self.prediction_fn is not None:
 #             y_pred = self.prediction_fn(y_pred)
 
-#         metrics_dict = nlgeval.compute_individual_metrics(y_true, y_pred)
-#         return metrics_dict
+#         metrics_dict = self.nlg_eval.compute_individual_metrics(y_true, y_pred)
+#         score = sum(metrics_dict.values()) / len(metrics_dict)
+
+#         return torch.tensor(score, dtype=torch.float)
 
 class MetricGroup:
     """
@@ -538,7 +528,7 @@ class MetricGroup:
         "bleu":BLEU,
         'bert_score':Bert_Score,
         'distinct_ngrams':Distinct_Ngrams,
-        # 'nlgeval':NLGEval
+        # 'nlgeval':NLG_Eval
     }
     def __init__(self, metrics, **kwargs):
         self.metrics = []

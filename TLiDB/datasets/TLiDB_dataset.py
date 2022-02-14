@@ -222,12 +222,16 @@ class TLiDB_Dataset(Dataset):
     def _load_response_generation_task(self, task, split_ids):
         for datum in self.dataset['data']:
             if datum['dialogue_id'] in split_ids:
-                dialogue_str = ""
+                dialogue = []
                 for turn in datum['dialogue']:
-                    dialogue_str += f"{turn['speakers'][0]}: "
-                    self._input_array.append(dialogue_str)
-                    self._y_array.append(turn['utterance'])
-                    dialogue_str += f"{turn['utterance']} "
+                    truncated_dialogue = self._truncate_dialogue(dialogue)
+                    if turn['speakers']:
+                        str_dialogue = self._convert_dialogue_to_string(truncated_dialogue)
+                        str_dialogue += f" {' '.join(turn['speakers'])}: "
+                        str_dialogue = str_dialogue.lstrip()
+                        self._input_array.append(str_dialogue)
+                        self._y_array.append(turn['utterance'])
+                    dialogue.append([" ".join(turn['speakers']), turn['utterance']])
 
     def _collate_response_generation(self, batch):
         X, y, metadata = [], [], {}
