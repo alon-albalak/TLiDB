@@ -11,7 +11,7 @@ with open("README.md", "r", encoding="utf-8") as f:
 
 setuptools.setup(
     name="tlidb",
-    version="0.0.1",
+    version="0.0.2",
     license='MIT',
     url='https://github.com/alon-albalak/TLiDB',
     author="Alon Albalak",

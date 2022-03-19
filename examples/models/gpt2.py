@@ -32,7 +32,6 @@ class GPT2(TLiDB_model):
         labels = tokenized_inputs.input_ids.detach().clone()
         # replace pad tokens by -100
         labels[labels == self.tokenizer.pad_token_id] = -100
-        #FIXME: check if token_type_ids are needed (divided by speakers)?
         return tokenized_inputs, labels
 
     def transform_generation_inputs(self, inputs):
