@@ -55,7 +55,7 @@ def add_meld_annotations(meld_data, friends_data, partition):
                 turn['MELD_emotion_recognition'] = datum[MELD_EMOTION_fields.index("emotion")]
                 label_distribution[turn['MELD_emotion_recognition']] += 1
 
-            if 'emotion_recognition' in turn:
+            if 'emory_emotion_recognition' in turn:
                 num_emotion_overlap += 1
             tot += 1
 

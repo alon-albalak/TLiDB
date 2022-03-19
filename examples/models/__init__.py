@@ -1,1 +1,0 @@
-from .initializer import initialize_model

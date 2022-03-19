@@ -2,9 +2,6 @@ import argparse
 import torch
 import configs
 
-# TODO: Move args to model-specific config files
-#   For example, learning rate, optimizer, etc.
-
 incompatible_with_fp16 = ["t5-base"]
 incompatible_with_generation = ["bert"]
 
@@ -23,9 +20,11 @@ def parse_args():
 
     # general args
     parser.add_argument("--cpu_only", action="store_true")
-    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--seed", type=int, default=-1)
     parser.add_argument("--log_and_model_dir", type=str, default="./logs_and_models")
     parser.add_argument("--saved_model_dir", type=str, default=None, help="To load a saved model for fine-tuning or evaluation")
+    parser.add_argument("--data_dir", type=str, default="../TLiDB/data",
+        help="The directory where data is stored, by default we place it inside the TLiDB package in a data folder")
 
     # model args
     parser.add_argument("--model", type=str)

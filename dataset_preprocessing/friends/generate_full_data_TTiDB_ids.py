@@ -4,7 +4,7 @@ random.seed(0)
 
 path = "TLiDB_Friends/TLiDB_Friends.json"
 Friends_tasks = [
-    "emotion_recognition",
+    "emory_emotion_recognition",
     "reading_comprehension",
     "character_identification",
     "question_answering",
@@ -28,8 +28,8 @@ def get_num_task_samples_Friends(path=path):
         ci_found = False
         meld_found = False
         for turn in dialogue['dialogue']:
-            if "emotion_recognition" in turn:
-                tasks["emotion_recognition"] += 1
+            if "emory_emotion_recognition" in turn:
+                tasks["emory_emotion_recognition"] += 1
                 em_found = True
             if "character_identification" in turn:
                 tasks["character_identification"] += len(turn['character_identification'])
@@ -94,8 +94,8 @@ def get_task_samples_per_split_by_dialogue_id(train_ids, dev_ids, test_ids, path
         splits[split] += 1
 
         for turn in dialogue['dialogue']:
-            if "emotion_recognition" in turn:
-                tasks_by_split[split]["emotion_recognition"] += 1
+            if "emory_emotion_recognition" in turn:
+                tasks_by_split[split]["emory_emotion_recognition"] += 1
             if "character_identification" in turn:
                 tasks_by_split[split]['character_identification'] += len(turn['character_identification'])
             if "MELD_emotion_recognition" in turn:

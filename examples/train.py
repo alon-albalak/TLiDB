@@ -1,5 +1,3 @@
-from warnings import simplefilter
-from torch.utils import data
 from tqdm import tqdm
 import torch
 from examples.utils import detach_and_clone, collate_list, concat_t_d, save_algorithm_if_needed, save_pred_if_needed
@@ -28,8 +26,6 @@ def run_epoch(algorithm, datasets, config, logger, train):
 
     epoch_y_true = {t_d: [] for t_d in task_datasets}
     epoch_y_pred = {t_d: [] for t_d in task_datasets}
-    # TODO: unclear whether epoch metadata is useful
-    # epoch_metadata = {t_d: [] for t_d in task_datasets}
 
     # Using enumerate(iterator) can sometimes leak memory in some environments (!)
     # so we manually increment the step
@@ -51,8 +47,6 @@ def run_epoch(algorithm, datasets, config, logger, train):
         y_pred = detach_and_clone(batch_results['y_pred'])
         
         epoch_y_pred[batch_t_d].append(y_pred)
-        # TODO: unclear whether epoch metadata is useful
-        # epoch_metadata[batch_t_d].append(detach_and_clone(batch_results['metadata']))
 
         total_loss[batch_t_d] += detach_and_clone(batch_results['objective']['loss_value'])
         desc = "Train losses" if train else "Validation losses"
@@ -94,7 +88,6 @@ def train(algorithm, datasets, config, logger, epoch_offset, best_val_metric):
 
         # evaluate on validation set
         val_results, y_pred = run_epoch(algorithm, datasets['dev'], config, logger, train=False)
-        # TODO: allow for user to specify specific metrics to use
         val_metrics = [val_results[d][m] for d in val_results for m in val_results[d]]
         cur_val_metric = sum(val_metrics)/len(val_metrics)
         logger.write(f'Validation metric: {cur_val_metric:0.4f}\n')

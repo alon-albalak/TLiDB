@@ -49,13 +49,13 @@ class Friends_dataset(TLiDB_Dataset):
 
     _dataset_name = "Friends"
     _tasks = [
-        'emotion_recognition', 'reading_comprehension', 'character_identification',
+        'emory_emotion_recognition', 'reading_comprehension', 'character_identification',
         'question_answering', 'personality_detection', 'relation_extraction',
         'MELD_emotion_recognition', 'response_generation'
     ]
     _url = "https://drive.google.com/uc?export=download&id=1QK_XX-d38fKeJlcTcoMT9ku3VZn6bv6H"
     _task_metadatas = {
-        "emotion_recognition": {
+        "emory_emotion_recognition": {
                 "prompt":"emotion:","type":"classification","loader":"utterance_level_classification",
                 "collate_type":"classification", "max_decode_tokens":5
         },

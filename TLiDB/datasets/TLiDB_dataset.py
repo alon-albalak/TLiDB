@@ -30,7 +30,7 @@ def load_dataset(name, dataset_folder, url):
     if f"TLiDB_{name}" not in os.listdir(dataset_folder):
         assert(url is not None), "Must provide a url to download from"
         download_and_unzip(url, dataset_folder)
-        print(f"Extracted files to {dataset_folder}{name}")
+        print(f"Extracted files to {os.path.join(dataset_folder,name)}")
 
     ds = load_dataset_local(name, dataset_folder)
 

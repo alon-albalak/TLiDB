@@ -1,12 +1,9 @@
 import json
 import random
-
-import statistics
-
 random.seed(2530)
 
 expected_10_percent = {
-    "emotion_recognition":[863,207],
+    "emory_emotion_recognition":[863,207],
     "reading_comprehension":[950,208],
     "character_identification":[1692,387],
     "question_answering":[835,197],
@@ -17,7 +14,7 @@ expected_10_percent = {
 
 path = "TLiDB_Friends/TLiDB_Friends.json"
 Friends_tasks = [
-    "emotion_recognition",
+    "emory_emotion_recognition",
     "reading_comprehension",
     "character_identification",
     "question_answering",
@@ -56,8 +53,8 @@ def get_task_samples_per_split_by_dialogue_id(train_ids, dev_ids, path=path):
         splits[split] += 1
 
         for turn in dialogue['dialogue']:
-            if "emotion_recognition" in turn:
-                tasks_by_split[split]["emotion_recognition"] += 1
+            if "emory_emotion_recognition" in turn:
+                tasks_by_split[split]["emory_emotion_recognition"] += 1
             if "character_identification" in turn:
                 tasks_by_split[split]['character_identification'] += len(turn['character_identification'])
             if "MELD_emotion_recognition" in turn:

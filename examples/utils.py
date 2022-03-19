@@ -4,11 +4,6 @@ import random
 import numpy as np
 import torch
 
-package_directory = os.path.dirname(os.path.abspath(__file__))
-TLiDB_FOLDER = os.path.join(package_directory, "..")
-sys.path.append(TLiDB_FOLDER)
-
-# TLiDB imports
 from TLiDB.datasets.get_dataset import get_dataset
 from TLiDB.data_loaders.data_loaders import get_loader
 from TLiDB.metrics.initializer import get_metric_computer
@@ -17,7 +12,8 @@ def load_datasets_split(split, tasks, datasets, config):
     split_datasets = {"datasets":[], "loaders":[], "metrics":[]}
     get_data_loader = get_loader(split)
     for t, d in zip(tasks, datasets):
-        cur_dataset = get_dataset(dataset=d,task=t,model_type=config.model_type,
+        cur_dataset = get_dataset(dataset=d,task=t,dataset_folder=config.data_dir,
+                            model_type=config.model_type,
                             max_dialogue_length=config.max_dialogue_length,
                             split=split,few_shot_percent=config.few_shot_percent)
         if config.frac < 1.0:

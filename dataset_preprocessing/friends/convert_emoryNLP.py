@@ -344,9 +344,9 @@ def convert_season_dialogues(season_raw, formatted_data):
 
                 # get emotion annotations
                 if utterance[TOKENS] and 'emotion' in utterance:
-                    formatted_turn['emotion_recognition'] = utterance['emotion'][0].lower()
-                    if "emotion_recognition" not in formatted_datum['dialogue_metadata']:
-                        formatted_datum['dialogue_metadata']['emotion_recognition'] = None
+                    formatted_turn['emory_emotion_recognition'] = utterance['emotion'][0].lower()
+                    if "emory_emotion_recognition" not in formatted_datum['dialogue_metadata']:
+                        formatted_datum['dialogue_metadata']['emory_emotion_recognition'] = None
 
                 # get character identification annotations
                 if utterance[TOKENS] and 'character_entities' in utterance:
@@ -375,12 +375,12 @@ formatted_data = {
     "metadata": {
         "dataset_name": "Friends",
         "tasks": [
-            "emotion_recognition",
+            "emory_emotion_recognition",
             "reading_comprehension",
             "character_identification"
         ],
         "task_metadata": {
-            "emotion_recognition": {
+            "emory_emotion_recognition": {
                 "labels": list(emo_dict.values()), "metrics": ["f1"],
                 "metric_kwargs": {"f1": [{"average": "micro"}, {"average": "weighted"}]}
             },

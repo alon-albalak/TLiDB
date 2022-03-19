@@ -1,11 +1,9 @@
-import os
-import sys
 import torch
 import torch.nn as nn
 
-from utils import move_to, detach_and_clone
-from optimizers import initialize_optimizer
-from models import initialize_model
+from examples.utils import move_to, detach_and_clone
+from examples.optimizers import initialize_optimizer
+from examples.models.initializer import initialize_model
 
 class Algorithm(nn.Module):
     def __init__(self, config, datasets):
@@ -17,10 +15,12 @@ class Algorithm(nn.Module):
         self.optimizer = initialize_optimizer(config, self.model)
         self.max_grad_norm = config.max_grad_norm
         self.gradient_accumulation_steps = max(config.effective_batch_size//config.gpu_batch_size,1)
-        self.fp16 = config.fp16
         self.imbalanced_task_weighting = config.imbalanced_task_weighting
-        if config.fp16:
+        if not (config.device == 'cpu') and config.fp16:
+            self.fp16 = config.fp16
             self.scaler = torch.cuda.amp.GradScaler()
+        else:
+            self.fp16 = False
     
     def process_batch(self, batch):
         raise NotImplementedError

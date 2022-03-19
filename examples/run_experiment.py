@@ -1,4 +1,4 @@
-from algorithms import initialize_algorithm
+from algorithms.initializer import initialize_algorithm
 from train import train,evaluate
 import os
 from utils import Logger, load_datasets_split, load_algorithm, log_config, \

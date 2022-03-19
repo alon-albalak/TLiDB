@@ -1,12 +1,6 @@
 import random
 from .TLiDB_model import TLiDB_model
 
-# TODO: Follow patterns for
-#   Transfertransfo: https://github.com/huggingface/transfer-learning-conv-ai/blob/master/train.py
-#   Generate: https://huggingface.co/docs/transformers/master/en/main_classes/model#transformers.generation_utils.GenerationMixin.generate
-#             https://github.com/huggingface/transformers/blob/master/src/transformers/generation_utils.py#L649
-#   GPT2 model: https://github.com/huggingface/transformers/blob/master/src/transformers/models/gpt2/modeling_gpt2.py
-
 class GPT2(TLiDB_model):
     def __init__(self, config):
         super().__init__(config)
