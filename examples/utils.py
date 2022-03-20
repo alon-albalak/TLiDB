@@ -5,12 +5,11 @@ import numpy as np
 import torch
 
 from TLiDB.datasets.get_dataset import get_dataset
-from TLiDB.data_loaders.data_loaders import get_loader
+from TLiDB.data_loaders.data_loaders import get_dataloader
 from TLiDB.metrics.initializer import get_metric_computer
 
 def load_datasets_split(split, tasks, datasets, config):
     split_datasets = {"datasets":[], "loaders":[], "metrics":[]}
-    get_data_loader = get_loader(split)
     for t, d in zip(tasks, datasets):
         cur_dataset = get_dataset(dataset=d,task=t,dataset_folder=config.data_dir,
                             model_type=config.model_type,
@@ -20,7 +19,7 @@ def load_datasets_split(split, tasks, datasets, config):
             cur_dataset.random_subsample(config.frac)
 
         split_datasets["datasets"].append(cur_dataset)
-        split_datasets["loaders"].append(get_data_loader(cur_dataset, config.gpu_batch_size, config, collate_fn=cur_dataset.collate, num_workers=config.num_workers))
+        split_datasets["loaders"].append(get_dataloader(split, cur_dataset, config.gpu_batch_size, config, collate_fn=cur_dataset.collate, num_workers=config.num_workers))
         split_datasets["metrics"].append(get_metric_computer(cur_dataset.metrics, **cur_dataset.metric_kwargs))
     return split_datasets
 

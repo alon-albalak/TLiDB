@@ -34,7 +34,6 @@ class T5(TLiDB_model):
         """Only tokenizes inputs"""
         tokenized_inputs = self.tokenizer(inputs, padding="longest", pad_to_multiple_of=8,
                                         truncation=True, return_tensors="pt")
-        #FIXME check if inputs['attention_mask'] should be added?
         return tokenized_inputs
 
     def transform_outputs(self, outputs):
@@ -47,16 +46,13 @@ class T5(TLiDB_model):
         # replace pad tokens by -100
         label_ids = tokenized_outputs.input_ids
         label_ids[label_ids == self.tokenizer.pad_token_id] = -100
-        #FIXME check if inputs['labels'] should replace pad to -100?
         return label_ids
 
     def generate(self, input_ids, **kwargs):
         pred_tokens = self.model.generate(input_ids=input_ids, **kwargs)
-        #FIXME check if inputs['attention_mask'] should be added?
         return pred_tokens
 
     def batch_decode(self, tokens):
-        #FIXME check the usage of this function.
         return self.tokenizer.batch_decode(tokens, skip_special_tokens=True)
 
 def initialize_model(config):
