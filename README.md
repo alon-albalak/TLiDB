@@ -1,9 +1,14 @@
 # The Transfer Learning in Dialogue Benchmarking Toolkit
+[![PyPI](https://img.shields.io/pypi/v/tlidb)](https://pypi.org/project/tlidb/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/alon-albalak/tlidb/blob/master/LICENSE)
+[![DOI](https://zenodo.org/badge/419109889.svg)](https://zenodo.org/badge/latestdoi/419109889)
+
+
 
 ## Overview
----
 TLiDB is a tool used to benchmark methods of transfer learning in conversational AI.
 TLiDB can easily handle domain adaptation, task transfer, multitasking, continual learning, and other transfer learning settings.
+TLiDB maintains a unified json format for all datasets and tasks, easing the new code necessary for new datasets and tasks. We highly encourage community contributions to the project.
 
 The main features of TLiDB are:
 
@@ -12,31 +17,180 @@ The main features of TLiDB are:
 3. Extensible Model and Algorithm classes to support fast prototyping
 
 ## Installation
----
-To use TLiDB, you can simply isntall via pip:
+
+#### Requirements
+ - python>=3.6
+ - torch>=1.10
+ - nltk>=3.6.5
+ - scikit-learn>=1.0
+ - transformers>=4.11.3
+ - sentencepiece>=0.1.96 (optional)
+
+
+To use TLiDB, you can simply install via `pip`:
 ```bash
 pip install tlidb
 ```
 
-OR, if you would like to edit or contribute, you can clone the repository and install from source:
+OR, you can install TLiDB from source. This is recommended if you want to edit or contribute:
 ```bash
 git clone git@github.com:alon-albalak/TLiDB.git
 cd TLiDB
 pip install -e .
 ```
 
-`examples/` contains sample scripts for:
-
-1. Training/Evaluating models in transfer learning settings
-2. 3 example models: BERT, GPT-2, T5, and training algorithms for each
-
 ## How to use TLiDB
+---
 
-TODO:
-- Add examples for data loading/training
-- Add examples for using examples/run_experiment.py
+TLiDB has 2 main folders of interest:
+- /TLiDB
+- /examples
 
-### Folder descriptions:
+`/TLiDB/` holds the code related to data (datasets, dataloaders, metrics, etc.)
+`/examples/` contains sample code for models, learning algorithms, and sample training scripts
+
+### Using the example scripts
+TLiDB has example scripts to be used for training and evaluating models in transfer learning settings.
+In `/examples/` you can find 3 sample models and learning algorithms for:
+- BERT
+- GPT-2
+- T5
+
+Additionally, we provide a sample script for training/evaluation: `examples/run_experiment.py`.
+To simply train/evaluate a model on a single dataset/task:
+```bash
+cd examples
+
+MODEL=bert
+DATASET=Friends
+TASK=emotion_recognition
+python3 run_experiment.py --do_train --model_config $MODEL --source_tasks $TASK --source_datasets $DATASET --do_eval --eval_best --target_tasks $TASK --target_datasets $DATASET
+```
+
+To train a model on a source dataset/task and subsequently finetune on a target dataset/task:
+```bash
+MODEL=bert
+SOURCE_DATASET=Friends
+SOURCE_TASK=emotion_recognition
+TARGET_DATASET=Friends
+TARGET_TASK=reading_comprehension
+python3 run_experiment.py --do_train --model_config $MODEL --source_tasks $SOURCE_TASK --source_datasets $SOURCE_DATASET --do_finetune --do_eval --eval_best --target_tasks $TARGET_TASK --target_datasets $TARGET_DATASET
+```
+
+#### Large-scale training
+TLiDB makes training on a single source and then fine-tuning on many datasets/tasks very simple. First, train the model on the source dataset/task:
+```bash
+cd examples
+
+MODEL=t5
+SOURCE_DATASET=Friends
+SOURCE_TASK=emotion_recognition
+python3 run_experiment.py --do_train --model_config $MODEL --source_tasks $SOURCE_TASK --source_datasets $SOURCE_DATASET
+```
+Then, fine-tune on many target datasets/tasks:
+```bash
+MODEL=t5
+SOURCE_DATASET=Friends
+SOURCE_TASK=emotion_recognition
+TARGET_TASKS=(
+    'reading_comprehension'
+    'character_identification'
+    'question_answering'
+    'personality_detection'
+    )
+TARGET_DATASET=Friends
+for target_task in ${TARGET_TASKS[@]}; do
+    python3 run_experiment.py --do_finetune --model_config $MODEL --source_tasks $SOURCE_TASK --source_datasets $SOURCE_DATASET --target_tasks $target_task --target_datasets $TARGET_DATASET
+done
+```
+
+### Data Loading
+TLiDB offers a simple, unified interface for loading datasets.
+
+For a single dataset/task, the following example shows how to load the data, and put the data into a dataloader:
+
+
+```python3
+from TLiDB.datasets.get_dataset import get_dataset
+from TLiDB.data_loaders.data_loaders import get_loader
+
+# load the dataset, and download if necessary
+dataset = get_dataset(
+    dataset='DailyDialog',
+    task='emotion_recognition',
+    dataset_folder='TLiDB/data',
+    model_type='Encoder', #Options=['Encoder', 'Decoder','EncoderDecoder']
+    split='train',#Options=['train', 'dev', 'test']
+    )
+
+# get the dataloader
+dataloader = get_data_loader(
+    split='train', 
+    dataset=dataset,
+    batch_size=32,
+    model_type='Encoder'
+    )
+
+# train loop
+for batch in dataloader:
+    X, y, metadata = batch
+    ...
+```
+
+For training on multiple datasets/tasks simultaneously, TLiDB has a convenience dataloader class, TLiDB_DataLoader, which can be used to join multiple dataloaders:
+
+```python3
+from TLiDB.datasets.get_dataset import get_dataset
+from TLiDB.data_loaders.data_loaders import get_loader, TLiDB_DataLoader
+
+# Load the datasets, and download if necessary
+source_dataset = get_dataset(
+    dataset='DailyDialog',
+    task='emotion_recognition',
+    dataset_folder='TLiDB/data',
+    model_type='Encoder', #Options=['Encoder', 'Decoder','EncoderDecoder']
+    split='train',#Options=['train', 'dev', 'test']
+    )
+
+target_dataset = get_dataset(
+    dataset='DailyDialog',
+    task='reading_comprehension',
+    dataset_folder='TLiDB/data',
+    model_type='Encoder', #Options=['Encoder', 'Decoder','EncoderDecoder']
+    split='train',#Options=['train', 'dev', 'test']
+    )
+
+# Get the dataloaders
+source_dataloader = get_data_loader(
+    split='train', 
+    dataset=source_dataset,
+    batch_size=32,
+    model_type='Encoder'
+    )
+target_dataloader = get_data_loader(
+    split='train', 
+    dataset=target_dataset,
+    batch_size=32,
+    model_type='Encoder'
+    )
+
+dataloader_dict = {
+    "datasets": [source_dataset, target_dataset],
+    "loaders": [source_dataloader, target_dataloader],
+}
+
+# Wrap the dataloaders into a TLiDB_DataLoader
+dataloader = TLiDB_DataLoader(dataloader_dict)
+
+# train loop
+for batch in dataloader:
+    X, y, metadata = batch
+    ...
+
+```
+
+
+## Folder descriptions:
 ---
 - /TLiDB is the main folder holding the code for data
     - /TLiDB/data_loaders contains code for data_loaders
@@ -50,3 +204,6 @@ TODO:
     - /examples/configs contains code for model configurations
     - /examples/logs_and_models is the destination folder for training logs and model checkpoints
 - /dataset_preprocessing is for reproducability purposes, not required for end users. It contains scripts used to preprocess the TLiDB datasets from their original form into the TLiDB form
+
+## Acknowledgements
+The design of TLiDB was based the [wilds](https://github.com/p-lambda/wilds) project, and the [Open Graph Benchmark](https://github.com/snap-stanford/ogb).

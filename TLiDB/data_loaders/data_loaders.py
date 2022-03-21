@@ -1,5 +1,4 @@
 from torch.utils.data import DataLoader
-import numpy as np
 import random
 
 def get_train_loader(dataset, batch_size, model_type, **loader_kwargs):
@@ -69,6 +68,7 @@ class TLiDB_DataLoader:
         self.lengths = [len(d) for d in self.dataloaders]
         self.remaining_batches = [len(d) for d in self.dataloaders]
         self.task_metadatas = [d.task_metadata for d in dataloader_dict['datasets']]
+        # inverse square-root weights are stored in metadata, if desired
         self.task_weights = [1/l**(1/2) for l in self.lengths]
 
     def _reset(self):

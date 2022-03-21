@@ -18,7 +18,7 @@ TASKS={"DailyDialog":[
     ],
     "Friends": [
         # emoryNLP tasks
-        "emotion_recognition", "reading_comprehension", "character_identification",
+        "emory_emotion_recognition", "reading_comprehension", "character_identification",
         "question_answering", "personality_detection",
         # dialogRE task
         "relation_extraction",
@@ -51,7 +51,7 @@ def get_single_result(log_path):
     for line in lines[metrics_start:]:
         metric_line = line.strip()
 
-        # contine searching until empty line
+        # continue searching until empty line
         if metric_line:
             if len(metric_line.split(": ")) == 2:
                 metric, value = metric_line.split(": ")
@@ -121,8 +121,6 @@ def get_single_seed_results_cotrained(training_prefix, model, dataset, seed, few
         base_result = get_single_result(source_path)
         results['cotrained'][source_task][source_task] = base_result
         results['fine-tuned'][source_task][source_task] = base_result
-        # results['cotrained'][source_task][source_task] = {}
-        # results['fine-tuned'][source_task][source_task] = {}
 
         for target_task in tasks:
             if target_task != source_task:

@@ -10,8 +10,11 @@
 env/
 venv/
 
-logs_and_models/*
 
 **.zip
 
+dataset_preprocessing/*
+!dataset_preprocessing/DailyDialog/
+!dataset_preprocessing/friends/
 dataset_preprocessing/DailyDialog/TLiDB_DailyDialog/*
+dataset_preprocessing/friends/TLiDB_Friends/*

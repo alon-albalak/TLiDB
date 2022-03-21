@@ -1,9 +1,7 @@
 import setuptools
-import os
-import sys
+from TLiDB.version import __version__
 
-here = os.path.abspath(os.path.dirname(__file__))
-sys.path.insert(0, os.path.join(here, "TLiDB"))
+print(f"Version {__version__}")
 
 
 with open("README.md", "r", encoding="utf-8") as f:
@@ -11,7 +9,7 @@ with open("README.md", "r", encoding="utf-8") as f:
 
 setuptools.setup(
     name="tlidb",
-    version="0.0.2",
+    version=__version__,
     license='MIT',
     url='https://github.com/alon-albalak/TLiDB',
     author="Alon Albalak",
