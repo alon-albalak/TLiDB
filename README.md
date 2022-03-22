@@ -3,9 +3,6 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/alon-albalak/tlidb/blob/master/LICENSE)
 [![DOI](https://zenodo.org/badge/419109889.svg)](https://zenodo.org/badge/latestdoi/419109889)
 
-TODO:
-- Move /examples/ readme to /example/README.md
-
 ## Overview
 TLiDB is a tool used to benchmark methods of transfer learning in conversational AI.
 TLiDB can easily handle domain adaptation, task transfer, multitasking, continual learning, and other transfer learning settings.
