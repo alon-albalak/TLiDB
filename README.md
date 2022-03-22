@@ -3,7 +3,8 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/alon-albalak/tlidb/blob/master/LICENSE)
 [![DOI](https://zenodo.org/badge/419109889.svg)](https://zenodo.org/badge/latestdoi/419109889)
 
-
+TODO:
+- Move /examples/ readme to /example/README.md
 
 ## Overview
 TLiDB is a tool used to benchmark methods of transfer learning in conversational AI.
@@ -40,69 +41,14 @@ pip install -e .
 ```
 
 ## How to use TLiDB
----
-
 TLiDB has 2 main folders of interest:
-- /TLiDB
-- /examples
+- `/TLiDB`
+- `/examples`
 
 `/TLiDB/` holds the code related to data (datasets, dataloaders, metrics, etc.)
-`/examples/` contains sample code for models, learning algorithms, and sample training scripts
 
-### Using the example scripts
-TLiDB has example scripts to be used for training and evaluating models in transfer learning settings.
-In `/examples/` you can find 3 sample models and learning algorithms for:
-- BERT
-- GPT-2
-- T5
-
-Additionally, we provide a sample script for training/evaluation: `examples/run_experiment.py`.
-To simply train/evaluate a model on a single dataset/task:
-```bash
-cd examples
-
-MODEL=bert
-DATASET=Friends
-TASK=emotion_recognition
-python3 run_experiment.py --do_train --model_config $MODEL --source_tasks $TASK --source_datasets $DATASET --do_eval --eval_best --target_tasks $TASK --target_datasets $DATASET
-```
-
-To train a model on a source dataset/task and subsequently finetune on a target dataset/task:
-```bash
-MODEL=bert
-SOURCE_DATASET=Friends
-SOURCE_TASK=emotion_recognition
-TARGET_DATASET=Friends
-TARGET_TASK=reading_comprehension
-python3 run_experiment.py --do_train --model_config $MODEL --source_tasks $SOURCE_TASK --source_datasets $SOURCE_DATASET --do_finetune --do_eval --eval_best --target_tasks $TARGET_TASK --target_datasets $TARGET_DATASET
-```
-
-#### Large-scale training
-TLiDB makes training on a single source and then fine-tuning on many datasets/tasks very simple. First, train the model on the source dataset/task:
-```bash
-cd examples
-
-MODEL=t5
-SOURCE_DATASET=Friends
-SOURCE_TASK=emotion_recognition
-python3 run_experiment.py --do_train --model_config $MODEL --source_tasks $SOURCE_TASK --source_datasets $SOURCE_DATASET
-```
-Then, fine-tune on many target datasets/tasks:
-```bash
-MODEL=t5
-SOURCE_DATASET=Friends
-SOURCE_TASK=emotion_recognition
-TARGET_TASKS=(
-    'reading_comprehension'
-    'character_identification'
-    'question_answering'
-    'personality_detection'
-    )
-TARGET_DATASET=Friends
-for target_task in ${TARGET_TASKS[@]}; do
-    python3 run_experiment.py --do_finetune --model_config $MODEL --source_tasks $SOURCE_TASK --source_datasets $SOURCE_DATASET --target_tasks $target_task --target_datasets $TARGET_DATASET
-done
-```
+`/examples/` contains sample code for models, learning algorithms, and sample training scripts. 
+For detailed examples, see the [Examples README](/examples/README.md).
 
 ### Data Loading
 TLiDB offers a simple, unified interface for loading datasets.
@@ -191,7 +137,6 @@ for batch in dataloader:
 
 
 ## Folder descriptions:
----
 - /TLiDB is the main folder holding the code for data
     - /TLiDB/data_loaders contains code for data_loaders
     - /TLiDB/data is the destination folder for downloaded datasets
@@ -202,8 +147,22 @@ for batch in dataloader:
     - /examples/algorithms contains code which trains and evaluates a model
     - /examples/models contains code to define a model
     - /examples/configs contains code for model configurations
-    - /examples/logs_and_models is the destination folder for training logs and model checkpoints
-- /dataset_preprocessing is for reproducability purposes, not required for end users. It contains scripts used to preprocess the TLiDB datasets from their original form into the TLiDB form
+    - /examples/logs_and_models is the default destination folder for training logs and model checkpoints
+- /dataset_preprocessing is for reproducability purposes. It contains scripts used to preprocess the TLiDB datasets from their original form into the TLiDB form
+
+## Citation
+If you use TLiDB in your work, please cite the repository:
+```
+@software{Albalak_The_Transfer_Learning_2022,
+author = {Albalak, Alon},
+doi = {10.5281/zenodo.6374360},
+month = {3},
+title = {{The Transfer Learning in Dialogue Benchmarking Toolkit}},
+url = {https://github.com/alon-albalak/TLiDB},
+version = {1.0.0},
+year = {2022}
+}
+```
 
 ## Acknowledgements
 The design of TLiDB was based the [wilds](https://github.com/p-lambda/wilds) project, and the [Open Graph Benchmark](https://github.com/snap-stanford/ogb).

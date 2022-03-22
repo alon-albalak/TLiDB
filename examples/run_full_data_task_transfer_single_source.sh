@@ -3,13 +3,15 @@ SOURCE_TASK=$2
 MODEL=$3
 GPU_BATCH_SIZE=$4
 
+NUM_EPOCHS=10
+
 train_eval_source(){
     CUDA_VISIBLE_DEVICES=$GPU python3 run_experiment.py \
         --model_config $MODEL \
         --gpu_batch_size $GPU_BATCH_SIZE \
         --do_train \
         --source_tasks $SOURCE_TASK --source_datasets DailyDialog \
-        --num_epochs=10 \
+        --num_epochs=$NUM_EPOCHS \
         --do_eval --eval_best --target_tasks $SOURCE_TASK --target_datasets DailyDialog
 }
 
@@ -22,7 +24,7 @@ finetune_eval_target(){
         --source_tasks $SOURCE_TASK --source_datasets DailyDialog \
         --do_finetune \
         --target_tasks $TARGET_TASK --target_datasets DailyDialog \
-        --num_epochs=10 \
+        --num_epochs=$NUM_EPOCHS \
         --do_eval --eval_best
 }
 

@@ -6,16 +6,10 @@ MODEL=$3
 GPU_BATCH_SIZE=$4
 FEW_SHOT_PERCENT=$5
 
-if [ $MODEL == 'bert' ]; then
-    NUM_EPOCHS=10
-else
-    NUM_EPOCHS=20
-fi
+NUM_EPOCHS=10
 
 train_eval_source(){
-    SEED=$1
     CUDA_VISIBLE_DEVICES=$GPU python3 run_experiment.py \
-        --seed $SEED \
         --model_config $MODEL \
         --gpu_batch_size $GPU_BATCH_SIZE \
         --do_train \
@@ -26,11 +20,9 @@ train_eval_source(){
 }
 
 finetune_eval_target(){
-    SEED=$1
-    TARGET_TASK=$2
+    TARGET_TASK=$1
 
     CUDA_VISIBLE_DEVICES=$GPU python3 run_experiment.py \
-        --seed $SEED \
         --model_config $MODEL \
         --gpu_batch_size $GPU_BATCH_SIZE \
         --source_tasks $SOURCE_TASK --source_datasets DailyDialog \
@@ -55,19 +47,9 @@ tasks=(
     'adversarial_response_selection'
     )
 
-SEEDS=(
-    42
-    100
-    333
-    2000
-    1234
-    )
-
-for seed in ${SEEDS[@]}; do
-    train_eval_source $seed
-    for task in ${tasks[@]}; do
-        if [ $task != $SOURCE_TASK ]; then
-            finetune_eval_target $seed $task
-        fi
-    done
+train_eval_source
+for task in ${tasks[@]}; do
+    if [ $task != $SOURCE_TASK ]; then
+        finetune_eval_target $task
+    fi
 done
