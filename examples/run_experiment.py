@@ -7,8 +7,8 @@ import argparser
 
 def main(config):
 
-    # if cotraining, then train on both source+target tasks, and dev is target only
-    if config.cotraining:
+    # if multitask, then train on both source+target tasks, and dev is target only
+    if config.multitask:
         config.train_datasets = config.source_datasets+config.target_datasets
         config.train_tasks = config.source_tasks+config.target_tasks
         config.dev_datasets = config.target_datasets
@@ -28,7 +28,7 @@ def main(config):
         config.eval_tasks = config.target_tasks
 
     # create save path based only on train data
-    config.save_path_dir = get_savepath_dir(config.train_datasets, config.train_tasks, config.seed, config.log_and_model_dir, config.model, config.few_shot_percent, config.cotraining)
+    config.save_path_dir = get_savepath_dir(config.train_datasets, config.train_tasks, config.seed, config.log_and_model_dir, config.model, config.few_shot_percent, config.multitask)
 
     # Initialize logs
     if os.path.exists(config.save_path_dir) and \

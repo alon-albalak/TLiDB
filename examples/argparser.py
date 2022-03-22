@@ -12,11 +12,11 @@ def parse_args():
     parser.add_argument("--frac", type=float, default=1.0,
         help="Convenience parameter that scales down dataset size to specified fraction, for debugging purposes")
     parser.add_argument("--debug", action="store_true", help="Setup training for debugging. For example, no logging")
-    parser.add_argument("--generate_during_training", action="store_true")
+    parser.add_argument("--generate_during_training", action="store_true", help="If true, generative models will generate\
+        text during training, normally they only calculate loss")
 
-    # configs for experimentation ease
+    # config for experimentation ease
     parser.add_argument("--model_config",type=str, default=None)
-    parser.add_argument("--num_workers", type=int, default=4)
 
     # general args
     parser.add_argument("--cpu_only", action="store_true")
@@ -25,6 +25,7 @@ def parse_args():
     parser.add_argument("--saved_model_dir", type=str, default=None, help="To load a saved model for fine-tuning or evaluation")
     parser.add_argument("--data_dir", type=str, default="../TLiDB/data",
         help="The directory where data is stored, by default we place it inside the TLiDB package in a data folder")
+    parser.add_argument("--num_workers", type=int, default=4)
 
     # model args
     parser.add_argument("--model", type=str)
@@ -54,7 +55,7 @@ def parse_args():
     parser.add_argument("--target_datasets", type=str,nargs='+')
 
     # TTiDB args
-    parser.add_argument("--cotraining", action="store_true")
+    parser.add_argument("--multitask", action="store_true")
     parser.add_argument("--few_shot_percent", type=float, default=None)
     
     # algorithm args

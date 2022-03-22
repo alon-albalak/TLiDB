@@ -79,10 +79,10 @@ def set_seed(seed):
         np.random.seed(seed)
         torch.manual_seed(seed)
 
-def get_savepath_dir(datasets, tasks, seed, log_dir, model, few_shot_percent, cotraining=False):
+def get_savepath_dir(datasets, tasks, seed, log_dir, model, few_shot_percent, multitask=False):
     prefix = "PRETRAINED_"
-    if cotraining:
-        prefix = "COTRAINED_"
+    if multitask:
+        prefix = "MULTITASK_"
     if few_shot_percent:
         prefix += f"{few_shot_percent}_FEWSHOT_"
     for dataset,task in zip(datasets, tasks):

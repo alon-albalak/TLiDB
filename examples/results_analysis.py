@@ -3,7 +3,7 @@ import csv
 import sys
 
 BASE_SOURCE_PATH="{}_{}.{}_seed.{}/{}"
-BASE_COTRAINED_PATH="{}_{}_seed.{}/{}"
+BASE_MULTITASK_PATH="{}_{}_seed.{}/{}"
 TASKS={"DailyDialog":[
     # DailyDialog original tasks
     "emotion_recognition", "dialogue_act_classification", "topic_classification",
@@ -66,7 +66,7 @@ def get_single_seed_results(training_prefix, model, dataset, seed, fewshot_perce
     Get results for all tasks for a single seed
 
     Args:
-        training_prefix (str): prefix of the training directory, eg. "PRETRAINED_0.1_FEWSHOT" or "COTRAINED"
+        training_prefix (str): prefix of the training directory, eg. "PRETRAINED_0.1_FEWSHOT" or "MULTITASK"
         model (str): model name
         dataset (str): dataset name
         seed (int): seed number
@@ -94,12 +94,12 @@ def get_single_seed_results(training_prefix, model, dataset, seed, fewshot_perce
 
     return results
 
-def get_single_seed_results_cotrained(training_prefix, model, dataset, seed, fewshot_percent=None):
+def get_single_seed_results_multitask(training_prefix, model, dataset, seed, fewshot_percent=None):
     """
     Get results for all tasks for a single seed
 
     Args:
-        training_prefix (str): prefix of the training directory, eg. "PRETRAINED_0.1_FEWSHOT" or "COTRAINED"
+        training_prefix (str): prefix of the training directory, eg. "PRETRAINED_0.1_FEWSHOT" or "MULTITASK"
         model (str): model name
         dataset (str): dataset name
         seed (int): seed number
@@ -110,30 +110,30 @@ def get_single_seed_results_cotrained(training_prefix, model, dataset, seed, few
 
     results = {train_type: {target_task: {source_task:{} for source_task in tasks} \
                                 for target_task in tasks} \
-                    for train_type in ["cotrained", "fine-tuned"]}
+                    for train_type in ["multitask", "fine-tuned"]}
 
     # for each task, get the metrics for train/test on source task
     # then get the metrics for train on source, and test on target task
     for source_task in tasks:
         source_prefix = training_prefix if not fewshot_percent else training_prefix + f"_{fewshot_percent}_FEWSHOT"
         source_path = BASE_SOURCE_PATH.format(source_prefix, dataset, source_task, seed, model)
-        source_path = source_path.replace("COTRAINED", "PRETRAINED")
+        source_path = source_path.replace("MULTITASK", "PRETRAINED")
         base_result = get_single_result(source_path)
-        results['cotrained'][source_task][source_task] = base_result
+        results['multitask'][source_task][source_task] = base_result
         results['fine-tuned'][source_task][source_task] = base_result
 
         for target_task in tasks:
             if target_task != source_task:
                 datasets = f"{dataset}.{source_task}_{dataset}.{target_task}"
-                # gather results from cotraining alone
-                cotrain_target_prefix = training_prefix if not fewshot_percent else training_prefix + f"_{fewshot_percent}_FEWSHOT"
-                cotrain_target_path = BASE_COTRAINED_PATH.format(cotrain_target_prefix, datasets, seed, model)
-                results['cotrained'][target_task][source_task] = get_single_result(cotrain_target_path)
+                # gather results from multitask alone
+                multitask_target_prefix = training_prefix if not fewshot_percent else training_prefix + f"_{fewshot_percent}_FEWSHOT"
+                multitask_target_path = BASE_MULTITASK_PATH.format(multitask_target_prefix, datasets, seed, model)
+                results['multitask'][target_task][source_task] = get_single_result(multitask_target_path)
 
-                # gather results from fine-tuning after cotraining
+                # gather results from fine-tuning after multitask
                 target_prefix = "FINETUNED" if not fewshot_percent else f"FINETUNED_{fewshot_percent}_FEWSHOT"
                 base_target_path=f"{target_prefix}_{dataset}.{target_task}_seed.{seed}"
-                finetune_target_path = os.path.join(cotrain_target_path,base_target_path)
+                finetune_target_path = os.path.join(multitask_target_path,base_target_path)
                 results['fine-tuned'][target_task][source_task] = get_single_result(finetune_target_path)
 
     return results
@@ -206,8 +206,8 @@ if __name__ == "__main__":
     seed = sys.argv[4]
     fewshot_percent = None if len(sys.argv) < 6 else float(sys.argv[5])
 
-    if "COTRAINED" in training_prefix:
-        results = get_single_seed_results_cotrained(training_prefix, model, dataset, seed, fewshot_percent)
+    if "MULTITASK" in training_prefix:
+        results = get_single_seed_results_multitask(training_prefix, model, dataset, seed, fewshot_percent)
     else:
         results = get_single_seed_results(training_prefix, model, dataset, seed, fewshot_percent)
 
