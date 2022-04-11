@@ -91,6 +91,10 @@ def parse_args():
     else:
         raise ValueError(f"Model {args.model} not supported")
 
+    # if only training on a single task, don't use imbalanced task weighting
+    if not args.multitask and (len(args.source_tasks) == 1) and args.imbalanced_task_weighting:
+        args.imbalanced_task_weighting = False 
+
     if not args.cpu_only:
         setattr(args, "device", "cuda" if torch.cuda.is_available() else "cpu")
     else:
