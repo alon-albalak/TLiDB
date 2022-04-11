@@ -53,7 +53,7 @@ class DecoderAlgorithm(Algorithm):
             'metadata': metadata,
             "objective": {
                 "loss_name": "LM_cross_entropy",
-                "loss_value": loss.item()}
+                "loss_value": loss.item()*metadata['num_batch_samples']}
         }
 
         return results, loss

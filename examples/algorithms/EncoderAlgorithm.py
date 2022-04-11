@@ -53,7 +53,7 @@ class EncoderAlgorithm(Algorithm):
             "objective": {"loss_name": "cross_entropy"}
         }
 
-        results['objective']['loss_value'] = loss.item()
+        results['objective']['loss_value'] = loss.item()*metadata['num_batch_samples']
 
         return results, loss
 
