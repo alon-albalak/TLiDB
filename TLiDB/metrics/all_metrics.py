@@ -1,8 +1,13 @@
+from itertools import chain
 from collections import Counter
 from .metrics import Metric, StringMetric, ElementwiseMetric
 import numpy as np
 import sklearn.metrics
 import torch
+
+# Response generation metrics
+import nltk
+import bert_score
 
 class binary_threshold():
     def __init__(self, threshold=0.5):
@@ -375,6 +380,91 @@ class Exact_Match(StringMetric):
 
         return torch.mean(torch.tensor(matches))
 
+class BLEU(StringMetric):
+    def __init__(self, prediction_fn=None, name=None, ngram_order=1):
+        """
+        Calculate BLEU score
+        Args:
+            - prediction_fn: Function to convert y_pred into the same format as y_true (for example, convert logits to max index)
+            - name (str): Name of the metric
+        """
+        self.prediction_fn = prediction_fn
+        self.ngram_order_weights = [0 for _ in range(ngram_order)]
+        self.ngram_order_weights[-1] = 1
+        if name is None:
+            name = f'BLEU_{ngram_order}'
+        super().__init__(name=name)
+
+    def _compute(self, y_pred, y_true):
+        """
+        Args:
+            - y_pred (List of str): Predicted labels
+            - y_true (List of str): Ground truth labels
+        """
+        if self.prediction_fn is not None:
+            y_pred = self.prediction_fn(y_pred)
+
+        tokenized_y_pred = [nltk.tokenize.word_tokenize(sent) for sent in y_pred]
+        tokenized_y_true = [[nltk.tokenize.word_tokenize(sent)] for sent in y_true]
+
+        bleu_score = nltk.translate.bleu_score.corpus_bleu(tokenized_y_true, tokenized_y_pred, weights = self.ngram_order_weights)
+        return torch.tensor(bleu_score, dtype=torch.float)
+
+class Bert_Score(StringMetric):
+    def __init__(self, prediction_fn=None, name=None):
+        """
+        Calculate BertScore
+        Args:
+            - prediction_fn: Function to convert y_pred into the same format as y_true (for example, convert logits to max index)
+            - name (str): Name of the metric
+        """
+        self.prediction_fn = prediction_fn
+        if name is None:
+            name = 'Bert_Score'
+        super().__init__(name=name)
+
+    def _compute(self, y_pred, y_true):
+        """
+        Args:
+            - y_pred (List of str): Predicted labels
+            - y_true (List of str): Ground truth labels
+        """
+        if self.prediction_fn is not None:
+            y_pred = self.prediction_fn(y_pred)
+        P, R, F1 = bert_score.score(y_pred, y_true, lang='en', model_type="microsoft/deberta-xlarge-mnli")
+
+        return torch.mean(F1)
+
+class Distinct_Ngrams(StringMetric):
+    def __init__(self, prediction_fn=None, name=None, ngram_order=1):
+        """
+        Calculate distinct n-grams with a nltk word tokenizer
+        Args:
+            - prediction_fn: Function to convert y_pred into the same format as y_true (for example, convert logits to max index)
+            - name (str): Name of the metric
+        """
+        self.prediction_fn = prediction_fn
+        self.ngram_order = ngram_order
+        if name is None:
+            name = f'Distinct_{ngram_order}grams'
+        super().__init__(name=name)
+
+    def _compute(self, y_pred, y_true):
+        """
+        Args:
+            - y_pred (List of str): Predicted labels
+            - y_true (List of str): Ground truth labels
+        """
+        if self.prediction_fn is not None:
+            y_pred = self.prediction_fn(y_pred)
+
+        tokenized_y_pred = [nltk.tokenize.word_tokenize(y) for y in y_pred]
+
+        ngrams = list(chain(*[[gram for gram in nltk.ngrams(y, self.ngram_order)] for y in tokenized_y_pred]))
+        score = len(set(ngrams)) / len(ngrams)
+
+        return torch.tensor(score, dtype=torch.float)
+        
 class MetricGroup:
     """
     A simple class to group metrics together
@@ -388,7 +478,10 @@ class MetricGroup:
         "label_ranking_average_precision": LRAP,
         "mean_reciprocal_rank": MRR,
         "token_f1":token_F1,
-        "exact_match":Exact_Match
+        "exact_match":Exact_Match,
+        "bleu":BLEU,
+        "bert_score":Bert_Score,
+        "distinct_ngrams":Distinct_Ngrams
     }
     def __init__(self, metrics, **kwargs):
         self.metrics = []

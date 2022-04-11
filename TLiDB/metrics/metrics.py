@@ -1,6 +1,5 @@
 import re
 import string
-import numpy as np
 import torch
 from TLiDB.utils.utils import numel
 
@@ -68,9 +67,14 @@ class StringMetric:
     """
     Parent class for string metrics
     """
-    def __init__(self,name,unanswerable_phrases, ignore_unanswerable=False):
+    def __init__(self,name,unanswerable_phrases=None, ignore_unanswerable=False):
         self._name = name
-        self._unanswerable_phrases = [self._normalize_answer(text, string.punctuation, '') for text in unanswerable_phrases]
+        
+        if unanswerable_phrases:
+            self._unanswerable_phrases = [self._normalize_answer(text, string.punctuation, '') for text in unanswerable_phrases]
+        else:
+            self._unanswerable_phrases = None
+
         self._ignore_unanswerable = ignore_unanswerable
 
     def _compute(self, y_pred, y_true):
