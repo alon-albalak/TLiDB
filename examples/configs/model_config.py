@@ -8,7 +8,6 @@ t5_config = {
     "optimizer": "Adam",
     "learning_rate": 3e-5,
     "fp16": False,
-    "effective_batch_size":60,
     "max_dialogue_length": 512 # at most 512 words
 }
 gpt2_config = {
@@ -16,7 +15,6 @@ gpt2_config = {
     "optimizer": "Adam",
     "learning_rate": 3e-5,
     "fp16": True,
-    "effective_batch_size":60,
     "max_dialogue_length": 512 # at most 512 words
 }
 bert_config = {
@@ -24,6 +22,5 @@ bert_config = {
     "optimizer": "Adam",
     "learning_rate": 3e-5,
     "fp16": True,
-    "effective_batch_size":60,
     "max_dialogue_length": 0 # no maximum legnth
 }
