@@ -32,7 +32,9 @@ def run_epoch(algorithm, datasets, config, logger, train):
     pbar = tqdm(dataloader) if config.progress_bar else dataloader
     # cumulative loss during the epoch
     total_loss = {t_d: 0 for t_d in task_datasets}
+    loss_names = {t_d: None for t_d in task_datasets}
     step = {t_d: 0 for t_d in task_datasets}
+    num_samples = {t_d: 0 for t_d in task_datasets}
     for batch in pbar:
         _, _, batch_metadata = batch
         batch_t_d = concat_t_d(batch_metadata['task'],batch_metadata['dataset_name'])
@@ -45,13 +47,17 @@ def run_epoch(algorithm, datasets, config, logger, train):
         #   collected properly if not detached again
         epoch_y_true[batch_t_d].append(detach_and_clone(batch_results['y_true']))
         y_pred = detach_and_clone(batch_results['y_pred'])
-        
+
         epoch_y_pred[batch_t_d].append(y_pred)
 
         total_loss[batch_t_d] += detach_and_clone(batch_results['objective']['loss_value'])
+        num_samples[batch_t_d] += batch_metadata['num_batch_samples']
+        if loss_names[batch_t_d] is None:
+            loss_names[batch_t_d] = batch_results['objective']['loss_name']
+
         desc = "Train losses" if train else "Validation losses"
         for t_d in task_datasets:
-            desc += f" | {t_d}: {total_loss[t_d]/(step[t_d]+1):0.4f}"
+            desc += f" | {t_d}: {total_loss[t_d]/num_samples[batch_t_d]:0.4f}"
 
         pbar.set_description(desc)
         step[batch_t_d] += 1
@@ -62,7 +68,6 @@ def run_epoch(algorithm, datasets, config, logger, train):
         epoch_y_true[t_d] = collate_list(epoch_y_true[t_d])
         epoch_y_pred[t_d] = collate_list(epoch_y_pred[t_d])
 
-
     # This loop is determined by the model/task/mode(train/val)
     results = {}
     if algorithm.requires_metric_calculation():
@@ -71,7 +76,7 @@ def run_epoch(algorithm, datasets, config, logger, train):
             t_d = concat_t_d(d.task,d.dataset_name)
             r, r_str = m.compute(epoch_y_pred[t_d], epoch_y_true[t_d])
             results[t_d] = r
-            logger.write(f"{d.dataset_name} {d.task}-\n{r_str}\n")
+            logger.write(f"{d.dataset_name} {d.task}-\nLoss-{loss_names[t_d]}: {total_loss[t_d]/num_samples[t_d]:0.4f}\n{r_str}\n")
 
     return results, epoch_y_pred
 
@@ -119,6 +124,7 @@ def evaluate(algorithm, datasets, config, logger, epoch, is_best):
             epoch_y_pred = []
 
             pbar = tqdm(iter(loader)) if config.progress_bar else iter(loader)
+            total_loss = 0
 
             for batch in pbar:
                 # add batch metadata to the batch
@@ -126,6 +132,7 @@ def evaluate(algorithm, datasets, config, logger, epoch, is_best):
                 batch_metadata['task'] = dataset.task
                 batch_metadata['dataset_name'] = dataset.dataset_name
                 batch_metadata['task_metadata'] = dataset.task_metadata
+                batch_metadata['num_batch_samples'] = len(y)
                 batch = (X, y, batch_metadata)
 
                 batch_results = algorithm.evaluate(batch)
@@ -133,12 +140,14 @@ def evaluate(algorithm, datasets, config, logger, epoch, is_best):
                 y_pred = detach_and_clone(batch_results['y_pred'])
                 epoch_y_pred.append(y_pred)
 
+                total_loss += detach_and_clone(batch_results['objective']['loss_value'])
+
             epoch_y_pred = collate_list(epoch_y_pred)
             epoch_y_true = collate_list(epoch_y_true)
 
             r, r_str = metric.compute(epoch_y_pred, epoch_y_true)
             r['epoch'] = epoch
-            logger.write(f"Eval on {split} split at epoch {epoch}: {dataset.dataset_name} {dataset.task}-\n{r_str}\n")
+            logger.write(f"Eval on {split} split at epoch {epoch}: {dataset.dataset_name} {dataset.task}-\nLoss-{batch_results['objective']['loss_name']}: {total_loss/len(dataset):0.4f}\n{r_str}\n")
 
             # skip saving train data as the dataloader will shuffle data
             if split != "train":
