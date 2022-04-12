@@ -29,6 +29,8 @@ def parse_args():
 
     # model args
     parser.add_argument("--model", type=str)
+    parser.add_argument("--max_dialogue_length", type=int, default=0,help="Maximum number of words in a dialogue,\
+        truncates dialogues if greater than this value. 0 indicates no maximum")
         
     # training args
     parser.add_argument("--do_train", action="store_true")
