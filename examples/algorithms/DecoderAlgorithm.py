@@ -33,6 +33,9 @@ class DecoderAlgorithm(Algorithm):
         X['lm_labels'] = lm_labels
         X = move_to(X, self.device)
 
+        # track number of tokens in the batch
+        num_batch_tokens = X['attention_mask'].sum().item()
+
         loss = self.model(**X)
 
         # generate predictions and convert to labels if necessary
@@ -51,9 +54,10 @@ class DecoderAlgorithm(Algorithm):
             'y_pred': y_pred,
             'y_true': y_true,
             'metadata': metadata,
+            'batch_loss_divisor': num_batch_tokens, # used for averaging loss
             "objective": {
                 "loss_name": "LM_cross_entropy",
-                "loss_value": loss.item()*metadata['num_batch_samples']}
+                "loss_value": loss.item()*num_batch_tokens}
         }
 
         return results, loss

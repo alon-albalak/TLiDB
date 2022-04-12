@@ -50,10 +50,11 @@ class EncoderAlgorithm(Algorithm):
             'y_pred': y_pred,
             'y_true': y_true,
             'metadata': metadata,
-            "objective": {"loss_name": "cross_entropy"}
+            'batch_loss_divisor': len(y_true), # used for averaging loss
+            "objective": {
+                "loss_name": "cross_entropy",
+                'loss_value': loss.item()*len(y_true)}
         }
-
-        results['objective']['loss_value'] = loss.item()*metadata['num_batch_samples']
 
         return results, loss
 

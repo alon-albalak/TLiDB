@@ -93,8 +93,6 @@ class TLiDB_DataLoader:
             metadata['dataset_name'] = self.dataset_names[selected_idx]
             metadata['task_metadata'] = self.task_metadatas[selected_idx]
             metadata['task_weight'] = self.task_weights[selected_idx]
-            # track the number of samples in this batch
-            metadata['num_batch_samples'] = len(y)
             return X,y,metadata
         else:
             raise StopIteration

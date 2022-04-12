@@ -39,6 +39,8 @@ class EncoderDecoderAlgorithm(Algorithm):
         X['lm_labels'] = lm_labels
         X = move_to(X, self.device)
 
+        num_batch_tokens = (X['lm_labels'] != -100).sum().item() 
+
         loss = self.model(**X)
 
         # generate predictions and convert to labels if necessary
@@ -57,9 +59,10 @@ class EncoderDecoderAlgorithm(Algorithm):
             'y_pred': y_pred,
             'y_true': y_true,
             'metadata': metadata,
+            'batch_loss_divisor': num_batch_tokens, # number of tokens used for language modeling
             "objective": {
                 "loss_name": "LM_cross_entropy",
-                "loss_value": loss.item()*metadata['num_batch_samples']}
+                "loss_value": loss.item()*num_batch_tokens}
         }
 
         return results, loss
