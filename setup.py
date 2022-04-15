@@ -23,6 +23,7 @@ setuptools.setup(
         'transformers==4.11.3',
         'torch==1.10',
         'sentencepiece==0.1.96',
+        'bert-score==0.3.11'
     ],
     packages=setuptools.find_packages(exclude=['dataset_preprocessing']),
     python_requires='>=3.6',
