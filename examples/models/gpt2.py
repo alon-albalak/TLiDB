@@ -54,14 +54,14 @@ class GPT2(TLiDB_model):
 
 def initialize_model(config):
     if 'neo' in config.model:
-        from transformers import GPTNeoForCausalLM, GPT2Tokenizer
-        tokenizer = GPT2Tokenizer.from_pretrained(config.model, pad_token='<|pad|>')
-        model = GPTNeoForCausalLM.from_pretrained(config.model)
-        return tokenizer, model
+        from transformers import GPTNeoForCausalLM as LLM
+        from transformers import GPT2Tokenizer as Tokenizer
     else:
-        from transformers import GPT2LMHeadModel, GPT2TokenizerFast
-        tokenizer = GPT2TokenizerFast.from_pretrained(config.model, pad_token='<|pad|>')
-        model = GPT2LMHeadModel.from_pretrained(config.model)
-        model.config.pad_token_id = tokenizer.pad_token_id
-        model.resize_token_embeddings(len(tokenizer))
-        return tokenizer, model
+        from transformers import GPT2LMHeadModel as LLM
+        from transformers import GPT2TokenizerFast as Tokenizer
+
+    tokenizer = Tokenizer.from_pretrained(config.model, pad_token='<|pad|>')
+    model = LLM.from_pretrained(config.model)
+    model.config.pad_token_id = tokenizer.pad_token_id
+    model.resize_token_embeddings(len(tokenizer))
+    return tokenizer, model
