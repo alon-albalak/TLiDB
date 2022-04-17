@@ -26,6 +26,7 @@ def parse_args():
     parser.add_argument("--data_dir", type=str, default="../TLiDB/data",
         help="The directory where data is stored, by default we place it inside the TLiDB package in a data folder")
     parser.add_argument("--num_workers", type=int, default=4)
+    parser.add_argument("--pipeline_parallel", action="store_true", help="If true, use naive pipeline parallelism, will not give speedup over single-GPU")
 
     # model args
     parser.add_argument("--model", type=str)
@@ -105,6 +106,8 @@ def parse_args():
     if args.num_workers > 1:
         import os
         os.environ['TOKENIZERS_PARALLELISM'] = "true"
+
+    assert(not args.pipeline_parallel or torch.cuda.device_count() > 1),"Pipeline parallelism requires multiple GPUs"
 
     assert(not(args.model in incompatible_with_fp16 and args.fp16)), f"Cannot use fp16 with model {args.model}"
     assert(not(args.model in incompatible_with_generation and\

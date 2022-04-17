@@ -21,6 +21,8 @@ class Algorithm(nn.Module):
             self.scaler = torch.cuda.amp.GradScaler()
         else:
             self.fp16 = False
+        if config.pipeline_parallel:
+            self.model.parallelize()
     
     def process_batch(self, batch):
         raise NotImplementedError

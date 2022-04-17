@@ -97,3 +97,9 @@ class TLiDB_model:
         """Convenience function to move all layers to a device"""
         for layer_name, layer in self.layers.items():
             layer.to(device)
+
+    def parallelize(self):
+        if self.model.is_parallelizable:
+            self.model.parallelize()
+        else:
+            raise TypeError("Model is not parallelizable")
