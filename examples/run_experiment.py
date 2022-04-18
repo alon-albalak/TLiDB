@@ -148,7 +148,7 @@ def main(config):
             pass
         elif config.saved_model_dir:
             # if user explcitily specified a model to evaluate, then use that
-            config.save_path_dir = config.saved_model_dir
+            config.save_path_dir = os.path.dirname(config.saved_model_dir)
         elif (config.finetune_datasets and config.finetune_tasks) and (config.train_datasets and config.train_tasks):
             # Given all the datasets and tasks, we can infer the path to the fine-tuned model
             config.save_path_dir = append_to_save_path_dir(config.save_path_dir, config.finetune_datasets, config.finetune_tasks, config.few_shot_percent, config.seed)
