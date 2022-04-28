@@ -25,7 +25,7 @@ To simply train/evaluate a model on a single dataset/task:
 ```bash
 MODEL=bert
 DATASET=Friends
-TASK=emotion_recognition
+TASK=emory_emotion_recognition
 python3 run_experiment.py --do_train --model_config $MODEL --source_tasks $TASK --source_datasets $DATASET --do_eval --eval_best --target_tasks $TASK --target_datasets $DATASET
 ```
 
@@ -33,7 +33,7 @@ To train a model on a source dataset/task and subsequently finetune on a target 
 ```bash
 MODEL=bert
 SOURCE_DATASET=Friends
-SOURCE_TASK=emotion_recognition
+SOURCE_TASK=emory_emotion_recognition
 TARGET_DATASET=Friends
 TARGET_TASK=reading_comprehension
 python3 run_experiment.py --do_train --model_config $MODEL --source_tasks $SOURCE_TASK --source_datasets $SOURCE_DATASET --do_finetune --do_eval --eval_best --target_tasks $TARGET_TASK --target_datasets $TARGET_DATASET
@@ -44,7 +44,7 @@ In addition to the pre-train/fine-tune algorithm shown above, TLiDB also support
 ```bash
 MODEL=bert
 SOURCE_DATASET=Friends
-SOURCE_TASK=emotion_recognition
+SOURCE_TASK=emory_emotion_recognition
 TARGET_DATASET=Friends
 TARGET_TASK=reading_comprehension
 python3 run_experiment.py --do_train --model_config $MODEL --source_tasks $SOURCE_TASK --source_datasets $SOURCE_DATASET --do_eval --eval_best --target_tasks $TARGET_TASK --target_datasets $TARGET_DATASET --multitask
@@ -58,14 +58,14 @@ TLiDB makes training on a single source and then fine-tuning on many datasets/ta
 ```bash
 MODEL=t5
 SOURCE_DATASET=Friends
-SOURCE_TASK=emotion_recognition
+SOURCE_TASK=emory_emotion_recognition
 python3 run_experiment.py --do_train --model_config $MODEL --source_tasks $SOURCE_TASK --source_datasets $SOURCE_DATASET
 ```
 Then, fine-tune on many target datasets/tasks:
 ```bash
 MODEL=t5
 SOURCE_DATASET=Friends
-SOURCE_TASK=emotion_recognition
+SOURCE_TASK=emory_emotion_recognition
 TARGET_TASKS=(
     'reading_comprehension'
     'character_identification'
