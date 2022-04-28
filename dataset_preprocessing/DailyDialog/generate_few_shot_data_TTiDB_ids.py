@@ -93,7 +93,7 @@ def get_few_shot_samples(percent, id_file):
 
 few_shot_save_path="TLiDB_DailyDialog/TTiDB_{}_percent_few_shot_{}_ids.txt"
 
-for percent in [0.1, 0.05, 0.01]:
+for percent in [0.1]:
     train_ids, dev_ids, test_ids = [], [], []
     for split in ["train", "dev"]:
         id_file="TLiDB_DailyDialog/TTiDB_{}_ids.txt".format(split)
