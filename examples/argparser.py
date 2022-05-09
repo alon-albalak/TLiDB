@@ -1,6 +1,8 @@
+import os
+import sys
 import argparse
 import torch
-import configs
+import examples.configs as configs
 
 incompatible_with_fp16 = ["t5-base"]
 incompatible_with_generation = ["bert"]
@@ -23,7 +25,7 @@ def parse_args():
     parser.add_argument("--seed", type=int, default=-1)
     parser.add_argument("--log_and_model_dir", type=str, default="./logs_and_models")
     parser.add_argument("--saved_model_dir", type=str, default=None, help="To load a saved model for fine-tuning or evaluation")
-    parser.add_argument("--data_dir", type=str, default="../TLiDB/data",
+    parser.add_argument("--data_dir", type=str, default=None,
         help="The directory where data is stored, by default we place it inside the TLiDB package in a data folder")
     parser.add_argument("--num_workers", type=int, default=4)
     parser.add_argument("--pipeline_parallel", action="store_true", help="If true, use naive pipeline parallelism, will not give speedup over single-GPU")
@@ -72,6 +74,17 @@ def parse_args():
 
     args = parser.parse_args()
 
+    # determine correct location to store datasets
+    if args.data_dir is None:
+        # if the package was installed locally, we can use the data folder
+        if os.path.exists(os.path.join(os.path.dirname(__file__), "../TLiDB/data")):
+            args.data_dir = os.path.join(os.path.dirname(__file__), "../TLiDB/data")
+        # if the package was installed globally, we use the users .cache folder
+        elif 'tlidb' in sys.modules:
+            args.data_dir = os.path.join(os.path.expanduser("~"), ".cache", "tlidb/data")
+
+
+
     if args.debug:
         # send debugging logs and models to different directory
         args.log_and_model_dir = "./debug_logs_and_models"
@@ -104,7 +117,6 @@ def parse_args():
         setattr(args, "device", "cpu")
 
     if args.num_workers > 1:
-        import os
         os.environ['TOKENIZERS_PARALLELISM'] = "true"
 
     assert(not args.pipeline_parallel or torch.cuda.device_count() > 1),"Pipeline parallelism requires multiple GPUs"

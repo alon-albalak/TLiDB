@@ -1,5 +1,5 @@
-from utils import move_to
-from losses import initialize_loss
+from examples.utils import move_to
+from examples.losses import initialize_loss
 from .algorithm import Algorithm
 import torch
 

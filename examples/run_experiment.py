@@ -1,9 +1,9 @@
-from algorithms.initializer import initialize_algorithm
-from train import train,evaluate
 import os
-from utils import Logger, load_datasets_split, load_algorithm, log_config, \
+from examples.algorithms.initializer import initialize_algorithm
+from examples.train import train,evaluate
+from examples.utils import Logger, load_datasets_split, load_algorithm, log_config, \
         set_seed, log_dataset_info, get_savepath_dir, append_to_save_path_dir
-import argparser
+from examples.argparser import parse_args
 
 def main(config):
 
@@ -192,5 +192,5 @@ def main(config):
     logger.close()
 
 if __name__ == "__main__":
-    config = argparser.parse_args()
+    config = parse_args()
     main(config)

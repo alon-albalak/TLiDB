@@ -1,7 +1,5 @@
-from utils import move_to
+from examples.utils import move_to
 from .algorithm import Algorithm
-import torch
-
 
 class EncoderDecoderAlgorithm(Algorithm):
     def __init__(self, config, datasets):

@@ -27,6 +27,9 @@ setuptools.setup(
     ],
     packages=setuptools.find_packages(exclude=['dataset_preprocessing']),
     python_requires='>=3.6',
+    entry_points={
+        'console_scripts': ['tlidb=examples.__main__:main']
+    },
     classifiers=[
         'Topic :: Scientific/Engineering :: Artificial Intelligence',
         'Intended Audience :: Science/Research',

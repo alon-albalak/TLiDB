@@ -1,6 +1,6 @@
-from algorithms.EncoderAlgorithm import EncoderAlgorithm
+from examples.algorithms.EncoderAlgorithm import EncoderAlgorithm
 from examples.algorithms.EncoderDecoderAlgorithm import EncoderDecoderAlgorithm
-from algorithms.DecoderAlgorithm import DecoderAlgorithm
+from examples.algorithms.DecoderAlgorithm import DecoderAlgorithm
 
 def initialize_algorithm(config, datasets):
     """Load an algorithm of type Algorithm
