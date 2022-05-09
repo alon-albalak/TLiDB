@@ -4,7 +4,7 @@ package_directory = os.path.dirname(os.path.abspath(__file__))
 TLiDB_FOLDER = os.path.join(package_directory, "..")
 sys.path.append(TLiDB_FOLDER)
 import torch.nn as nn
-from TLiDB.metrics.loss import ElementwiseLoss
+from tlidb.TLiDB.metrics.loss import ElementwiseLoss
 
 
 class LM_CrossEntropyLoss:

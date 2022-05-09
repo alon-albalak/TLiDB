@@ -4,9 +4,9 @@ import random
 import numpy as np
 import torch
 
-from TLiDB.datasets.get_dataset import get_dataset
-from TLiDB.data_loaders.data_loaders import get_dataloader
-from TLiDB.metrics.initializer import get_metric_computer
+from tlidb.TLiDB.datasets.get_dataset import get_dataset
+from tlidb.TLiDB.data_loaders.data_loaders import get_dataloader
+from tlidb.TLiDB.metrics.initializer import get_metric_computer
 
 def load_datasets_split(split, tasks, datasets, config):
     split_datasets = {"datasets":[], "loaders":[], "metrics":[]}

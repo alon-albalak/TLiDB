@@ -54,8 +54,8 @@ For a single dataset/task, the following example shows how to load the data, and
 
 
 ```python3
-from TLiDB.datasets.get_dataset import get_dataset
-from TLiDB.data_loaders.data_loaders import get_loader
+from tlidb.TLiDB.datasets.get_dataset import get_dataset
+from tlidb.TLiDB.data_loaders.data_loaders import get_loader
 
 # load the dataset, and download if necessary
 dataset = get_dataset(
@@ -83,8 +83,8 @@ for batch in dataloader:
 For training on multiple datasets/tasks simultaneously, TLiDB has a convenience dataloader class, TLiDB_DataLoader, which can be used to join multiple dataloaders:
 
 ```python3
-from TLiDB.datasets.get_dataset import get_dataset
-from TLiDB.data_loaders.data_loaders import get_loader, TLiDB_DataLoader
+from tlidb.TLiDB.datasets.get_dataset import get_dataset
+from tlidb.TLiDB.data_loaders.data_loaders import get_loader, TLiDB_DataLoader
 
 # Load the datasets, and download if necessary
 source_dataset = get_dataset(
