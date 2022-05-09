@@ -1,5 +1,5 @@
 import setuptools
-from TLiDB.version import __version__
+from tlidb.TLiDB.version import __version__
 
 print(f"Version {__version__}")
 
@@ -28,7 +28,7 @@ setuptools.setup(
     packages=setuptools.find_packages(exclude=['dataset_preprocessing']),
     python_requires='>=3.6',
     entry_points={
-        'console_scripts': ['tlidb=examples.__main__:main']
+        'console_scripts': ['tlidb=tlidb.examples.__main__:main']
     },
     classifiers=[
         'Topic :: Scientific/Engineering :: Artificial Intelligence',

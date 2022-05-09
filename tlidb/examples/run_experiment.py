@@ -1,9 +1,9 @@
 import os
-from examples.algorithms.initializer import initialize_algorithm
-from examples.train import train,evaluate
-from examples.utils import Logger, load_datasets_split, load_algorithm, log_config, \
+from tlidb.examples.algorithms.initializer import initialize_algorithm
+from tlidb.examples.train import train,evaluate
+from tlidb.examples.utils import Logger, load_datasets_split, load_algorithm, log_config, \
         set_seed, log_dataset_info, get_savepath_dir, append_to_save_path_dir
-from examples.argparser import parse_args
+from tlidb.examples.argparser import parse_args
 
 def main(config):
 

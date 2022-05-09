@@ -2,7 +2,7 @@ import os
 import sys
 import argparse
 import torch
-import examples.configs as configs
+import tlidb.examples.configs as configs
 
 incompatible_with_fp16 = ["t5-base"]
 incompatible_with_generation = ["bert"]
