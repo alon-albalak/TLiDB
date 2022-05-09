@@ -82,6 +82,9 @@ def parse_args():
         # if the package was installed globally, we use the users .cache folder
         elif 'tlidb' in sys.modules:
             args.data_dir = os.path.join(os.path.expanduser("~"), ".cache", "tlidb/data")
+        else:
+            raise ValueError("Could not find data directory. Please specify with --data_dir")
+        os.makedirs(args.data_dir, exist_ok=True)
         print(f"Saving data at: {args.data_dir}")
 
 
