@@ -6,6 +6,6 @@ authors:
   orcid: "https://orcid.org/0000-0003-0809-1704"
 title: "The Transfer Learning in Dialogue Benchmarking Toolkit"
 version: 1.0.3
-doi: 10.5281/zenodo.6374360
-date-released: 2022-3-21
+doi: 10.5281/zenodo.6534175
+date-released: 2022-5-09
 url: "https://github.com/alon-albalak/TLiDB"
