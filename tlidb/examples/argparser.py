@@ -54,8 +54,8 @@ def parse_args():
     parser.add_argument("--eval_last", action="store_true")
     
     # task args
-    parser.add_argument("--source_tasks", type=str,nargs='+',required=True)
-    parser.add_argument("--source_datasets", type=str,nargs='+',required=True)
+    parser.add_argument("--source_tasks", type=str,nargs='+')
+    parser.add_argument("--source_datasets", type=str,nargs='+')
     parser.add_argument("--target_tasks", type=str,nargs='+')
     parser.add_argument("--target_datasets", type=str,nargs='+')
 
@@ -87,8 +87,6 @@ def parse_args():
         os.makedirs(args.data_dir, exist_ok=True)
         print(f"Saving data at: {args.data_dir}")
 
-
-
     if args.debug:
         # send debugging logs and models to different directory
         args.log_and_model_dir = "./debug_logs_and_models"
@@ -98,14 +96,11 @@ def parse_args():
             setattr(args, attr, value)
 
     if "bert" in args.model:
-        setattr(args, "output_type", "categorical")
         setattr(args, "model_type", "Encoder")
     elif "gpt" in args.model:
-        setattr(args, "output_type", "token")
         setattr(args, "model_type", "Decoder")
         setattr(args, "generation_config", configs.GPT2_generation_config)
     elif "t5" in args.model:
-        setattr(args, "output_type", "token")
         setattr(args, "model_type", "EncoderDecoder")
         setattr(args, "generation_config", configs.t5_generation_config)
     else:
