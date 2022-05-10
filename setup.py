@@ -1,5 +1,5 @@
 import setuptools
-from tlidb.TLiDB.version import __version__
+from tlidb.version import __version__
 
 print(f"Version {__version__}")
 
