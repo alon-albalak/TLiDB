@@ -54,8 +54,8 @@ def parse_args():
     parser.add_argument("--eval_last", action="store_true")
     
     # task args
-    parser.add_argument("--source_tasks", type=str,nargs='+')
-    parser.add_argument("--source_datasets", type=str,nargs='+')
+    parser.add_argument("--source_tasks", type=str,nargs='+',required=True)
+    parser.add_argument("--source_datasets", type=str,nargs='+',required=True)
     parser.add_argument("--target_tasks", type=str,nargs='+')
     parser.add_argument("--target_datasets", type=str,nargs='+')
 
