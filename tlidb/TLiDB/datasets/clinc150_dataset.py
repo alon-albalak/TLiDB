@@ -1,5 +1,5 @@
 from .TLiDB_dataset import TLiDB_Dataset
-from TLiDB.metrics.all_metrics import Accuracy
+from tlidb.TLiDB.metrics.all_metrics import Accuracy
 
 class clinc150_dataset(TLiDB_Dataset):
     """

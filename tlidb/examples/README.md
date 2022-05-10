@@ -13,7 +13,7 @@ This folder contains examples of how to use TLiDB. Including the following:
 ## Sample Models
 New models can easily be added by including a new model.py file in `/examples/models`. If the model is not an encoder-only, decoder-only, or encoder-decoder model, then you will need to implement an algorithm for your model in `/examples/algorithms`
 
-Default models include: BERT, GPT-2, and T5
+Default models include: BERT, GPT-2 (and variations including GPT-Neo), and T5 (and variations including T0).
 
 ## Sample Learning Algorithms
 We include 3 learning algorithms for transfer: Pre-train/fine-tune, Multitask, and Multitask/fine-tune.

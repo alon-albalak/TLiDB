@@ -1,7 +1,7 @@
 from tqdm import tqdm
 import torch
-from examples.utils import detach_and_clone, collate_list, concat_t_d, save_algorithm_if_needed, save_pred_if_needed
-from TLiDB.data_loaders.data_loaders import TLiDB_DataLoader
+from tlidb.examples.utils import detach_and_clone, collate_list, concat_t_d, save_algorithm_if_needed, save_pred_if_needed
+from tlidb.TLiDB.data_loaders.data_loaders import TLiDB_DataLoader
 
 def run_epoch(algorithm, datasets, config, logger, train):
     """

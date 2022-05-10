@@ -1,6 +1,6 @@
 import torch
 from .TLiDB_model import TLiDB_model
-from examples.utils import concat_t_d
+from tlidb.examples.utils import concat_t_d
 import random
 
 class Bert(TLiDB_model):

@@ -5,7 +5,7 @@
 
 ## Overview
 TLiDB is a tool used to benchmark methods of transfer learning in conversational AI.
-TLiDB can easily handle domain adaptation, task transfer, multitasking, continual learning, and other transfer learning settings.
+TLiDB can easily handle *domain adaptation, task transfer, multitasking, continual learning*, and other transfer learning settings.
 TLiDB maintains a unified json format for all datasets and tasks, easing the new code necessary for new datasets and tasks. We highly encourage community contributions to the project.
 
 The main features of TLiDB are:
@@ -22,7 +22,8 @@ The main features of TLiDB are:
  - nltk>=3.6.5
  - scikit-learn>=1.0
  - transformers>=4.11.3
- - sentencepiece>=0.1.96 (optional)
+ - sentencepiece>=0.1.96
+ - bert-score==0.3.11
 
 
 To use TLiDB, you can simply install via `pip`:
@@ -38,114 +39,52 @@ pip install -e .
 ```
 
 ## How to use TLiDB
+TLiDB can be used from the command line or as a python command. If you have installed the package from source, we highly recommend running commands from inside the tlidb/examples/ directory.
+
+### Quick Start
+For a very simple set up, you can use the following commands.
+- From command line:
+```bash
+tlidb --source_datasets Friends --source_tasks emory_emotion_recognition --target_datasets Friends --target_tasks reading_comprehension --do_train --do_finetune --do_eval --model_config=bert
+```
+- As python command:
+```bash
+python3 run_experiment.py --source_datasets Friends --source_tasks emory_emotion_recognition --target_datasets Friends --target_tasks reading_comprehension --do_train --do_finetune --do_eval --model_config=bert
+```
+
+### Detailed Usage
+
 TLiDB has 2 main folders of interest:
-- `/TLiDB`
-- `/examples`
+- `tlidb/examples`
+- `tlidb/TLiDB`
 
-`/TLiDB/` holds the code related to data (datasets, dataloaders, metrics, etc.)
+`tlidb/examples/` is recommended for use if you would like to utilize our training scripts. It contains sample code for models, learning algorithms, and sample training scripts. 
+For detailed examples, see the [Examples README](/tlidb/examples/README.md).
 
-`/examples/` contains sample code for models, learning algorithms, and sample training scripts. 
-For detailed examples, see the [Examples README](/examples/README.md).
-
-### Data Loading
-TLiDB offers a simple, unified interface for loading datasets.
-
-For a single dataset/task, the following example shows how to load the data, and put the data into a dataloader:
-
-
-```python3
-from TLiDB.datasets.get_dataset import get_dataset
-from TLiDB.data_loaders.data_loaders import get_loader
-
-# load the dataset, and download if necessary
-dataset = get_dataset(
-    dataset='DailyDialog',
-    task='emotion_recognition',
-    dataset_folder='TLiDB/data',
-    model_type='Encoder', #Options=['Encoder', 'Decoder','EncoderDecoder']
-    split='train',#Options=['train', 'dev', 'test']
-    )
-
-# get the dataloader
-dataloader = get_data_loader(
-    split='train', 
-    dataset=dataset,
-    batch_size=32,
-    model_type='Encoder'
-    )
-
-# train loop
-for batch in dataloader:
-    X, y, metadata = batch
-    ...
-```
-
-For training on multiple datasets/tasks simultaneously, TLiDB has a convenience dataloader class, TLiDB_DataLoader, which can be used to join multiple dataloaders:
-
-```python3
-from TLiDB.datasets.get_dataset import get_dataset
-from TLiDB.data_loaders.data_loaders import get_loader, TLiDB_DataLoader
-
-# Load the datasets, and download if necessary
-source_dataset = get_dataset(
-    dataset='DailyDialog',
-    task='emotion_recognition',
-    dataset_folder='TLiDB/data',
-    model_type='Encoder', #Options=['Encoder', 'Decoder','EncoderDecoder']
-    split='train',#Options=['train', 'dev', 'test']
-    )
-
-target_dataset = get_dataset(
-    dataset='DailyDialog',
-    task='reading_comprehension',
-    dataset_folder='TLiDB/data',
-    model_type='Encoder', #Options=['Encoder', 'Decoder','EncoderDecoder']
-    split='train',#Options=['train', 'dev', 'test']
-    )
-
-# Get the dataloaders
-source_dataloader = get_data_loader(
-    split='train', 
-    dataset=source_dataset,
-    batch_size=32,
-    model_type='Encoder'
-    )
-target_dataloader = get_data_loader(
-    split='train', 
-    dataset=target_dataset,
-    batch_size=32,
-    model_type='Encoder'
-    )
-
-dataloader_dict = {
-    "datasets": [source_dataset, target_dataset],
-    "loaders": [source_dataloader, target_dataloader],
-}
-
-# Wrap the dataloaders into a TLiDB_DataLoader
-dataloader = TLiDB_DataLoader(dataloader_dict)
-
-# train loop
-for batch in dataloader:
-    X, y, metadata = batch
-    ...
-
-```
+`tlidb/TLiDB/` holds the code related to data (datasets, dataloaders, metrics, etc.). If you are interested in utilizing our datasets and metrics but would like to train models using your own training scripts, take a look at the example usage in [TLiDB README](/tlidb/TLiDB/README.md).
 
 
 ## Folder descriptions:
-- /TLiDB is the main folder holding the code for data
-    - /TLiDB/data_loaders contains code for data_loaders
-    - /TLiDB/data is the destination folder for downloaded datasets
-    - /TLiDB/datasets contains code for datasets
-    - /TLiDB/metrics contains code for loss and evaluation metrics
-    - /TLiDB/utils contains utility files
-- /examples contains sample code for training models
-    - /examples/algorithms contains code which trains and evaluates a model
-    - /examples/models contains code to define a model
-    - /examples/configs contains code for model configurations
-    - /examples/logs_and_models is the default destination folder for training logs and model checkpoints
-- /dataset_preprocessing is for reproducability purposes. It contains scripts used to preprocess the TLiDB datasets from their original form into the TLiDB form
+- tlidb/TLiDB is the folder holding the code for data handling
+    - tlidb/TLiDB/data_loaders contains code for data_loaders
+    - tlidb/TLiDB/data is the destination folder for downloaded datasets (if installed from source, otherwise data is in .cache/tlidb/data)
+    - tlidb/TLiDB/datasets contains code for dataset loading and preprocessing
+    - tlidb/TLiDB/metrics contains code for loss and evaluation metrics
+    - tlidb/TLiDB/utils contains utility files
+- tlidb/examples contains sample code for training and evaluating models
+    - tlidb/examples/algorithms contains code which trains and evaluates a model
+    - tlidb/examples/models contains code to define a model
+    - tlidb/examples/configs contains code for model configurations
+- /dataset_preprocessing is for reproducability purposes. It contains scripts used to preprocess the TLiDB datasets from their original form into the standardized TLiDB format
+
+## Comments, Questions, and Feedback
+If you find issues, please [open an issue here](https://github.com/alon-albalak/TLiDB/issues).
+
+If you have dataset or model requests, please [add a new discussion here](https://github.com/alon-albalak/TLiDB/discussions).
+
+We encourage outside contributions to the project!
+
+
 
 ## Citation
 If you use TLiDB in your work, please cite the repository:

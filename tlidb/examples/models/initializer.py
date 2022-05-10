@@ -15,7 +15,7 @@ def initialize_bert_based_model(config, datasets):
     """
     Initialize BERT based model
     """
-    from models.bert import Bert
+    from tlidb.examples.models.bert import Bert
     model = Bert(config, datasets)
     return model
 
@@ -23,7 +23,7 @@ def initialize_gpt2_based_model(config):
     """
     Initialize GPT2 based model
     """
-    from models.gpt2 import GPT2
+    from tlidb.examples.models.gpt2 import GPT2
     model = GPT2(config)
     return model
 
@@ -31,6 +31,6 @@ def initialize_t5_based_model(config):
     """
     Initialize t5 based model
     """
-    from models.t5 import T5
+    from tlidb.examples.models.t5 import T5
     model = T5(config)
     return model

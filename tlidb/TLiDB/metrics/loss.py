@@ -1,4 +1,4 @@
-from TLiDB.metrics.metrics import Metric, ElementwiseMetric
+from tlidb.TLiDB.metrics.metrics import Metric, ElementwiseMetric
 
 class Loss(Metric):
     def __init__(self, loss_fn, name=None):

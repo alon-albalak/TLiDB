@@ -1,7 +1,7 @@
 import re
 import string
 import torch
-from TLiDB.utils.utils import numel
+from tlidb.TLiDB.utils.utils import numel
 
 class Metric:
     """
