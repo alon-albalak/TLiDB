@@ -47,8 +47,9 @@ For a very simple set up, you can use the following commands.
 ```bash
 tlidb --source_datasets Friends --source_tasks emory_emotion_recognition --target_datasets Friends --target_tasks reading_comprehension --do_train --do_finetune --do_eval --model_config=bert
 ```
-- As python command:
+- As python command (only if installed from source):
 ```bash
+cd examples
 python3 run_experiment.py --source_datasets Friends --source_tasks emory_emotion_recognition --target_datasets Friends --target_tasks reading_comprehension --do_train --do_finetune --do_eval --model_config=bert
 ```
 
