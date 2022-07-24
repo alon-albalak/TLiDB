@@ -21,7 +21,7 @@ setuptools.setup(
         'nltk==3.6.5',
         'scikit-learn==1.0',
         'transformers==4.11.3',
-        'torch==1.10',
+        'torch>=1.10',
         'sentencepiece==0.1.96',
         'bert-score==0.3.11'
     ],
