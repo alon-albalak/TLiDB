@@ -170,6 +170,9 @@ def main(config):
         # load datasets for evaluation
         datasets['test'] = load_datasets_split("test",config.eval_tasks, config.eval_datasets, config)
 
+        # Deepspeed isn't currently available for use during evaluation
+        config.deepspeed = False
+
         # log configuration and dataset info
         log_config(config,eval_logger)
         log_dataset_info(datasets, eval_logger)

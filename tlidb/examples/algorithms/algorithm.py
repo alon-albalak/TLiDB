@@ -5,16 +5,71 @@ from tlidb.examples.utils import move_to, detach_and_clone
 from tlidb.examples.optimizers import initialize_optimizer
 from tlidb.examples.models.initializer import initialize_model
 
+from transformers.deepspeed import HfDeepSpeedConfig
+import deepspeed
+
 class Algorithm(nn.Module):
     def __init__(self, config, datasets):
         super().__init__()
-        self.model = initialize_model(config, datasets)
-        self.model.to(config.device)
         self.device = config.device
         self.out_device = 'cpu'
+        self.model = initialize_model(config, datasets)
         self.optimizer = initialize_optimizer(config, self.model)
-        self.max_grad_norm = config.max_grad_norm
-        self.gradient_accumulation_steps = max(config.effective_batch_size//config.gpu_batch_size,1)
+        self.deepspeed = config.deepspeed
+
+        # TODO:
+        #   TEST: MULTI-GPU, config as file path, bf16 (T5), dschf required?, 
+        if self.deepspeed:
+            ds_config = {
+                "local_rank": config.local_rank,
+                "optimizer": {
+                    "type": "AdamW",
+                    "params": {
+                        "lr": config.learning_rate,
+                        "betas": [0.9, 0.999],
+                        "eps": 1e-8,
+                        "weight_decay": 0.01
+                    }
+                },
+                # "scheduler": {
+                # "type": "WarmupDecayLR",
+                #     "params": {
+                #         "last_batch_iteration": -1,
+                #         "total_num_steps": sum([len(loader) for loader in datasets['train']]),
+                #         "warmup_min_lr": 0,
+                #         "warmup_max_lr": config.learning_rate,
+                #         "warmup_num_steps": sum([len(loader) for loader in datasets['train']])/100
+                #     }
+                # },
+                "bf16": {
+                    "enabled": False
+                },
+                "fp16": {
+                    "enabled": True
+                },
+                "zero_optimization": {
+                    "stage": 2,
+                    "overlap_comm": True,
+                    "contiguous_gradients": True,
+                    "sub_group_size": 1e9,
+                    "allgather_bucket_size":5e8,
+                    "reduce_scatter": True,
+                    "reduce_bucket_size": 5e8,
+                },
+                "gradient_clipping": 1.0,
+                "steps_per_print": 500,
+                "train_batch_size": config.effective_batch_size,
+                "train_micro_batch_size_per_gpu": config.gpu_batch_size,
+                "gradient_accumulation": config.effective_batch_size // config.gpu_batch_size,
+                "wall_clock_breakdown": False
+            }
+            dschf = HfDeepSpeedConfig(ds_config)
+            self.model.model, self.optimizer, _, _ = deepspeed.initialize(model=self.model.model, config_params=ds_config, optimizer=self.optimizer)
+        else:
+            self.model.to(config.device)
+            self.max_grad_norm = config.max_grad_norm
+            self.gradient_accumulation_steps = max(config.effective_batch_size//config.gpu_batch_size,1)
+        
         self.imbalanced_task_weighting = config.imbalanced_task_weighting
         if not (config.device == 'cpu') and config.fp16:
             self.fp16 = config.fp16
@@ -32,8 +87,8 @@ class Algorithm(nn.Module):
         """Whether to calculate metrics"""
         return NotImplementedError
     
-    def state_dict(self):
-        return self.model.state_dict()
+    def state_dict(self, destination=None, prefix="", keep_vars=False):
+        return self.model.state_dict(destination=destination, prefix=prefix, keep_vars=keep_vars)
 
     def load_state_dict(self, state_dict):
         """
@@ -56,7 +111,15 @@ class Algorithm(nn.Module):
         """
         assert self.is_training, "Cannot update() when not in training mode"
         
-        if self.fp16:
+        if self.deepspeed:
+            results, objective = self.process_batch(batch)
+            if self.imbalanced_task_weighting:
+                task_weight = torch.tensor(batch[2]['task_weight']).to(self.device)
+                objective = task_weight * objective
+            self.model.backward(objective)
+            self.model.step()
+
+        elif self.fp16:
             with torch.cuda.amp.autocast():
                 results, objective = self.process_batch(batch)
                 if self.imbalanced_task_weighting:

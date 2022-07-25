@@ -19,6 +19,8 @@ def parse_args():
 
     # config for experimentation ease
     parser.add_argument("--model_config",type=str, default=None)
+    parser.add_argument("--local_rank", type=int, default=0)
+    parser.add_argument("--deepspeed", action="store_true")
 
     # general args
     parser.add_argument("--cpu_only", action="store_true")
