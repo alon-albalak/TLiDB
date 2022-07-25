@@ -1,5 +1,6 @@
 import os
 import sys
+import json
 import random
 import numpy as np
 import torch
@@ -19,7 +20,7 @@ def load_datasets_split(split, tasks, datasets, config):
             cur_dataset.random_subsample(config.frac)
 
         split_datasets["datasets"].append(cur_dataset)
-        split_datasets["loaders"].append(get_dataloader(split, cur_dataset, config.gpu_batch_size, config, collate_fn=cur_dataset.collate, num_workers=config.num_workers))
+        split_datasets["loaders"].append(get_dataloader(split, cur_dataset, config.train_micro_batch_size_per_gpu, config, collate_fn=cur_dataset.collate, num_workers=config.num_workers))
         split_datasets["metrics"].append(get_metric_computer(cur_dataset.metrics, **cur_dataset.metric_kwargs))
     return split_datasets
 
@@ -202,3 +203,18 @@ def log_dataset_info(datasets, logger):
             logger.write(f' - {dataset.y_size} examples | ')
         logger.write('\n')
     logger.flush()
+
+def generate_ds_config(config):
+    ds_config = json.load(open(config.ds_config))
+    ds_config['local_rank'] = config.local_rank
+    # explicitly check for learning rate since arg name doesn't match with ours
+    if "optimizer" in ds_config.keys() and ds_config['optimizer']['params']['lr'] == "auto":
+        ds_config['optimizer']['params']['lr'] = config.learning_rate
+    # check for other automatically filled DS config args
+    for k, v in ds_config.items():
+        if v == "auto":
+            if hasattr(config, k):
+                ds_config[k] = getattr(config, k)
+            else:
+                raise ValueError(f"Deepspeed config set {k} to 'auto' but {k} is not defined in command line arguments")
+    return ds_config

@@ -1,11 +1,10 @@
 import torch
 import torch.nn as nn
 
-from tlidb.examples.utils import move_to, detach_and_clone
+from tlidb.examples.utils import move_to, detach_and_clone, generate_ds_config
 from tlidb.examples.optimizers import initialize_optimizer
 from tlidb.examples.models.initializer import initialize_model
 
-from transformers.deepspeed import HfDeepSpeedConfig
 import deepspeed
 
 class Algorithm(nn.Module):
@@ -17,58 +16,14 @@ class Algorithm(nn.Module):
         self.optimizer = initialize_optimizer(config, self.model)
         self.deepspeed = config.deepspeed
 
-        # TODO:
-        #   TEST: MULTI-GPU, config as file path, bf16 (T5), dschf required?, 
+        # TODO: MULTI-GPU, bf16 (T5)
         if self.deepspeed:
-            ds_config = {
-                "local_rank": config.local_rank,
-                "optimizer": {
-                    "type": "AdamW",
-                    "params": {
-                        "lr": config.learning_rate,
-                        "betas": [0.9, 0.999],
-                        "eps": 1e-8,
-                        "weight_decay": 0.01
-                    }
-                },
-                # "scheduler": {
-                # "type": "WarmupDecayLR",
-                #     "params": {
-                #         "last_batch_iteration": -1,
-                #         "total_num_steps": sum([len(loader) for loader in datasets['train']]),
-                #         "warmup_min_lr": 0,
-                #         "warmup_max_lr": config.learning_rate,
-                #         "warmup_num_steps": sum([len(loader) for loader in datasets['train']])/100
-                #     }
-                # },
-                "bf16": {
-                    "enabled": False
-                },
-                "fp16": {
-                    "enabled": True
-                },
-                "zero_optimization": {
-                    "stage": 2,
-                    "overlap_comm": True,
-                    "contiguous_gradients": True,
-                    "sub_group_size": 1e9,
-                    "allgather_bucket_size":5e8,
-                    "reduce_scatter": True,
-                    "reduce_bucket_size": 5e8,
-                },
-                "gradient_clipping": 1.0,
-                "steps_per_print": 500,
-                "train_batch_size": config.effective_batch_size,
-                "train_micro_batch_size_per_gpu": config.gpu_batch_size,
-                "gradient_accumulation": config.effective_batch_size // config.gpu_batch_size,
-                "wall_clock_breakdown": False
-            }
-            dschf = HfDeepSpeedConfig(ds_config)
-            self.model.model, self.optimizer, _, _ = deepspeed.initialize(model=self.model.model, config_params=ds_config, optimizer=self.optimizer)
+            ds_config = generate_ds_config(config)
+            self.model.model, self.optimizer, _, _ = deepspeed.initialize(model=self.model.model, config=ds_config, optimizer=self.optimizer)
         else:
             self.model.to(config.device)
             self.max_grad_norm = config.max_grad_norm
-            self.gradient_accumulation_steps = max(config.effective_batch_size//config.gpu_batch_size,1)
+            self.gradient_accumulation_steps = max(config.train_batch_size//config.train_micro_batch_size_per_gpu,1)
         
         self.imbalanced_task_weighting = config.imbalanced_task_weighting
         if not (config.device == 'cpu') and config.fp16:

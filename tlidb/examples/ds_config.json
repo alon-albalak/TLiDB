@@ -1,0 +1,28 @@
+{
+    "optimizer": {
+        "type": "AdamW",
+        "params": {
+            "lr": "auto"
+        }
+    },
+    "bf16": {
+        "enabled": false
+    },
+    "fp16": {
+        "enabled": true
+    },
+    "zero_optimization": {
+        "stage": 2,
+        "overlap_comm": true,
+        "contiguous_gradients": true,
+        "sub_group_size": 1e9,
+        "allgather_bucket_size":5e8,
+        "reduce_scatter": true,
+        "reduce_bucket_size": 5e8
+    },
+    "gradient_clipping": 1.0,
+    "steps_per_print": 500,
+    "train_batch_size": "auto",
+    "train_micro_batch_size_per_gpu": "auto",
+    "wall_clock_breakdown": false
+}
