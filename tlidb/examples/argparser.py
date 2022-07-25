@@ -1,3 +1,4 @@
+from ast import Str
 import os
 import sys
 import argparse
@@ -19,8 +20,11 @@ def parse_args():
 
     # config for experimentation ease
     parser.add_argument("--model_config",type=str, default=None)
-    parser.add_argument("--local_rank", type=int, default=0)
+    
+    # configs for deepspeed
     parser.add_argument("--deepspeed", action="store_true")
+    parser.add_argument("--local_rank", type=int, default=0)
+    parser.add_argument("--ds_config", type=str, help="Path to a deepspeed config file")
 
     # general args
     parser.add_argument("--cpu_only", action="store_true")
@@ -41,8 +45,8 @@ def parse_args():
     parser.add_argument("--do_train", action="store_true")
     parser.add_argument("--do_finetune", action="store_true")
     parser.add_argument("-e", "--num_epochs", type=int, default=10)
-    parser.add_argument("--effective_batch_size", type=int, default=60)
-    parser.add_argument("--gpu_batch_size", type=int, default=20)
+    parser.add_argument("--train_batch_size", type=int, default=60)
+    parser.add_argument("--train_micro_batch_size_per_gpu", type=int, default=20)
     parser.add_argument("-lr", "--learning_rate", type=float, default=3e-5)
     parser.add_argument("--fp16", action="store_true")
     parser.add_argument("--max_grad_norm", type=float, default=1.0)
