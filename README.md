@@ -88,6 +88,20 @@ We encourage outside contributions to the project!
 
 
 ## Citation
+If you use the FETA datasets in your work, please cite the FETA paper:
+```
+@misc{feta_albalak,
+    doi = {10.48550/ARXIV.2205.06262},
+    url = {https://arxiv.org/abs/2205.06262},
+    author = {Albalak, Alon and Tuan, Yi-Lin and Jandaghi, Pegah and Pryor, Connor and Yoffe, Luke and Ramachandran, Deepak and Getoor, Lise and Pujara, Jay and Wang, William Yang},
+    keywords = {Computation and Language (cs.CL), FOS: Computer and information sciences, FOS: Computer and information sciences},
+    title = {FETA: A Benchmark for Few-Sample Task Transfer in Open-Domain Dialogue},
+    publisher = {arXiv},
+    year = {2022},
+    copyright = {Creative Commons Attribution Share Alike 4.0 International}
+    }
+```
+
 If you use TLiDB in your work, please cite the repository:
 ```
 @software{Albalak_The_Transfer_Learning_2022,
