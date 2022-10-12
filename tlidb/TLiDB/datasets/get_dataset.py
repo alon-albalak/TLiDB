@@ -1,10 +1,12 @@
+import os
+import sys
 import tlidb.TLiDB
 # dataset url can be found in the google drive, where the original link is:
 #   https://drive.google.com/file/d/1sqaiYTm9b9SPEzehdjp_DXEovVId6Fvq/view?usp=sharing
 # and needs to be reformatted as:
 #   https://drive.google.com/uc?export=download&id=1sqaiYTm9b9SPEzehdjp_DXEovVId6Fvq
 
-def get_dataset(dataset, task, dataset_folder, **dataset_kwargs):
+def get_dataset(dataset, task, dataset_folder=None, **dataset_kwargs):
     """
     Returns the appropriate TLiDB dataset class
     Args:
@@ -25,4 +27,8 @@ def get_dataset(dataset, task, dataset_folder, **dataset_kwargs):
     else:
         raise ValueError(f"{dataset} is not a supported dataset, must be one of: {tlidb.supported_datasets}")
         
+    if dataset_folder is None and 'tlidb' in sys.modules:
+        dataset_folder = os.path.join(os.path.expanduser("~"), ".cache", "tlidb/data")
+    os.makedirs(dataset_folder, exist_ok=True)
+
     return dataset_class(task, dataset_folder, **dataset_kwargs)
