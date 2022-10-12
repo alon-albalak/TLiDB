@@ -89,7 +89,7 @@ class DailyDialog_dataset(TLiDB_Dataset):
             "max_decode_tokens":64
         }
     }
-    def __init__(self, task, dataset_folder, model_type, split, max_dialogue_length, few_shot_percent=None):
+    def __init__(self, task, dataset_folder, model_type, split, max_dialogue_length=None, few_shot_percent=None):
         assert task in self._tasks, f"{task} is not a valid task for {self._dataset_name}"
         super().__init__(self._dataset_name, task, model_type, max_dialogue_length, dataset_folder=dataset_folder)
         self._task_metadata = self._task_metadatas[task]
