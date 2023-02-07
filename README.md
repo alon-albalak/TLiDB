@@ -3,7 +3,14 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/alon-albalak/tlidb/blob/master/LICENSE)
 [![DOI](https://zenodo.org/badge/419109889.svg)](https://zenodo.org/badge/latestdoi/419109889)
 
-## Overview
+### This repo contains data and code used in [FETA: A Benchmark for Few-Sample Task Transfer in Open-Domain Dialogue](https://aclanthology.org/2022.emnlp-main.751/), presented at EMNLP 2022
+The repo can also be utilized for many more research scenarios, including:
+- Multi-Task Learning
+- In-Context Task Transfer
+- Continual Learning
+- Generalizability of pre-training datasets and model architectures
+
+# Overview
 TLiDB is a tool used to benchmark methods of transfer learning in conversational AI.
 TLiDB can easily handle *domain adaptation, task transfer, multitasking, continual learning*, and other transfer learning settings.
 TLiDB maintains a unified json format for all datasets and tasks, easing the new code necessary for new datasets and tasks. We highly encourage community contributions to the project.
