@@ -75,6 +75,9 @@ function main() {
    fetch_file "${MELD_TEST_URL}" "meld_test.csv" 'MELD Dataset - Test'
    python3 add_meld_annotations.py
 
+   # add instance ids
+   python3 generate_instance_ids.py
+
    echo "Generating TTiDB splits"
    python3 generate_full_data_TTiDB_ids.py
    echo "Generating Few-Shot TTiDB splits"
