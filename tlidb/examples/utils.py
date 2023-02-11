@@ -127,21 +127,59 @@ def save_algorithm_if_needed(algorithm, epoch, config, best_val_metric, is_best,
     if config.save_best and is_best:
         save_algorithm(algorithm, epoch, best_val_metric,os.path.join(config.save_path_dir,"best_model.pt"),logger)
 
-def save_pred_if_needed(y_pred, epoch, config, is_best, save_path_dir):
+def save_pred_if_needed(y_pred, epoch, config, is_best, save_path_dir, instance_ids=None, gt=False):
     if config.save_pred:
         if config.save_last:
-            save_pred(y_pred, os.path.join(save_path_dir, "last_predictions"))
+            save_pred(y_pred, os.path.join(save_path_dir, "last_predictions"), instance_ids)
         if config.save_best and is_best:
-            save_pred(y_pred, os.path.join(save_path_dir, "best_predictions"))
+            if gt:
+                file_name = os.path.join(save_path_dir, "labels")
+            else:
+                file_name = os.path.join(save_path_dir, "predictions")
+            save_pred(y_pred, file_name, instance_ids)
+            # save_pred(y_pred, os.path.join(save_path_dir, "best_predictions"), instance_ids)
 
-def save_pred(y_pred, path_prefix):
+def save_pred(y_pred, path_prefix, instance_ids):
     # Single tensor
+    os.makedirs(os.path.dirname(path_prefix), exist_ok=True)
     if torch.is_tensor(y_pred):
         y_pred_np = y_pred.numpy()
-        np.save(path_prefix+'.csv', y_pred_np)
+        if instance_ids is not None:
+            assert(len(instance_ids) == len(y_pred_np)),"Mismatched lengths between instance_ids and y_pred"
+            with open(path_prefix + '.csv', 'w') as f:
+                for id, pred in zip(instance_ids, y_pred_np):
+                    if isinstance(pred, np.ndarray):
+                        f.write(f"{id},[{' '.join(map(str,pred))}]\n")
+                    else:
+                        f.write(f"{id},{pred}\n")
+        else:
+            np.save(path_prefix+'.csv', y_pred_np)
     # Dictionary
-    elif isinstance(y_pred, dict) or isinstance(y_pred, list):
-        torch.save(y_pred, path_prefix + '.pt')
+    elif isinstance(y_pred, dict):
+        if instance_ids is not None:
+            assert(len(instance_ids) == len(y_pred)),"Mismatched lengths between instance_ids and y_pred"
+            with open(path_prefix + '.csv', 'w') as f:
+                for k, v in y_pred.items():
+                    f.write(f"{k}, \n")
+                    for id, pred in zip(instance_ids, v):
+                        if isinstance(pred, str):
+                            pred = pred.replace(",", " ")
+                        f.write(f"{id},{pred}\n")
+        else:
+            torch.save(y_pred, path_prefix + '.pt')
+    elif isinstance(y_pred, list):
+        if instance_ids is not None:
+            assert(len(instance_ids) == len(y_pred)),"Mismatched lengths between instance_ids and y_pred"
+            with open(path_prefix + '.csv', 'w') as f:
+                for id, pred in zip(instance_ids, y_pred):
+                    if isinstance(pred, str):
+                        pred = pred.replace(",", " ")
+                    elif isinstance(pred, list):
+                        pred = "[SEPERATOR]".join(pred)
+                        pred = pred.replace(",", " ")
+                    f.write(f"{id},{pred}\n")
+        else:
+            torch.save(y_pred, path_prefix + '.pt')
     else:
         raise TypeError("Invalid type for save_pred")
 

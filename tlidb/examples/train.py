@@ -89,7 +89,7 @@ def run_epoch(algorithm, datasets, config, logger, train):
     return results, epoch_y_pred
 
 
-def train(algorithm, datasets, config, logger, epoch_offset, best_val_metric):
+def train(algorithm, datasets, config, logger, epoch_offset, best_val_metric, save_preds=False):
     for epoch in range(epoch_offset, config.num_epochs):
         logger.write(f'\nEpoch {epoch}\n')
         # train
@@ -117,7 +117,8 @@ def train(algorithm, datasets, config, logger, epoch_offset, best_val_metric):
         # save algorithm and model
         save_algorithm_if_needed(algorithm, epoch, config, best_val_metric, is_best, logger)
         # save predictions
-        save_pred_if_needed(y_pred, epoch, config, is_best, config.save_path_dir)
+        if save_preds:
+            save_pred_if_needed(y_pred, epoch, config, is_best, config.save_path_dir)
 
         logger.write('\n')
         logger.flush()
@@ -130,6 +131,7 @@ def evaluate(algorithm, datasets, config, logger, epoch, is_best):
         for dataset, loader, metric in zip(datasets[split]['datasets'], datasets[split]['loaders'], datasets[split]['metrics']):
             epoch_y_true = []
             epoch_y_pred = []
+            epoch_instance_ids = []
 
             pbar = tqdm(iter(loader)) if config.progress_bar else iter(loader)
             total_loss = 0
@@ -142,6 +144,7 @@ def evaluate(algorithm, datasets, config, logger, epoch, is_best):
                 batch_metadata['dataset_name'] = dataset.dataset_name
                 batch_metadata['task_metadata'] = dataset.task_metadata
                 batch = (X, y, batch_metadata)
+                epoch_instance_ids.append(batch_metadata['instance_id'])
 
                 batch_results = algorithm.evaluate(batch)
                 epoch_y_true.append(detach_and_clone(batch_results['y_true']))
@@ -156,6 +159,17 @@ def evaluate(algorithm, datasets, config, logger, epoch, is_best):
                 
             epoch_y_pred = collate_list(epoch_y_pred)
             epoch_y_true = collate_list(epoch_y_true)
+            epoch_instance_ids = collate_list(epoch_instance_ids)
+
+            # further unpack if instance ids are a list of lists
+            if isinstance(epoch_instance_ids[0], list):
+                if isinstance(epoch_y_pred, list):
+                    epoch_y_pred = collate_list(epoch_y_pred)
+                    epoch_y_true = collate_list(epoch_y_true)
+                elif isinstance(epoch_y_pred, torch.Tensor):
+                    epoch_y_pred = torch.flatten(epoch_y_pred)
+                    epoch_y_true = torch.flatten(epoch_y_true)
+                epoch_instance_ids = collate_list(epoch_instance_ids)
 
             result_str = f"Eval on {split} split at epoch {epoch}: {dataset.dataset_name} {dataset.task}-\n"
             result_str += f"Loss-{batch_results['objective']['loss_name']}: {total_loss/loss_divisor:0.4f}\n"
@@ -166,4 +180,5 @@ def evaluate(algorithm, datasets, config, logger, epoch, is_best):
 
             # skip saving train data as the dataloader will shuffle data
             if split != "train":
-                save_pred_if_needed(y_pred, epoch, config, is_best, config.save_path_dir)
+                save_pred_if_needed(epoch_y_pred, epoch, config, is_best, config.save_path_dir, instance_ids=epoch_instance_ids)
+                save_pred_if_needed(epoch_y_true, epoch, config, is_best, f"ground_truths/{config.target_datasets[0]}/{config.target_tasks[0]}", instance_ids=epoch_instance_ids,gt=True)
