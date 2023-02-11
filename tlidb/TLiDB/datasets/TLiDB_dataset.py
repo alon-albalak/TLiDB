@@ -176,7 +176,7 @@ class TLiDB_Dataset(Dataset):
         return self.y_array[idx]
 
     def get_metadata(self, idx):
-        return {}
+        return self.metadata_array[idx]
 
     def _collate(self, batch):
         return NotImplementedError

@@ -43,6 +43,7 @@ class DailyDialog_dataset(TLiDB_Dataset):
         'response_generation'
         ]
     _url = "https://drive.google.com/uc?export=download&id=1U9dUi16RbAprUiSBmEKnEpwk45USfnml"
+    # _url = "https://drive.google.com/uc?export=download&id=1c88IN_ZHpRvkkgQxmN4sfGmqN2DurQx2"
     _task_metadatas = {
         "emotion_recognition": {
                 "prompt":"emotion:","type":"classification","loader":"utterance_level_classification",
@@ -128,6 +129,7 @@ class DailyDialog_dataset(TLiDB_Dataset):
                     str_dialogue = self._convert_dialogue_to_string(dialogue)
                     self._input_array.append(str_dialogue)
                     self._y_array.append(datum[task])
+
         
     def _load_span_extraction_task(self, task, split_ids):
         for datum in self.dataset['data']:
@@ -204,16 +206,24 @@ class DailyDialog_dataset(TLiDB_Dataset):
                             if turn['turn_id'] in sample['context_turns']:
                                 context.append([turn['speakers'][0], turn['utterance']])
                         context = self._convert_dialogue_to_string(context)
-                        for pos_resp, random_neg_resp, adv_neg_resp in zip(sample['positive_responses'], sample['random_negative_responses'], sample['adversarial_negative_responses']):
-                            # shuffle the options
-                            options = [pos_resp, random_neg_resp, adv_neg_resp]
-                            random.shuffle(options)
+                        # for pos_resp, random_neg_resp, adv_neg_resp in zip(sample['positive_responses'], sample['random_negative_responses'], sample['adversarial_negative_responses']):
+                        #     # shuffle the options
+                        #     options = [pos_resp, random_neg_resp, adv_neg_resp]
+                        #     random.shuffle(options)
+                        #     self._input_array.append({
+                        #         "context": context,
+                        #         "options": options,
+                        #         "question": "Which option is the best response?"
+                        #     })
+                        #     self._y_array.append(str(options.index(pos_resp)))
+
+                        for triple in sample['samples']:
                             self._input_array.append({
                                 "context": context,
-                                "options": options,
-                                "question":"Which option is the best response?"
+                                "options": triple['options'],
+                                "question": "Which option is the best response?"
                             })
-                            self._y_array.append(str(options.index(pos_resp)))
+                            self._y_array.append(str(triple['label']))
 
     def _collate_encoder(self, batch):
         X, y, metadata = [], [], {}
@@ -239,7 +249,7 @@ class DailyDialog_dataset(TLiDB_Dataset):
             y.append(item[1])
             for k, v in item[2].items():
                 if k not in metadata:
-                    metadata.append(k)
+                    metadata[k] = []
                 metadata[k].append(v)
         return X, y, metadata
 
@@ -268,7 +278,7 @@ class DailyDialog_dataset(TLiDB_Dataset):
             y.append(item[1])
             for k, v in item[2].items():
                 if k not in metadata:
-                    metadata.append(k)
+                    metadata[k] = []
                 metadata[k].append(v)
         labels = self.task_labels
         if labels:
@@ -300,7 +310,7 @@ class DailyDialog_dataset(TLiDB_Dataset):
             y.append(item[1])
             for k, v in item[2].items():
                 if k not in metadata:
-                    metadata.append(k)
+                    metadata[k] = []
                 metadata[k].append(v)
         labels = self.task_labels
         if labels:

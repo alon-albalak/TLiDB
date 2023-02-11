@@ -124,7 +124,8 @@ class Friends_dataset(TLiDB_Dataset):
                         str_dialogue = self._convert_dialogue_to_string(truncated_dialogue)
                         if task in turn:
                             self._input_array.append(str_dialogue)
-                            self._y_array.append(turn[task])
+                            self._y_array.append(turn[task]['label'])
+                            self._metadata_array.append({"instance_id": turn[task]['instance_id']})
 
     def _load_character_span_extraction_task(self, task, split_ids):
         for datum in self.dataset['data']:
@@ -149,6 +150,7 @@ class Friends_dataset(TLiDB_Dataset):
                             "answer_start":answer_start
                         }
                         self._y_array.append(answer)
+                        self._metadata_array.append({"instance_id": qa['instance_id']})
 
     def _load_character_identification_task(self, task, split_ids):
         for datum in self.dataset['data']:
@@ -177,6 +179,7 @@ class Friends_dataset(TLiDB_Dataset):
                                     "entity_reference": entity_mention['entity_reference']
                                 })
                                 self._y_array.append(entity_mention['normalized_entity'])
+                                self._metadata_array.append({"instance_id": entity_mention['instance_id']})
 
     def _load_span_extraction_task(self, task, split_ids):
 
@@ -229,6 +232,7 @@ class Friends_dataset(TLiDB_Dataset):
                                 "context": str_dialogue, "question": qa['question']
                             })
                             self._y_array.append(answers)
+                            self._metadata_array.append({"instance_id": qa['instance_id']})
                             
     def _load_personality_detection_task(self, task, split_ids):
         for datum in self.dataset['data']:
@@ -247,6 +251,9 @@ class Friends_dataset(TLiDB_Dataset):
                                 "focus_speaker": sample['focus_speaker']
                             })
                             self._y_array.append(sample['personality_characteristics'])
+                            instance_ids = [f"{sample['instance_id']}_{characteristic}" for characteristic in sample['personality_characteristics']]
+                                
+                            self._metadata_array.append({"instance_id": instance_ids})
 
                         # decoder models get 5 separate samples, 1 for each class
                         else:
@@ -257,8 +264,8 @@ class Friends_dataset(TLiDB_Dataset):
                                     "class": characteristic
                                 })
                                 self._y_array.append(value)
-
-
+                                self._metadata_array.append({"instance_id": f"{sample['instance_id']}_{characteristic}"})
+                        
 
     def _load_relation_extraction_task(self, task, split_ids):
         for datum in self.dataset['data']:
@@ -275,7 +282,7 @@ class Friends_dataset(TLiDB_Dataset):
                                 "tail":triple['tail']
                             })
                             self._y_array.append(triple['relations'])
-
+                            self._metadata_array.append({"instance_id": triple['instance_id']})
 
     def _collate_encoder(self, batch):
         X, y, metadata = [], [], {}
@@ -299,7 +306,7 @@ class Friends_dataset(TLiDB_Dataset):
             y.append(item[1])
             for k,v in item[2].items():
                 if k not in metadata:
-                    metadata.append(k)
+                    metadata[k] = []
                 metadata[k].append(v)
         return X, y, metadata
         
@@ -330,7 +337,7 @@ class Friends_dataset(TLiDB_Dataset):
             y.append(item[1])
             for k,v in item[2].items():
                 if k not in metadata:
-                    metadata.append(k)
+                    metadata[k] = []
                 metadata[k].append(v)
         labels = self.task_labels
         if labels:
@@ -364,7 +371,7 @@ class Friends_dataset(TLiDB_Dataset):
             y.append(item[1])
             for k,v in item[2].items():
                 if k not in metadata:
-                    metadata.append(k)
+                    metadata[k] = []
                 metadata[k].append(v)
         labels = self.task_labels
         if labels:
