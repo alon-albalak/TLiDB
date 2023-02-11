@@ -30,8 +30,10 @@ total_samples = {
     "causal_emotion_span_extraction":36324,
     "causal_emotion_entailment":36324,
     "dialogue_nli":5817,
-    "dialogue_reasoning_span_extraction":1098,
-    "dialogue_reasoning_multiple_choice_span_selection":2165,
+    # "dialogue_reasoning_span_extraction":1098,
+    "dialogue_reasoning_span_extraction":1172,
+    # "dialogue_reasoning_multiple_choice_span_selection":2165,
+    "dialogue_reasoning_multiple_choice_span_selection":2274,
     "dialogue_reasoning_commonsense_relation_prediction":4009,
     "adversarial_response_selection":57145
 }
@@ -70,9 +72,11 @@ def get_num_task_samples_DD(path=path):
                 tasks_by_split[split][task] += len(dialogue[task]['mcqs'])
                 ids_per_task_per_split[split][task].append(dialogue['dialogue_id'])
             if task in response_selection_tasks:
+                samples = 0
                 for group in dialogue[task]:
-                    tasks_by_split[split][task] += len(group['positive_responses'])
-                    ids_per_task_per_split[split][task].append(dialogue['dialogue_id'])
+                    samples += len(group['samples'])
+                tasks_by_split[split][task] += samples
+                ids_per_task_per_split[split][task].append(dialogue['dialogue_id'])
     # for split, tasks in tasks_by_split.items():
     #     print(f"{split}")
     #     for task, num_samples in tasks.items():
@@ -86,7 +90,7 @@ def get_num_task_samples_DD(path=path):
         for task, num_samples in tasks.items():
             totals[task] += num_samples
     for task, num_samples in totals.items():
-        assert(num_samples == total_samples[task])
+        assert(num_samples == total_samples[task]), f"{task}: {num_samples} != {total_samples[task]}"
 
     for split in ids_per_split:
         with open(f"TLiDB_DailyDialog/{split}_ids.txt", 'w') as f:
@@ -187,9 +191,11 @@ def get_task_samples_per_split_by_dialogue_id_full_data(train_ids, dev_ids, test
                 tasks_by_split[split][task] += len(dialogue[task]['mcqs'])
                 ids_per_task_per_split[split][task].append(dialogue['dialogue_id'])
             if task in response_selection_tasks:
+                samples = 0
                 for group in dialogue[task]:
-                    tasks_by_split[split][task] += len(group['positive_responses'])
-                    ids_per_task_per_split[split][task].append(dialogue['dialogue_id'])
+                    samples += len(group['samples'])
+                tasks_by_split[split][task] += samples
+                ids_per_task_per_split[split][task].append(dialogue['dialogue_id'])
 
 
     # ensure we haven't lost any samples in the rebalancing

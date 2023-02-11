@@ -220,6 +220,8 @@ def add_CIDER_span_extraction_annotations(DD_data, DD_CIDER_data, CIDER_sp_ex):
             cur_ID = sp_ex_ID
             if DD_sp_ex:
                 cur_datum['dialogue_reasoning_span_extraction'] = DD_sp_ex
+                if 'dialogue_reasoning_span_extraction' not in cur_datum['dialogue_metadata']:
+                    cur_datum['dialogue_metadata']['dialogue_reasoning_span_extraction'] = None
 
             for d in DD_CIDER_data:
                 if sp_ex_ID == d['id']:
@@ -244,8 +246,6 @@ def add_CIDER_span_extraction_annotations(DD_data, DD_CIDER_data, CIDER_sp_ex):
                         continue
     
             full_dialogue = create_full_DD_dialogue(cur_datum)
-            if 'dialogue_reasoning_span_extraction' not in cur_datum['dialogue_metadata']:
-                cur_datum['dialogue_metadata']['dialogue_reasoning_span_extraction'] = None
             DD_sp_ex = [{'context':full_dialogue,'qas':[]}]
 
         # compile the span extraction annotations in our format
@@ -442,9 +442,11 @@ for p in data_partitions:
     found_DD += f_DD
     not_found += nf
 # make sure we found all the CIDER data
-assert found_CIDER == 228
-assert found_DD== 17
-assert not_found == 561
+# assert (found_CIDER == 228), f"Found {found_CIDER} CIDER NLI datums, expected 228"
+assert (found_CIDER == 242), f"Found {found_CIDER} CIDER NLI datums, expected 242"
+# assert (found_DD== 17), f"Found {found_DD} DD NLI datums, expected 17"
+assert (found_DD== 3), f"Found {found_DD} DD NLI datums, expected 3"
+assert (not_found == 561), f"Didnt find {not_found} datums, expected 561"
 
 # load CIDER span extraction data
 # CIDER span extraction datums are not split by dialogue, some datums from training and testing come from the same underlying DD dialogue
@@ -470,10 +472,6 @@ CIDER_CRP_fields = ["_", "context", "entities", "relation"]
 for p in data_partitions:
     CIDER_CRP = list(csv.reader(open(f"CIDER_RP_{p}.csv", "r")))[1:]
     DD_data, f_CIDER, f_DD, nf = add_CIDER_commonsense_relation_prediction_annotations(DD_data, DD_CIDER_data, CIDER_CRP, p)
-# make sure we found all the CIDER data
-assert found_CIDER == 228
-assert found_DD== 17
-assert not_found == 561
 
 with open('TLiDB_DailyDialog/TLiDB_DailyDialog.json',"w", encoding='utf8') as f:
     json.dump(DD_data, f, indent=2, ensure_ascii=False)

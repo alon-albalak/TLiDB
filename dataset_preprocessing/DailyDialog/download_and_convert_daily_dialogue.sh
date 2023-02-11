@@ -95,6 +95,10 @@ function main() {
    python3 add_cider_annotations.py
    echo "Adding adversarial response selection annotations from DailyDialog++"
    python3 add_DDpp_annotations.py
+
+   # add instance ids
+   python3 generate_instance_ids.py
+
    echo "Generating TTiDB splits"
    python3 generate_full_data_TTiDB_ids.py
    echo "Generating Few-Shot TTiDB splits"

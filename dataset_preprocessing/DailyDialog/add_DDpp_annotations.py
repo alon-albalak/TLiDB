@@ -1,4 +1,5 @@
 import json
+import random
 from tqdm import tqdm
 from utils import untokenize, get_DD_by_ID
 
@@ -110,12 +111,29 @@ def add_DDpp_annotations(DD_data, DD_pp, known_DDpp_DD_ID_mapping):
 
         DD_context_turns = get_DD_turn_subset_from_DDpp_start(untokenize([ddpp['context'][0]]), len(ddpp['context']), DD_datum)
         formatted_DDpp = {
-            'DDpp_id': ddpp['id'],
+            # 'DDpp_id': ddpp['id'],
             'context_turns': DD_context_turns,
-            'positive_responses': ddpp['positive_responses'],
-            'random_negative_responses': ddpp['random_negative_responses'],
-            'adversarial_negative_responses': ddpp['adversarial_negative_responses'],
-            }
+        }
+        samples = []
+        random.shuffle(ddpp['positive_responses'])
+        random.shuffle(ddpp['random_negative_responses'])
+        random.shuffle(ddpp['adversarial_negative_responses'])
+        for pos_resp, random_neg_resp, adv_neg_resp in zip(ddpp['positive_responses'], ddpp['random_negative_responses'], ddpp['adversarial_negative_responses']):
+            options = [pos_resp, random_neg_resp, adv_neg_resp]
+            random.shuffle(options)
+            samples.append({
+                'options': options,
+                'label': options.index(pos_resp)
+            })
+        # formatted_DDpp = {
+        #     'DDpp_id': ddpp['id'],
+        #     'context_turns': DD_context_turns,
+        #     'positive_responses': ddpp['positive_responses'],
+        #     'random_negative_responses': ddpp['random_negative_responses'],
+        #     'adversarial_negative_responses': ddpp['adversarial_negative_responses'],
+        #     }
+
+        formatted_DDpp['samples'] = samples
 
         if 'adversarial_response_selection' not in DD_datum['dialogue_metadata']:
             DD_datum['dialogue_metadata']['adversarial_response_selection'] = None

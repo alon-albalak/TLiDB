@@ -75,9 +75,11 @@ def get_task_samples_per_split_by_dialogue_id(train_ids, dev_ids, test_ids, path
                 tasks_by_split[split][task] += len(dialogue[task]['mcqs'])
                 ids_per_task_per_split[split][task].append(dialogue['dialogue_id'])
             if task in response_selection_tasks:
+                samples = 0
                 for group in dialogue[task]:
-                    tasks_by_split[split][task] += len(group['positive_responses'])
-                    ids_per_task_per_split[split][task].append(dialogue['dialogue_id'])
+                    samples += len(group['samples'])
+                tasks_by_split[split][task] += samples
+                ids_per_task_per_split[split][task].append(dialogue['dialogue_id'])
 
     for split, tasks in tasks_by_split.items():
         print(f"{split}")
