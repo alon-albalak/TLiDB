@@ -89,7 +89,7 @@ def run_epoch(algorithm, datasets, config, logger, train):
     return results, epoch_y_pred
 
 
-def train(algorithm, datasets, config, logger, epoch_offset, best_val_metric, save_preds=False):
+def train(algorithm, datasets, config, logger, epoch_offset, best_val_metric):
     for epoch in range(epoch_offset, config.num_epochs):
         logger.write(f'\nEpoch {epoch}\n')
         # train
@@ -116,9 +116,6 @@ def train(algorithm, datasets, config, logger, epoch_offset, best_val_metric, sa
 
         # save algorithm and model
         save_algorithm_if_needed(algorithm, epoch, config, best_val_metric, is_best, logger)
-        # save predictions
-        if save_preds:
-            save_pred_if_needed(y_pred, epoch, config, is_best, config.save_path_dir)
 
         logger.write('\n')
         logger.flush()
@@ -181,4 +178,3 @@ def evaluate(algorithm, datasets, config, logger, epoch, is_best):
             # skip saving train data as the dataloader will shuffle data
             if split != "train":
                 save_pred_if_needed(epoch_y_pred, epoch, config, is_best, config.save_path_dir, instance_ids=epoch_instance_ids)
-                save_pred_if_needed(epoch_y_true, epoch, config, is_best, f"ground_truths/{config.target_datasets[0]}/{config.target_tasks[0]}", instance_ids=epoch_instance_ids,gt=True)

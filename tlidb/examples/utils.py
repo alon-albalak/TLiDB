@@ -127,17 +127,12 @@ def save_algorithm_if_needed(algorithm, epoch, config, best_val_metric, is_best,
     if config.save_best and is_best:
         save_algorithm(algorithm, epoch, best_val_metric,os.path.join(config.save_path_dir,"best_model.pt"),logger)
 
-def save_pred_if_needed(y_pred, epoch, config, is_best, save_path_dir, instance_ids=None, gt=False):
+def save_pred_if_needed(y_pred, epoch, config, is_best, save_path_dir, instance_ids=None):
     if config.save_pred:
         if config.save_last:
             save_pred(y_pred, os.path.join(save_path_dir, "last_predictions"), instance_ids)
         if config.save_best and is_best:
-            if gt:
-                file_name = os.path.join(save_path_dir, "labels")
-            else:
-                file_name = os.path.join(save_path_dir, "predictions")
-            save_pred(y_pred, file_name, instance_ids)
-            # save_pred(y_pred, os.path.join(save_path_dir, "best_predictions"), instance_ids)
+            save_pred(y_pred, os.path.join(save_path_dir, "predictions"), instance_ids)
 
 def save_pred(y_pred, path_prefix, instance_ids):
     # Single tensor
