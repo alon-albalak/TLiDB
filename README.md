@@ -52,12 +52,12 @@ TLiDB can be used from the command line or as a python command. If you have inst
 For a very simple set up, you can use the following commands.
 - From command line:
 ```bash
-tlidb --source_datasets Friends --source_tasks emory_emotion_recognition --target_datasets Friends --target_tasks reading_comprehension --do_train --do_finetune --do_eval --eval_best --model_config=bert
+tlidb --source_datasets Friends --source_tasks emory_emotion_recognition --target_datasets Friends --target_tasks reading_comprehension --do_train --do_finetune --do_eval --eval_best --model_config bert --few_shot_percent 0.1
 ```
 - As python command (only if installed from source):
 ```bash
 cd examples
-python3 run_experiment.py --source_datasets Friends --source_tasks emory_emotion_recognition --target_datasets Friends --target_tasks reading_comprehension --do_train --do_finetune --do_eval --eval_best --model_config=bert
+python3 run_experiment.py --source_datasets Friends --source_tasks emory_emotion_recognition --target_datasets Friends --target_tasks reading_comprehension --do_train --do_finetune --do_eval --eval_best --model_config bert --few_shot_percent 0.1
 ```
 
 ### Detailed Usage
