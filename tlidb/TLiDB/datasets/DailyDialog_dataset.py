@@ -42,8 +42,7 @@ class DailyDialog_dataset(TLiDB_Dataset):
         'dialogue_reasoning_commonsense_relation_prediction', 'adversarial_response_selection',
         'response_generation'
         ]
-    _url = "https://drive.google.com/uc?export=download&id=1U9dUi16RbAprUiSBmEKnEpwk45USfnml"
-    # _url = "https://drive.google.com/uc?export=download&id=1c88IN_ZHpRvkkgQxmN4sfGmqN2DurQx2"
+    _url = "https://drive.google.com/uc?export=download&id=1c88IN_ZHpRvkkgQxmN4sfGmqN2DurQx2"
     _task_metadatas = {
         "emotion_recognition": {
                 "prompt":"emotion:","type":"classification","loader":"utterance_level_classification",
@@ -119,7 +118,8 @@ class DailyDialog_dataset(TLiDB_Dataset):
                         str_dialogue = self._convert_dialogue_to_string(dialogue)
                         if task in turn:
                             self._input_array.append(str_dialogue)
-                            self._y_array.append(turn[task])
+                            self._y_array.append(turn[task]['label'])
+                            self._metadata_array.append({"instance_id": turn[task]['instance_id']})
 
     def _load_dialogue_level_classification_task(self, task, split_ids):
         for datum in self.dataset['data']:
@@ -128,9 +128,9 @@ class DailyDialog_dataset(TLiDB_Dataset):
                     dialogue = [[turn['speakers'][0], turn['utterance']] for turn in datum['dialogue']]
                     str_dialogue = self._convert_dialogue_to_string(dialogue)
                     self._input_array.append(str_dialogue)
-                    self._y_array.append(datum[task])
+                    self._y_array.append(datum[task]['label'])
+                    self._metadata_array.append({"instance_id": datum[task]['instance_id']})
 
-        
     def _load_span_extraction_task(self, task, split_ids):
         for datum in self.dataset['data']:
             if datum['dialogue_id'] in split_ids:
@@ -145,6 +145,7 @@ class DailyDialog_dataset(TLiDB_Dataset):
                                 if answer['answer_start'] > 0:
                                     answer['answer_start'] += len(qa['question'])+1
                                 self._y_array.append(answer)
+                                self._metadata_array.append({"instance_id": qa['instance_id']})
 
     def _load_causal_emotion_entailment_task(self, task, split_ids):
         for datum in self.dataset['data']:
@@ -156,6 +157,7 @@ class DailyDialog_dataset(TLiDB_Dataset):
                             "hypothesis": f"{sample['causal_utterance']} causes {sample['emotion']} in {sample['target_utterance']}",
                         })
                         self._y_array.append(sample['labels'])
+                        self._metadata_array.append({"instance_id": sample['instance_id']})
 
     def _load_dialogue_nli_task(self, task, split_ids):
         for datum in self.dataset['data']:
@@ -167,6 +169,7 @@ class DailyDialog_dataset(TLiDB_Dataset):
                             "hypothesis": f"{sample['head']} {sample['relation']} {sample['tail']}"
                         })
                         self._y_array.append(sample['label'])
+                        self._metadata_array.append({"instance_id": sample['instance_id']})
 
     def _load_multiple_choice_task(self, task, split_ids):
         for datum in self.dataset['data']:
@@ -181,6 +184,7 @@ class DailyDialog_dataset(TLiDB_Dataset):
                             "options": q['options']
                         })
                         self._y_array.append(q['label'])
+                        self._metadata_array.append({"instance_id": q['instance_id']})
 
     def _load_relation_extraction_task(self, task, split_ids):
         for datum in self.dataset['data']:
@@ -195,6 +199,7 @@ class DailyDialog_dataset(TLiDB_Dataset):
                             "tail": sample['tail']
                         })
                         self._y_array.append(sample['relation'])
+                        self._metadata_array.append({"instance_id": sample['instance_id']})
                 
     def _load_adversarial_response_selection_task(self, task, split_ids):
         for datum in self.dataset['data']:
@@ -206,17 +211,6 @@ class DailyDialog_dataset(TLiDB_Dataset):
                             if turn['turn_id'] in sample['context_turns']:
                                 context.append([turn['speakers'][0], turn['utterance']])
                         context = self._convert_dialogue_to_string(context)
-                        # for pos_resp, random_neg_resp, adv_neg_resp in zip(sample['positive_responses'], sample['random_negative_responses'], sample['adversarial_negative_responses']):
-                        #     # shuffle the options
-                        #     options = [pos_resp, random_neg_resp, adv_neg_resp]
-                        #     random.shuffle(options)
-                        #     self._input_array.append({
-                        #         "context": context,
-                        #         "options": options,
-                        #         "question": "Which option is the best response?"
-                        #     })
-                        #     self._y_array.append(str(options.index(pos_resp)))
-
                         for triple in sample['samples']:
                             self._input_array.append({
                                 "context": context,
@@ -224,6 +218,7 @@ class DailyDialog_dataset(TLiDB_Dataset):
                                 "question": "Which option is the best response?"
                             })
                             self._y_array.append(str(triple['label']))
+                            self._metadata_array.append({"instance_id": triple['instance_id']})
 
     def _collate_encoder(self, batch):
         X, y, metadata = [], [], {}

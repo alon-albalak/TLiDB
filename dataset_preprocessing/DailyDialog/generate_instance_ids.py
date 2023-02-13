@@ -68,3 +68,6 @@ TLiDB_path="TLiDB_DailyDialog/TLiDB_DailyDialog.json"
 dailydialog_data = json.load(open(TLiDB_path, "r"))
 
 generate_instance_ids(dailydialog_data)
+
+with open(TLiDB_path, "w") as f:
+    json.dump(dailydialog_data, f, indent=2)
