@@ -12,7 +12,8 @@ train_eval_source(){
         --do_train \
         --source_tasks $SOURCE_TASK --source_datasets DailyDialog \
         --num_epochs=$NUM_EPOCHS \
-        --do_eval --eval_best --target_tasks $SOURCE_TASK --target_datasets DailyDialog
+        --do_eval --eval_best --target_tasks $SOURCE_TASK --target_datasets DailyDialog \
+        --few_shot_percent 0.1
 }
 
 finetune_eval_target(){
@@ -25,7 +26,8 @@ finetune_eval_target(){
         --do_finetune \
         --target_tasks $TARGET_TASK --target_datasets DailyDialog \
         --num_epochs=$NUM_EPOCHS \
-        --do_eval --eval_best
+        --do_eval --eval_best \
+        --few_shot_percent 0.1
 }
 
 
