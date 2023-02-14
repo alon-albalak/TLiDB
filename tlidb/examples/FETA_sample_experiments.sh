@@ -48,8 +48,8 @@ DD_SOURCE_TASKS=(
     'topic_classification'
 )
 
-train_eval_source(){
-    SOURCE_TASK=$1
+train_eval_target(){
+    TARGET_TASK=$1
     DATASET=$2
 
     # Fine-tune and evaluate only on source task
@@ -59,9 +59,9 @@ train_eval_source(){
         --seed 42 \
         --gpu_batch_size 20 \
         --do_train \
-        --source_tasks $SOURCE_TASK --source_datasets $DATASET \
+        --source_tasks $TARGET_TASK --source_datasets $DATASET \
         --num_epochs 10 \
-        --do_eval --eval_best --target_tasks $SOURCE_TASK --target_datasets $DATASET \
+        --do_eval --eval_best --target_tasks $TARGET_TASK --target_datasets $DATASET \
         --few_shot_percent 0.1 \
         --save_pred
 
@@ -95,13 +95,13 @@ multitask_finetune_eval_target(){
 # iterate over all friends tasks to get baseline scores
 for task in ${FRIENDS_TASKS[@]}; do
     echo "Training baseline on $task"
-    train_eval_source $task "Friends"
+    train_eval_target $task "Friends"
 done
 
 # iterate over all dailydialog tasks to get baseline scores
 for task in ${DD_TASKS[@]}; do
     echo "Training baseline on $task"
-    train_eval_source $task "DailyDialog"
+    train_eval_target $task "DailyDialog"
 done
 
 # iterate over all friends tasks, and respective source tasks, to get multitask transfer scores
