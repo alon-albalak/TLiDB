@@ -10,7 +10,7 @@ The repo can also be utilized for many more research scenarios, including:
 - Continual Learning
 - Generalizability of pre-training datasets and model architectures
 
-## TLiDB is the starter code for the FETA Benchmark Challenge!
+## This repo is also the starter code for the FETA Benchmark Challenge!
 
 The FETA Benchmark Challenge is being hosted at the [5th Workshop on NLP For Conversational AI](https://sites.google.com/view/5thnlp4convai) (co-located with ACL 2023).
 <br>
@@ -107,16 +107,27 @@ We encourage outside contributions to the project!
 ## Citation
 If you use the FETA datasets in your work, please cite the FETA paper:
 ```
-@misc{feta_albalak,
-    doi = {10.48550/ARXIV.2205.06262},
-    url = {https://arxiv.org/abs/2205.06262},
-    author = {Albalak, Alon and Tuan, Yi-Lin and Jandaghi, Pegah and Pryor, Connor and Yoffe, Luke and Ramachandran, Deepak and Getoor, Lise and Pujara, Jay and Wang, William Yang},
-    keywords = {Computation and Language (cs.CL), FOS: Computer and information sciences, FOS: Computer and information sciences},
-    title = {FETA: A Benchmark for Few-Sample Task Transfer in Open-Domain Dialogue},
-    publisher = {arXiv},
-    year = {2022},
-    copyright = {Creative Commons Attribution Share Alike 4.0 International}
-    }
+@inproceedings{albalak-etal-2022-feta,
+    title = "{FETA}: A Benchmark for Few-Sample Task Transfer in Open-Domain Dialogue",
+    author = "Albalak, Alon  and
+      Tuan, Yi-Lin  and
+      Jandaghi, Pegah  and
+      Pryor, Connor  and
+      Yoffe, Luke  and
+      Ramachandran, Deepak  and
+      Getoor, Lise  and
+      Pujara, Jay  and
+      Wang, William Yang",
+    booktitle = "Proceedings of the 2022 Conference on Empirical Methods in Natural Language Processing",
+    month = dec,
+    year = "2022",
+    address = "Abu Dhabi, United Arab Emirates",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2022.emnlp-main.751",
+    pages = "10936--10953",
+    abstract = "Task transfer, transferring knowledge contained in related tasks, holds the promise of reducing the quantity of labeled data required to fine-tune language models. Dialogue understanding encompasses many diverse tasks, yet task transfer has not been thoroughly studied in conversational AI. This work explores conversational task transfer by introducing FETA: a benchmark for FEw-sample TAsk transfer in open-domain dialogue.FETA contains two underlying sets of conversations upon which there are 10 and 7 tasks annotated, enabling the study of intra-dataset task transfer; task transfer without domain adaptation. We utilize three popular language models and three learning algorithms to analyze the transferability between 132 source-target task pairs and create a baseline for future work.We run experiments in the single- and multi-source settings and report valuable findings, e.g., most performance trends are model-specific, and span extraction and multiple-choice tasks benefit the most from task transfer.In addition to task transfer, FETA can be a valuable resource for future research into the efficiency and generalizability of pre-training datasets and model architectures, as well as for learning settings such as continual and multitask learning.",
+}
+
 ```
 
 If you use TLiDB in your work, please cite the repository:
