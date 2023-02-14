@@ -10,6 +10,16 @@ The repo can also be utilized for many more research scenarios, including:
 - Continual Learning
 - Generalizability of pre-training datasets and model architectures
 
+## TLiDB is the starter code for the FETA Benchmark Challenge!
+
+The FETA Benchmark Challenge is being hosted at the [5th Workshop on NLP For Conversational AI](https://sites.google.com/view/5thnlp4convai) (co-located with ACL 2023).
+<br>
+The mission of the FETA challenge is to encourage the development and evaluation of new approaches to task-transfer with limited in-domain data.
+<br>
+Specifically, FETA focuses on the dialogue domain due to interests in empowering human-machine communication through natural language.
+
+For more details on the FETA challenge, see [the FETA README](./FETA_README.md).
+
 # Overview
 TLiDB is a tool used to benchmark methods of transfer learning in conversational AI.
 TLiDB can easily handle *domain adaptation, task transfer, multitasking, continual learning*, and other transfer learning settings.
