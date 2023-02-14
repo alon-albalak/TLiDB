@@ -2,15 +2,14 @@
 
 FETA is a benchmark for few-sample task transfer in open-domain dialogue. FETA contains two underlying sets of conversations upon which there are 10 and 7 tasks annotated, enabling the study of intra-dataset task transfer; task transfer without domain adaptation. FETA's two datasets cover a variety of properties (dyadic vs. multi-party, anonymized vs. recurring speaker, varying dialogue lengths) and task types (utterance-level classification, dialogue-level classification, span extraction, multiple choice), and maintain a wide variety of data quantities.
 
-## Why FETA?
-
 # Competition Overview
 ### FETA Competition
 The FETA competition is being hosted at the [5th Workshop on NLP For Conversational AI](https://sites.google.com/view/5thnlp4convai) (co-located with ACL 2023) and aims to encourage the development of new approaches to task-transfer with limited data.
 <br>
-Each of the FETA datasets has it's own submission portal ([FETA-DailyDialog](https://codalab.lisn.upsaclay.fr/competitions/10745) and [FETA-Friends](https://codalab.lisn.upsaclay.fr/competitions/10744)).
+Participation in the FETA challenge has 2 components: model predictions submitted to codalab (each of the FETA datasets has it's own submission portal ([FETA-DailyDialog](https://codalab.lisn.upsaclay.fr/competitions/10745) and [FETA-Friends](https://codalab.lisn.upsaclay.fr/competitions/10744)), and a paper describing your methods.
 <br>
-Participants are not required to compete in both datasets.
+*NOTE*: Participants are not required to compete in both datasets.
+<br>
 
 ### Important Dates
 - *Competition Start*: February 15th 2023 AoE
@@ -71,7 +70,7 @@ Following training, see [tlidb/examples/FETA_create_submission.py](tlidb/example
 An example submission folder is found at [tlidb/examples/example_friends_submission](tlidb/examples/example_friends_submission). 
 
 
-### Submission Format
+### Codalab Submission Format
 For each FETA dataset, a submission is composed of a folder for each target task. Each task folder must contain 2 prediction files: baseline_predictions.csv and predictions.csv. The baseline_predictions.csv file contains the predictions from the baseline model, and the predictions.csv file contains the predictions from the model utilizing knowlege transfer. Each prediction file should have 2 columns, where the first column contains instance ids, and the second column contains the models predictions. Each prediction file should be in .csv format, and should NOT have a header row. Each task is different and has different expected prediction formats.
 
 For prediction format examples see the files in [tlidb/examples/example_friends_submission](tlidb/examples/example_friends_submission).
