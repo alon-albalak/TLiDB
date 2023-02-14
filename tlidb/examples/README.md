@@ -93,5 +93,5 @@ bert_large_config = {
 and then use `--model_config bert_large` in the call to `run_experiment.py`.
 
 ## Example Scripts
-We provide the example scripts `run_full_data_task_transfer_single_source.sh` and `run_few_shot_task_transfer_single_source.sh` to demonstrate a simple script used to run many transfer experiments.
+We provide the example scripts: `FETA_sample_experiments.sh`, `run_full_data_task_transfer_single_source.sh`, and `run_few_shot_task_transfer_single_source.sh` to demonstrate a simple script used to run many transfer experiments.
 The scripts will first train a model on the designated source task, then fine-tune and evaluate on each of the target tasks. These scripts are only meant to be a starting point.
