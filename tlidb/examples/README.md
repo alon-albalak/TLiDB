@@ -26,7 +26,7 @@ To simply train/evaluate a model on a single dataset/task:
 MODEL=bert
 DATASET=Friends
 TASK=emory_emotion_recognition
-python3 run_experiment.py --do_train --model_config $MODEL --source_tasks $TASK --source_datasets $DATASET --do_eval --eval_best --target_tasks $TASK --target_datasets $DATASET
+python3 run_experiment.py --do_train --model_config $MODEL --source_tasks $TASK --source_datasets $DATASET --do_eval --eval_best --target_tasks $TASK --target_datasets $DATASET --few_shot_percent 0.1
 ```
 
 To train a model on a source dataset/task and subsequently finetune on a target dataset/task:
@@ -36,7 +36,7 @@ SOURCE_DATASET=Friends
 SOURCE_TASK=emory_emotion_recognition
 TARGET_DATASET=Friends
 TARGET_TASK=reading_comprehension
-python3 run_experiment.py --do_train --model_config $MODEL --source_tasks $SOURCE_TASK --source_datasets $SOURCE_DATASET --do_finetune --do_eval --eval_best --target_tasks $TARGET_TASK --target_datasets $TARGET_DATASET
+python3 run_experiment.py --do_train --model_config $MODEL --source_tasks $SOURCE_TASK --source_datasets $SOURCE_DATASET --do_finetune --do_eval --eval_best --target_tasks $TARGET_TASK --target_datasets $TARGET_DATASET --few_shot_percent 0.1
 ```
 
 ### Multitasking
@@ -47,7 +47,7 @@ SOURCE_DATASET=Friends
 SOURCE_TASK=emory_emotion_recognition
 TARGET_DATASET=Friends
 TARGET_TASK=reading_comprehension
-python3 run_experiment.py --do_train --model_config $MODEL --source_tasks $SOURCE_TASK --source_datasets $SOURCE_DATASET --do_eval --eval_best --target_tasks $TARGET_TASK --target_datasets $TARGET_DATASET --multitask
+python3 run_experiment.py --do_train --model_config $MODEL --source_tasks $SOURCE_TASK --source_datasets $SOURCE_DATASET --do_eval --eval_best --target_tasks $TARGET_TASK --target_datasets $TARGET_DATASET --multitask --few_shot_percent 0.1
 ```
 
 Multitask training will validate only on the target task(s).
@@ -74,7 +74,7 @@ TARGET_TASKS=(
     )
 TARGET_DATASET=Friends
 for target_task in ${TARGET_TASKS[@]}; do
-    python3 run_experiment.py --do_finetune --model_config $MODEL --source_tasks $SOURCE_TASK --source_datasets $SOURCE_DATASET --target_tasks $target_task --target_datasets $TARGET_DATASET
+    python3 run_experiment.py --do_finetune --model_config $MODEL --source_tasks $SOURCE_TASK --source_datasets $SOURCE_DATASET --target_tasks $target_task --target_datasets $TARGET_DATASET --few_shot_percent 0.1
 done
 ```
 
