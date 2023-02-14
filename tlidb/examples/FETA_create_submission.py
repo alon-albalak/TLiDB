@@ -49,7 +49,7 @@ DD_SOURCE_DATASETS=[
 baseline_path = "baselines/PRETRAINED_0.1_FEWSHOT_{}.{}_seed.42/bert-base-uncased/predictions.csv"
 multitask_path = "multitask_train_finetune/MULTITASK_0.1_FEWSHOT_{}.{}_{}.{}_seed.42/bert-base-uncased/FINETUNED_0.1_FEWSHOT_{}.{}_seed.42/predictions.csv"
 
-
+# Move Friends predictions into a single directory
 sub_dir = "friends_submission"
 if not os.path.exists(sub_dir):
     os.mkdir(sub_dir)
@@ -57,29 +57,34 @@ if not os.path.exists(sub_dir):
 for target, source in zip(FRIENDS_DATASETS, FRIENDS_SOURCE_DATASETS):
     print(target, source)
     
+    # Create a directory for each target dataset
     if not os.path.exists(os.path.join(sub_dir, target)):
         os.mkdir(os.path.join(sub_dir, target))
+    # move baseline predictions
     baseline_score_file = baseline_path.format("Friends", target)
     os.system(f"cp {baseline_score_file} {os.path.join(sub_dir, target, 'baseline_predictions.csv')}")
-
+    # move transfer predictions
     multitask_score_file = multitask_path.format("Friends", source, "Friends", target, "Friends", target)
     os.system(f"cp {multitask_score_file} {os.path.join(sub_dir, target, 'predictions.csv')}")
-    
+    # zip the contents of the submission directory
     os.system(f"cd {sub_dir} && zip -r submission.zip *")
 
+
+# Move DailyDialog predictions into a single directory
 sub_dir = "dd_submission"
 if not os.path.exists(sub_dir):
     os.mkdir(sub_dir)
-
+# Create a directory for each target dataset
 for target, source in zip(DD_DATASETS, DD_SOURCE_DATASETS):
     print(target, source)
     
     if not os.path.exists(os.path.join(sub_dir, target)):
         os.mkdir(os.path.join(sub_dir, target))
+    # move baseline predictions
     baseline_score_file = baseline_path.format("DailyDialog", target)
     os.system(f"cp {baseline_score_file} {os.path.join(sub_dir, target, 'baseline_predictions.csv')}")
-
+    # move transfer predictions
     multitask_score_file = multitask_path.format("DailyDialog", source, "DailyDialog", target, "DailyDialog", target)
     os.system(f"cp {multitask_score_file} {os.path.join(sub_dir, target, 'predictions.csv')}")
-
+    # zip the contents of the submission directory
     os.system(f"cd {sub_dir} && zip -r submission.zip *")

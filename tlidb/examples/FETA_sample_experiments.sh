@@ -1,6 +1,6 @@
 GPU=$1
 
-FRIENDS_DATASETS=(
+FRIENDS_TASKS=(
     'emory_emotion_recognition'
     'MELD_emotion_recognition'
     'reading_comprehension'
@@ -10,7 +10,8 @@ FRIENDS_DATASETS=(
     'relation_extraction'
 )
 
-FRIENDS_SOURCE_DATASETS=(
+# Source tasks matching each target task, in order
+FRIENDS_SOURCE_TASKS=(
     'personality_detection'
     'relation_extraction'
     'MELD_emotion_recognition'
@@ -20,7 +21,7 @@ FRIENDS_SOURCE_DATASETS=(
     'emory_emotion_recognition'
 )
 
-DD_DATASETS=(
+DD_TASKS=(
     'emotion_recognition'
     'dialogue_act_classification'
     'topic_classification'
@@ -33,7 +34,8 @@ DD_DATASETS=(
     'adversarial_response_selection'
 )
 
-DD_SOURCE_DATASETS=(
+# Source tasks matching each target task, in order
+DD_SOURCE_TASKS=(
     'dialogue_act_classification'
     'emotion_recognition'
     'dialogue_nli'
@@ -50,6 +52,7 @@ train_eval_source(){
     SOURCE_TASK=$1
     DATASET=$2
 
+    # Fine-tune and evaluate only on source task
     CUDA_VISIBLE_DEVICES=$GPU python3 run_experiment.py \
         --log_and_model_dir "baselines" \
         --model_config bert \
@@ -65,11 +68,12 @@ train_eval_source(){
     find ./baselines -name "best_model.pt" -delete
 }
 
-finetune_eval_target(){
+multitask_finetune_eval_target(){
     SOURCE_TASK=$1
     DATASET=$2
     TARGET_TASK=$3
 
+    # Multi-task on source task and target task, then fine-tune and evaluate on target task
     CUDA_VISIBLE_DEVICES=$GPU python3 run_experiment.py \
         --log_and_model_dir "multitask_train_finetune" \
         --model_config bert \
@@ -88,22 +92,26 @@ finetune_eval_target(){
     find ./multitask_train_finetune -name "best_model.pt" -delete
 }
 
-for dataset in ${FRIENDS_DATASETS[@]}; do
-    echo "Training baseline on $dataset"
-    train_eval_source $dataset "Friends"
+# iterate over all friends tasks to get baseline scores
+for task in ${FRIENDS_TASKS[@]}; do
+    echo "Training baseline on $task"
+    train_eval_source $task "Friends"
 done
 
-for dataset in ${DD_DATASETS[@]}; do
-    echo "Training baseline on $dataset"
-    train_eval_source $dataset "DailyDialog"
+# iterate over all dailydialog tasks to get baseline scores
+for task in ${DD_TASKS[@]}; do
+    echo "Training baseline on $task"
+    train_eval_source $task "DailyDialog"
 done
 
-for i in "${!FRIENDS_DATASETS[@]}"; do
-    echo "Multi-tasking on ${FRIENDS_DATASETS[$i]} and ${FRIENDS_SOURCE_DATASETS[$i]}, followed by finetuning on ${FRIENDS_DATASETS[$i]}"
-    finetune_eval_target ${FRIENDS_SOURCE_DATASETS[$i]} "Friends" ${FRIENDS_DATASETS[$i]}
+# iterate over all friends tasks, and respective source tasks, to get multitask transfer scores
+for i in "${!FRIENDS_TASKS[@]}"; do
+    echo "Multi-tasking on ${FRIENDS_TASKS[$i]} and ${FRIENDS_SOURCE_TASKS[$i]}, followed by finetuning on ${FRIENDS_TASKS[$i]}"
+    multitask_finetune_eval_target ${FRIENDS_SOURCE_TASKS[$i]} "Friends" ${FRIENDS_TASKS[$i]}
 done
 
-for i in "${!DD_DATASETS[@]}"; do
-    echo "Multi-tasking on ${DD_DATASETS[$i]} and ${DD_SOURCE_DATASETS[$i]}, followed by finetuning on ${DD_DATASETS[$i]}"
-    finetune_eval_target ${DD_SOURCE_DATASETS[$i]} "DailyDialog" ${DD_DATASETS[$i]}
+# iterate over all dailydialog tasks, and respective source tasks, to get multitask transfer scores
+for i in "${!DD_TASKS[@]}"; do
+    echo "Multi-tasking on ${DD_TASKS[$i]} and ${DD_SOURCE_TASKS[$i]}, followed by finetuning on ${DD_TASKS[$i]}"
+    multitask_finetune_eval_target ${DD_SOURCE_TASKS[$i]} "DailyDialog" ${DD_TASKS[$i]}
 done
