@@ -39,8 +39,8 @@ FETA measures model-specific transfer. This requires that each model to be measu
 **1 - Pre-FETA Training:** The first stage of training should occur prior to calculating baseline scores. At this stage, you are allowed to use any outside sources of data. In our [example code](tlidb/examples/FETA_sample_experiments.sh) we use a pre-trained BERT model, so the only data we utilize prior to baseline is BERT's pretraining corpus.
 <br><br>
 **2 - Baseline Model Training/Evaluation:** The next stage requires that we measure baseline scores. For each task in the FETA dataset, the baseline score is calculated by taking the model from stage 1 and fine-tuning and evaluating directly on the task. This step can be seen in the `train_eval_target` function of the [example code](tlidb/examples/FETA_sample_experiments.sh), where for each target task we first fine-tune and then evaluate the model.
-<br>
-*NOTE:* If you use instructions, demonstrations, or other prompting methods, the same instructions, demonstrations and prompts should be used for baseline scores and transfer scores.
+<!-- <br>
+*NOTE:* If you use instructions, demonstrations, or other prompting methods, the same instructions, demonstrations and prompts should be used for baseline scores and transfer scores. -->
 <br><br>
 **3 - Knowledge Transfer and Evaluation:** The third stage is applying knowledge transfer to each target task within the FETA dataset. You can continue with the model from stage 2, or start from scratch with the model in stage 1 (our examples perform transfer on the model from stage 1, a pre-trained BERT). You can use a single model for all target tasks, but we highly recommend repeating this stage for each target task in the dataset. This step requires that you use the few-shot data for each target task.
 <br>
