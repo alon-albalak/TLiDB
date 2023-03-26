@@ -15,7 +15,7 @@ Participation in the FETA challenge has 2 components: model predictions submitte
 - *Competition Start*: February 15th 2023 AoE
 - *Competition End*: July 1st 2023 AoE (End of submissions to codalab)
 - *Paper Submissions Due*: July 8th 2023 AoE
-- *Awards and Prizes Announced*: July 13/14 2023
+- *Awards and Prizes Announced*: July 14 2023
 
 ### Awards and Prizes
 **The FETA Benchmark Challenge will feature prizes for multiple teams**
