@@ -52,7 +52,7 @@ Each submission will be given 4 scores:
 - Baseline Score: the baseline model's scores averaged across all tasks
 - Transfer Score: the final model's scores averaged across all tasks (includes knowledge transfer)
 - Score Delta: the difference between transfer score and baseline score
-- Submission Score: The score on which a submission will be judged. It is calculated as the score delta plus one-tenth the baseline score (SD + 0.1 \* BS)
+- **Submission Score: The score on which a submission will be judged**. It is calculated as the score delta plus one-tenth the baseline score (SD + 0.1 \* BS)
 
 ### How do I officially participate in the FETA Benchmark Challenge?
 Participation in the FETA challenge has 2 components: your submissions to the [FETA-DailyDialog](https://codalab.lisn.upsaclay.fr/competitions/12037) and/or [FETA-Friends](https://codalab.lisn.upsaclay.fr/competitions/12038) codalab site (deadline: July 1st 2023 AoE), and a paper describing your methods emailed to us at [feta.benchmark@gmail.com](mailto:feta.benchmark@gmail.com) (deadline: July 8th 2023 AoE). The paper should use \*ACL format, available on [GitHub](https://github.com/acl-org/acl-style-files) and as an [Overleaf template](https://www.overleaf.com/project/5f64f1fb97c4c50001b60549). In the email submission of your paper, include your team name from codalab.
@@ -123,11 +123,9 @@ To get teams started, we provide some suggested ideas that stem from differing a
   - Continued pre-training
 
 ## Rules
-<ol>
-  <li>There are no restrictions on model sizes (# parameters) or model architectures.</li>
-  <li>All data used (for both source and target tasks) must be from the few-shot dataset. If using the TLiDB training scripts, simply use the `--few_shot_percent=0.1` flag. If loading the data from your own script, use the files named `0.1_percent_few_shot_{train|dev}_ids`. **Do not use the full shot datasets**</li>
-  <li>For an individual target task, you may use as many source tasks as you'd like as long as they are within the same dataset. For example, if we are working in FETA-Friends and the target task is question answering, then we can use anywhere between 1-6 of the remaining tasks from FETA-Friends as the source tasks.</li>
-</ol>
+- There are no restrictions on model sizes (# parameters) or model architectures
+- All data used (for both source and target tasks) must be from the few-shot dataset. If using the TLiDB training scripts, simply use the `--few_shot_percent=0.1` flag. If loading the data from your own script, use the files named `0.1_percent_few_shot_{train|dev}_ids`. **Do not use the full shot datasets**
+- For an individual target task, you may use as many source tasks as you'd like as long as they are within the same dataset. For example, if we are working in FETA-Friends and the target task is question answering, then we can use anywhere between 1-6 of the remaining tasks from FETA-Friends as the source tasks.
 
 ### Questions or Comments?
 Please email the FETA team at [feta.benchmark@gmail.com](mailto:feta.benchmark@gmail.com)
