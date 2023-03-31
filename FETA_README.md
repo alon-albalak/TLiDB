@@ -6,7 +6,7 @@ FETA is a benchmark for few-sample task transfer in open-domain dialogue. FETA c
 ### FETA Competition
 The FETA competition is being hosted at the [5th Workshop on NLP For Conversational AI](https://sites.google.com/view/5thnlp4convai) (co-located with ACL 2023) and aims to encourage the development of new approaches to task-transfer with limited data.
 <br>
-Participation in the FETA challenge has 2 components: model predictions submitted to codalab (each of the FETA datasets has it's own submission portal ([FETA-DailyDialog](https://codalab.lisn.upsaclay.fr/competitions/10745) and [FETA-Friends](https://codalab.lisn.upsaclay.fr/competitions/10744)), and a paper describing your methods.
+Participation in the FETA challenge has 2 components: model predictions submitted to codalab (each of the FETA datasets has it's own submission portal ([FETA-DailyDialog](https://codalab.lisn.upsaclay.fr/competitions/12037) and [FETA-Friends](https://codalab.lisn.upsaclay.fr/competitions/12038)), and a paper describing your methods.
 <br>
 *NOTE*: Participants are not required to compete in both datasets.
 <br>
@@ -55,7 +55,7 @@ Each submission will be given 4 scores:
 - Submission Score: The score on which a submission will be judged. It is calculated as the score delta plus one-tenth the baseline score (SD + 0.1 \* BS)
 
 ### How do I officially participate in the FETA Benchmark Challenge?
-Participation in the FETA challenge has 2 components: your submissions to the [FETA-DailyDialog](https://codalab.lisn.upsaclay.fr/competitions/10745) and/or [FETA-Friends](https://codalab.lisn.upsaclay.fr/competitions/10744) codalab site (deadline: July 1st 2023 AoE), and a paper describing your methods emailed to us at [feta.benchmark@gmail.com](mailto:feta.benchmark@gmail.com) (deadline: July 8th 2023 AoE). The paper should use \*ACL format, available on [GitHub](https://github.com/acl-org/acl-style-files) and as an [Overleaf template](https://www.overleaf.com/project/5f64f1fb97c4c50001b60549). In the email submission of your paper, include your team name from codalab.
+Participation in the FETA challenge has 2 components: your submissions to the [FETA-DailyDialog](https://codalab.lisn.upsaclay.fr/competitions/12037) and/or [FETA-Friends](https://codalab.lisn.upsaclay.fr/competitions/12038) codalab site (deadline: July 1st 2023 AoE), and a paper describing your methods emailed to us at [feta.benchmark@gmail.com](mailto:feta.benchmark@gmail.com) (deadline: July 8th 2023 AoE). The paper should use \*ACL format, available on [GitHub](https://github.com/acl-org/acl-style-files) and as an [Overleaf template](https://www.overleaf.com/project/5f64f1fb97c4c50001b60549). In the email submission of your paper, include your team name from codalab.
 
 
 ### How do I submit the paper describing my method?
