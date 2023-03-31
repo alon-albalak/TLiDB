@@ -26,7 +26,7 @@ Additionally, prizes will be given for innovative approaches (judged by an indep
 <br>
 Exact awards are to be determined. Awards will be either cash prizes or GPUs given out at the workshop.
 
-# Competition Specifics
+# Competition Details
 
 ### How FETA Measures Transfer
 The FETA Benchmark aims to measure the ability of a given model and learning algorithm to transfer knowledge from a source task(s) to a target task. FETA measures transfer by calculating 2 scores: a baseline score that does not utilize transfer, and a score for a method that utilizes transfer.
@@ -41,12 +41,18 @@ FETA measures model-specific transfer. This requires that each model to be measu
 **2 - Baseline Model Training/Evaluation:** The next stage requires that we measure baseline scores. For each task in the FETA dataset, the baseline score is calculated by taking the model from stage 1 and fine-tuning and evaluating directly on the task. This step can be seen in the `train_eval_target` function of the [example code](tlidb/examples/FETA_sample_experiments.sh), where for each target task we first fine-tune and then evaluate the model.
 <!-- <br>
 *NOTE:* If you use instructions, demonstrations, or other prompting methods, the same instructions, demonstrations and prompts should be used for baseline scores and transfer scores. -->
-<br><br>
 **3 - Knowledge Transfer and Evaluation:** The third stage is applying knowledge transfer to each target task within the FETA dataset. You can continue with the model from stage 2, or start from scratch with the model in stage 1 (our examples perform transfer on the model from stage 1, a pre-trained BERT). You can use a single model for all target tasks, but we highly recommend repeating this stage for each target task in the dataset. This step requires that you use the few-shot data for each target task.
 <br>
 Finally, we measure transfer scores. This is done by evaluating the model directly on the test set. Our [example code](tlidb/examples/FETA_sample_experiments.sh) performs knowledge transfer and evaluation in the `multitask_finetune_eval_target` function.
 <br>
 *NOTE:* To properly measure intra-dataset task transfer, no outside data is allowed in this stage. For example, if we are working in FETA-Friends and the target task is question answering, then we can only use: the few-shot data for question answering and the few-shot data available for other FETA-Friends tasks. Intra-dataset task transfer does not allow for the use of DailyDialog when working on a Friends target dataset, or vice versa, and does not allow for any outside data to be used at this stage.
+
+### Scoring
+Each submission will be given 4 scores:
+- Baseline Score: the baseline model's scores averaged across all tasks
+- Transfer Score: the final model's scores averaged across all tasks (includes knowledge transfer)
+- Score Delta: the difference between transfer score and baseline score
+- Submission Score: The score on which a submission will be judged. It is calculated as the score delta plus one-tenth the baseline score (SD + 0.1 \* BS)
 
 ### How do I officially participate in the FETA Benchmark Challenge?
 Participation in the FETA challenge has 2 components: your submissions to the [FETA-DailyDialog](https://codalab.lisn.upsaclay.fr/competitions/10745) and/or [FETA-Friends](https://codalab.lisn.upsaclay.fr/competitions/10744) codalab site (deadline: July 1st 2023 AoE), and a paper describing your methods emailed to us at [feta.benchmark@gmail.com](mailto:feta.benchmark@gmail.com) (deadline: July 8th 2023 AoE). The paper should use \*ACL format, available on [GitHub](https://github.com/acl-org/acl-style-files) and as an [Overleaf template](https://www.overleaf.com/project/5f64f1fb97c4c50001b60549). In the email submission of your paper, include your team name from codalab.
@@ -116,6 +122,12 @@ To get teams started, we provide some suggested ideas that stem from differing a
   - Target task-aware training
   - Continued pre-training
 
+## Rules
+<ol>
+  <li>There are no restrictions on model sizes (# parameters) or model architectures.</li>
+  <li>All data used (for both source and target tasks) must be from the few-shot dataset. If using the TLiDB training scripts, simply use the `--few_shot_percent=0.1` flag. If loading the data from your own script, use the files named `0.1_percent_few_shot_{train|dev}_ids`. **Do not use the full shot datasets**</li>
+  <li>For an individual target task, you may use as many source tasks as you'd like as long as they are within the same dataset. For example, if we are working in FETA-Friends and the target task is question answering, then we can use anywhere between 1-6 of the remaining tasks from FETA-Friends as the source tasks.</li>
+</ol>
 
 ### Questions or Comments?
 Please email the FETA team at [feta.benchmark@gmail.com](mailto:feta.benchmark@gmail.com)
