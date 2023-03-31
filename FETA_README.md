@@ -47,7 +47,7 @@ Finally, we measure transfer scores. This is done by evaluating the model direct
 <br>
 *NOTE:* To properly measure intra-dataset task transfer, no outside data is allowed in this stage. For example, if we are working in FETA-Friends and the target task is question answering, then we can only use: the few-shot data for question answering and the few-shot data available for other FETA-Friends tasks. Intra-dataset task transfer does not allow for the use of DailyDialog when working on a Friends target dataset, or vice versa, and does not allow for any outside data to be used at this stage.
 
-### Scoring
+## Scoring
 Each submission will be given 4 scores:
 - Baseline Score: the baseline model's scores averaged across all tasks
 - Transfer Score: the final model's scores averaged across all tasks (includes knowledge transfer)
